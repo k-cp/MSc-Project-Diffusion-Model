@@ -1,0 +1,6 @@
+2026-06-17 18:19:15,093 - LOG - INFO - Doing sparse reconstruction task
+2026-06-17 18:19:15,093 - LOG - INFO - Loading model
+2026-06-17 18:20:51,574 - LOG - INFO - Doing sparse reconstruction task
+2026-06-17 18:20:51,574 - LOG - INFO - Loading model
+2026-06-17 18:20:52,028 - LOG - INFO - Model loaded
+2026-06-17 18:20:52,028 - LOG - INFO - Preparing data

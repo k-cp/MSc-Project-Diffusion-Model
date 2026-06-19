@@ -1,0 +1,4 @@
+INFO - main.py - 2026-06-17 17:55:33,179 - Using device: cpu
+INFO - main.py - 2026-06-17 17:55:33,179 - Writing log file to ./experiments/km256/logs/./weights/km256/
+INFO - main.py - 2026-06-17 17:55:33,179 - Exp instance id = 8558
+INFO - main.py - 2026-06-17 17:55:33,179 - Exp comment = 

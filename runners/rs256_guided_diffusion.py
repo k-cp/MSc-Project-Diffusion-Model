@@ -296,7 +296,7 @@ class Diffusion(object):
             print('Using unconditional model')
             model = Model(self.config)
 
-        model.load_state_dict(torch.load(self.config.model.ckpt_path)[-1])
+        model.load_state_dict(torch.load(self.config.model.ckpt_path, map_location='cpu')[-1])
 
         model.to(self.device)
 

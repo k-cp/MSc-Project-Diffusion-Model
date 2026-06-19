@@ -1,0 +1,17 @@
+# Ignore python virtual environments
+env/
+venv/
+env_gpu/
+.venv/
+
+# Ignore heavy ML checkpoints and data directories
+*.pt
+*.pth
+*.pkl
+*.h5
+data/
+datasets/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
