@@ -1,0 +1,35 @@
+INFO:LOG:Doing sparse reconstruction task
+INFO:LOG:Loading model
+INFO:LOG:Model loaded
+INFO:LOG:Preparing data
+bad err=3 in Xbyak::Error
+ERROR:root:Traceback (most recent call last):
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/main.py", line 102, in main
+    runner.reconstruct()
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 307, in reconstruct
+    ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir,
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 100, in load_recons_data
+    arr = transforms.GaussianBlur(kernel_size=ker_size, sigma=ker_size)(arr)# F.avg_pool2d(arr, (ker_size, ker_size), stride=1, count_include_pad=False)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torchvision/transforms/transforms.py", line 1820, in forward
+    return F.gaussian_blur(img, self.kernel_size, [sigma, sigma])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torchvision/transforms/functional.py", line 1380, in gaussian_blur
+    output = F_t.gaussian_blur(t_img, kernel_size, sigma)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torchvision/transforms/_functional_tensor.py", line 761, in gaussian_blur
+    img = conv2d(img, kernel, groups=img.shape[-3])
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: label is too far
+
+Use residual gradient guidance during sampling
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Using conditional model

@@ -1,4 +1,0 @@
-usage: main.py [-h] --config CONFIG [--seed SEED] [--repeat_run REPEAT_RUN]
-               [--sample_step SAMPLE_STEP] [--t T] [--r REVERSE_STEPS]
-               [--comment COMMENT]
-main.py: error: unrecognized arguments: --ni
