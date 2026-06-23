@@ -15,5 +15,6 @@ source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
 #Ensure we are in the main directory where kmflow_re1000_rs256.yml lives
 cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model
 
-
+export ATEN_CPU_CAPABILITY=default
+export USE_MKLDNN=0
 python main.py --config kmflow_re1000_rs256_sparse_recons.yml --seed 1234 --sample_step 1 --t 240 --r 30 
