@@ -16,4 +16,4 @@ source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
 cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model
 
 
-python main.py --config configs/kmflow_re1000_rs256_sparse_recons_conditional.yml --seed 1234 --sample_step 1 --t 240 --r 30 --ni
+python main.py --config kmflow_re1000_rs256_sparse_recons_conditional.yml --seed 1234 --sample_step 1 --t 240 --r 30 
