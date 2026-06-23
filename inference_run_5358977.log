@@ -1,0 +1,18 @@
+/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torch/cuda/__init__.py:187: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12070). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+INFO:LOG:Doing sparse reconstruction task
+INFO:LOG:Loading model
+INFO:LOG:Model loaded
+INFO:LOG:Preparing data
+ERROR:root:Traceback (most recent call last):
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/main.py", line 102, in main
+    runner.reconstruct()
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 308, in reconstruct
+    self.config.data.sample_data_dir,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'sample_data_dir'
+
+Not use physical gradient during sampling
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Using unconditional model
