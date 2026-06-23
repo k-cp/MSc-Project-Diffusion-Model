@@ -12,6 +12,8 @@ import copy
 
 from runners.rs256_guided_diffusion import Diffusion
 
+torch.backends.mkldnn.enabled = False
+
 def parse_args_and_config():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--config', type=str, required=True, help='Path to the config file')
