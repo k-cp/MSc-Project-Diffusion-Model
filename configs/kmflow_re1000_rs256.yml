@@ -7,6 +7,7 @@ data:
     channels: 3
     data_kw: "km256"
     num_workers: 4
+    sample_data_dir: "./data/kmflow_sampled_data_irregnew.npz"
     data_dir: "./data/kf_2d_re1000_256_40seed.npy"
     stat_path: "./pretrained_weights/km256_stats.npz"
     blur_method: "nearest"
