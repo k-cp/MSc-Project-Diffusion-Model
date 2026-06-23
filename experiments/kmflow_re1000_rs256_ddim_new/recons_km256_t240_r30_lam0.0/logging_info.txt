@@ -12,3 +12,15 @@
 2026-06-23 11:48:52,276 - LOG - INFO - Loading model
 2026-06-23 11:48:52,498 - LOG - INFO - Model loaded
 2026-06-23 11:48:52,498 - LOG - INFO - Preparing data
+2026-06-23 13:11:00,942 - LOG - INFO - Doing sparse reconstruction task
+2026-06-23 13:11:00,943 - LOG - INFO - Loading model
+2026-06-23 13:11:01,163 - LOG - INFO - Model loaded
+2026-06-23 13:11:01,164 - LOG - INFO - Preparing data
+2026-06-23 13:29:19,028 - LOG - INFO - Doing sparse reconstruction task
+2026-06-23 13:29:19,028 - LOG - INFO - Loading model
+2026-06-23 13:29:19,250 - LOG - INFO - Model loaded
+2026-06-23 13:29:19,250 - LOG - INFO - Preparing data
+2026-06-23 14:23:42,191 - LOG - INFO - Doing sparse reconstruction task
+2026-06-23 14:23:42,192 - LOG - INFO - Loading model
+2026-06-23 14:23:42,417 - LOG - INFO - Model loaded
+2026-06-23 14:23:42,417 - LOG - INFO - Preparing data

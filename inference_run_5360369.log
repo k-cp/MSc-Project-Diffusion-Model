@@ -7,10 +7,15 @@ INFO:LOG:Preparing data
 ERROR:root:Traceback (most recent call last):
   File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/main.py", line 102, in main
     runner.reconstruct()
-  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 308, in reconstruct
-    self.config.data.sample_data_dir,
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'Namespace' object has no attribute 'sample_data_dir'
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 307, in reconstruct
+    ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir,
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lus/lfs1aip2/scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/runners/rs256_guided_diffusion.py", line 74, in load_recons_data
+    sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32)
+                   ~^^^^^^^^^
+  File "/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 243, in __getitem__
+    raise KeyError(f"{key} is not a file in the archive") from None
+KeyError: 'km256 is not a file in the archive'
 
 Not use physical gradient during sampling
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

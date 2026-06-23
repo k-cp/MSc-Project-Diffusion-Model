@@ -9,6 +9,9 @@ data: !!python/object:argparse.Namespace
   dataset: kmflow
   image_size: 256
   num_workers: 4
+  sample_data_dir: ./data/kmflow_sampled_data_irregnew.npz
+  smoothing: true
+  smoothing_scale: 7
   stat_path: ./pretrained_weights/km256_stats.npz
 diffusion: !!python/object:argparse.Namespace
   beta_end: 0.02
