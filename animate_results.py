@@ -8,7 +8,11 @@ import matplotlib.animation as animation
 
 EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_recons_conditional_log"
 
+# Select among
 # kmflow_re1000_rs256_ddim_conditional_new
+# kmflow_re1000_rs256_ddim_recons_conditional_log
+# kmflow_re1000_rs256_ddim_log
+# kmflow_re1000_rs256_ddim_new
 
 
 
