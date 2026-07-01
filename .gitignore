@@ -11,6 +11,7 @@ env_gpu/
 *.h5
 *.npy
 *.npz
+*.png
 data/
 datasets/
 
