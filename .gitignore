@@ -9,6 +9,9 @@ env_gpu/
 *.pth
 *.pkl
 *.h5
+*.npy
+*.npz
+*.png
 data/
 datasets/
 
