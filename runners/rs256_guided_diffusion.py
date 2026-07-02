@@ -71,7 +71,7 @@ def load_flow_data(path, stat_path=None):
 
 def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale):
     with np.load(sample_path, allow_pickle=True) as f:
-        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32)
+        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) # u3232 has shape (40, 320, 256, 256)
         # idx_lst = f[idx_kw][-4:]
     sampled_data = torch.as_tensor(sampled_data, dtype=torch.float32)
     ref_data = np.load(ref_path).astype(np.float32)
@@ -82,7 +82,7 @@ def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale)
     flattened_sampled_data = []
     flattened_ref_data = []
 
-    for i in range(ref_data.shape[0]):
+    for i in range(ref_data.shape[0]):  # data restrucuturing
         for j in range(ref_data.shape[1] - 2):
             flattened_ref_data.append(ref_data[i, j:j + 3, ...])
             flattened_sampled_data.append(sampled_data[i, j:j + 3, ...])
@@ -90,7 +90,7 @@ def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale)
 
     flattened_ref_data = torch.stack(flattened_ref_data, dim=0)
     flattened_sampled_data = torch.stack(flattened_sampled_data, dim=0)
-    if smoothing:
+    if smoothing: # Apply Gaussian blur
         arr = flattened_sampled_data
         ker_size = smoothing_scale
         # peridoic padding
