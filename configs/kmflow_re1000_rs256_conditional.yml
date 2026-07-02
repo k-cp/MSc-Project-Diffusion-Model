@@ -8,6 +8,7 @@ data:
     num_workers: 4
     data_dir: "./data/kf_2d_re1000_256_40seed.npy"
     stat_path: "./pretrained_weights/km256_stats.npz"
+    sample_data_dir: "./data/kmflow_sampled_data_irregnew.npz"
     data_kw: ''
     smoothing: False
     blur_method: "nearest"
