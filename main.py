@@ -14,24 +14,24 @@ from runners.rs256_guided_diffusion import Diffusion
 
 torch.backends.mkldnn.enabled = False
 
-def parse_args_and_config():
+def parse_args_and_config(): # Set default arguements
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
-    parser.add_argument('--config', type=str, required=True, help='Path to the config file')
+    parser.add_argument('--config', type=str, required=True, help='Path to the config file') # Must provide argument for --config
     parser.add_argument('--seed', type=int, default=1234, help='Random seed')
     parser.add_argument('--repeat_run', type=int, default=1, help='Repeat run')
     parser.add_argument('--sample_step', type=int, default=1, help='Total sampling steps')
     parser.add_argument('--t', type=int, default=400, help='Sampling noise scale')
     parser.add_argument('--r', dest='reverse_steps', type=int, default=20, help='Revserse steps')
     parser.add_argument('--comment', type=str, default='', help='Comment')
-    args = parser.parse_args()
+    args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
-    with open(os.path.join('configs', args.config), 'r') as f:
-        config = yaml.safe_load(f)
-    config = dict2namespace(config)
+    with open(os.path.join('configs', args.config), 'r') as f: # Opens YAML file (set by args.config) in read mode
+        config = yaml.safe_load(f) # Parse YAML file into python dict
+    config = dict2namespace(config) # Convert dict to namesapce
 
-    os.makedirs(config.log_dir, exist_ok=True)
-    if config.model.type == 'conditional':
+    os.makedirs(config.log_dir, exist_ok=True) # Create folder named "log_dir"  (specified in YAML file) unless it exists
+    if config.model.type == 'conditional': # Create direcotry name based on configurations
 
         dir_name = 'recons_{}_t{}_r{}_w{}'.format(config.data.data_kw,
                                                     args.t, args.reverse_steps,
@@ -42,7 +42,7 @@ def parse_args_and_config():
                                                     args.t, args.reverse_steps,
                                                     config.sampling.lambda_)
 
-    if config.model.type == 'conditional':
+    if config.model.type == 'conditional': # Conditional diffusion: 
         print('Use residual gradient guidance during sampling')
         dir_name = 'guided_' + dir_name
     elif config.sampling.lambda_ > 0:
@@ -51,23 +51,23 @@ def parse_args_and_config():
     else:
         print('Not use physical gradient during sampling')
 
-    log_dir = os.path.join(config.log_dir, dir_name)
+    log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)
-    with open(os.path.join(log_dir, 'config.yml'), 'w') as outfile:
-        yaml.dump(config, outfile)
+    with open(os.path.join(log_dir, 'config.yml'), 'w') as outfile: # Create full path to a new file named config.yml inside log_dir
+        yaml.dump(config, outfile) # Save config in a YAML file inside outfile (file opened earlier) 
 
     logger = logging.getLogger("LOG")
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler('%s/%s.txt' % (log_dir, 'logging_info'))
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    logger.setLevel(logging.INFO) # Set threshold for logger
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # Format log file output
+    file_handler = logging.FileHandler('%s/%s.txt' % (log_dir, 'logging_info')) # Create file and save it inside log_dir 
+    file_handler.setLevel(logging.INFO) # Use INFO threshold created above
+    file_handler.setFormatter(formatter) # Apply visual formatter created above
+    logger.addHandler(file_handler) # Tell logger to log inside file_handler  
 
     # add device
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    logging.info("Using device: {}".format(device))
-    config.device = device
+    logging.info("Using device: {}".format(device)) # Log device choice to file
+    config.device = device # Save device choice inside config
 
     # set random seed
     torch.manual_seed(args.seed)
@@ -75,12 +75,12 @@ def parse_args_and_config():
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
 
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = True # Choose best algorithm to perform optimisation
 
-    return args, config, logger, log_dir
+    return args, config, logger, log_dir # args: terminal inputs, config: YAML setting, logger: logging tool, log_dir: path to folder
 
 
-def dict2namespace(config):
+def dict2namespace(config): # Convert dict to namesapce
     namespace = argparse.Namespace()
     for key, value in config.items():
         if isinstance(value, dict):
@@ -94,14 +94,14 @@ def dict2namespace(config):
 def main():
     args, config, logger, log_dir = parse_args_and_config()
     print(">" * 80)
-    logging.info("Exp instance id = {}".format(os.getpid()))
-    logging.info("Exp comment = {}".format(args.comment))
+    logging.info("Exp instance id = {}".format(os.getpid())) # Log process id in file
+    logging.info("Exp comment = {}".format(args.comment)) # Log comment terminal input
     logging.info("Config =")
     print("<" * 80)
 
     try:
-        runner = Diffusion(args, config, logger, log_dir)
-        runner.reconstruct()
+        runner = Diffusion(args, config, logger, log_dir) # create insrance of diffusion with inputs
+        runner.reconstruct() # trigger reconstruction
 
     except Exception:
         logging.error(traceback.format_exc())
