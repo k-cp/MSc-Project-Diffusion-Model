@@ -5,9 +5,9 @@ data:
     category: "kmflow"
     image_size: 256
     channels: 3
-    data_kw: "km256"
+    data_kw: ""
     num_workers: 4
-    sample_data_dir: "./data/kmflow_sampled_data_irregnew.npz"
+    sample_data_dir: ""
     data_dir: "./data/kf_2d_re1000_256_40seed.npy"
     smoothing: True
     smoothing_scale: 7
