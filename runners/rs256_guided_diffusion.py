@@ -263,26 +263,28 @@ class Diffusion(object):
         self.device = device
 
         self.model_var_type = config.model.var_type
-        betas = get_beta_schedule(
-            beta_start=config.diffusion.beta_start,
-            beta_end=config.diffusion.beta_end,
-            num_diffusion_timesteps=config.diffusion.num_diffusion_timesteps
+        betas = get_beta_schedule( # Create sequnce of scaling factors
+            beta_start=config.diffusion.beta_start, 
+            beta_end=config.diffusion.beta_end, 
+            num_diffusion_timesteps=config.diffusion.num_diffusion_timesteps # Total number of discrete timesteps 
         )
-        self.betas = torch.from_numpy(betas).float().to(self.device)
-        self.num_timesteps = betas.shape[0]
+        self.betas = torch.from_numpy(betas).float().to(self.device) # Convert betas (numpy array) to tensor and moves it to device
+        self.num_timesteps = betas.shape[0] 
 
-        alphas = 1.0 - betas
-        alphas_cumprod = np.cumprod(alphas, axis=0)
-        alphas_cumprod_prev = np.append(1.0, alphas_cumprod[:-1])
+        alphas = 1.0 - betas # Signal retention 
+        alphas_cumprod = np.cumprod(alphas, axis=0) # Cummulative product of alpha: \bar α_t
+        alphas_cumprod_prev = np.append(1.0, alphas_cumprod[:-1]) # Previous cummulative product of alpha: \bar α_t-1 = \bar α_t / α_t
         posterior_variance = betas * \
             (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
-        if self.model_var_type == "fixedlarge":
+        
+        # Log of posterior variance 
+        if self.model_var_type == "fixedlarge": 
             self.logvar = np.log(np.append(posterior_variance[1], betas[1:]))
 
         elif self.model_var_type == 'fixedsmall':
             self.logvar = np.log(np.maximum(posterior_variance, 1e-20))
 
-    def log(self, info):
+    def log(self, info): # Log message inside log file
         self.logger.info(info)
 
     def reconstruct(self):
@@ -304,9 +306,11 @@ class Diffusion(object):
 
         model.eval()
         self.log('Preparing data')
-        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir,
-                                                                    self.config.data.sample_data_dir,
-                                                                    self.config.data.data_kw,
+        
+        # Data preprocessing
+        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir, # reference data
+                                                                    self.config.data.sample_data_dir, # 
+                                                                    self.config.data.data_kw, # which array inside the npz file to choose
                                                                     smoothing=self.config.data.smoothing,
                                                                     smoothing_scale=self.config.data.smoothing_scale)
 

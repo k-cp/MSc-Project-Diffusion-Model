@@ -9,7 +9,7 @@ data:
     data_dir: "./data/kf_2d_re1000_256_40seed.npy"
     stat_path: "./pretrained_weights/km256_stats.npz"
     sample_data_dir: "./data/kmflow_sampled_data_irregnew.npz"
-    data_kw: 'km256'
+    data_kw: 'u3232'
     smoothing: False
     smoothing_scale: 7
     blur_method: "nearest"
