@@ -71,7 +71,7 @@ def load_flow_data(path, stat_path=None):
 
 def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale):
     with np.load(sample_path, allow_pickle=True) as f:
-        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) # u3232 has shape (40, 320, 256, 256)
+        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) # u3232 has shape (40, 320, 256, 256), extract last 4: (4, 320, 256, 256)
         # idx_lst = f[idx_kw][-4:]
     sampled_data = torch.as_tensor(sampled_data, dtype=torch.float32)
     ref_data = np.load(ref_path).astype(np.float32)
@@ -87,9 +87,10 @@ def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale)
             flattened_ref_data.append(ref_data[i, j:j + 3, ...])
             flattened_sampled_data.append(sampled_data[i, j:j + 3, ...])
             # mask_lst.append(mask)
+    # flattened_ref_data and flattened_sampled_data are a list of 1272 (3, 256, 256)
 
-    flattened_ref_data = torch.stack(flattened_ref_data, dim=0)
-    flattened_sampled_data = torch.stack(flattened_sampled_data, dim=0)
+    flattened_ref_data = torch.stack(flattened_ref_data, dim=0) # Compress list into single tensor of dim (1272, 3, 256, 256)
+    flattened_sampled_data = torch.stack(flattened_sampled_data, dim=0) # Compress list into single tensor of dim (1272, 3, 256, 256)
     if smoothing: # Apply Gaussian blur
         arr = flattened_sampled_data
         ker_size = smoothing_scale
@@ -308,11 +309,14 @@ class Diffusion(object):
         self.log('Preparing data')
         
         # Data preprocessing
-        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir, # reference data
-                                                                    self.config.data.sample_data_dir, # 
-                                                                    self.config.data.data_kw, # which array inside the npz file to choose
+        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir, # reference data: High resolution data (ground truth for the super-resolution task)
+                                                                    self.config.data.sample_data_dir, # Low resolution data measured from random grid locations (input data for the super-resolution task) 
+                                                                    self.config.data.data_kw, # which array inside the npz file to choose 
                                                                     smoothing=self.config.data.smoothing,
                                                                     smoothing_scale=self.config.data.smoothing_scale)
+
+        # ref_data (1272, 3, 256, 256)
+        # blur_data (1272, 3, 256, 256)
 
         scaler = StdScaler(data_mean, data_std)
         # minmax_scaler = MinMaxScaler(ref_data.min(), ref_data.max())
@@ -320,30 +324,32 @@ class Diffusion(object):
         self.log("Start sampling")
 
         # pack data loader
-        testset = torch.utils.data.TensorDataset(blur_data, ref_data)
+        testset = torch.utils.data.TensorDataset(blur_data, ref_data) # Pair blurry data to reference data (ground truth)
         test_loader = torch.utils.data.DataLoader(testset,
-                                                  batch_size=self.config.sampling.batch_size,
-                                                  shuffle=False, num_workers=self.config.data.num_workers)
+                                                  batch_size=self.config.sampling.batch_size,  # Feed data in batch sizes instead of all at once
+                                                  shuffle=False, num_workers=self.config.data.num_workers) # Number of paralel processes (4 by default in config files)
+        # testset len() = 1272 pairs (blurry and ref) of matching data　(3, 256, 256)　tensor
+        # test_loader len() = 40 batches of pairs of (32, 3, 256, 256)
 
-        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step))
-        residual_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step))
+        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise l2 loss btwn ground truth and blurry: ( , default=1, default=1)
+        residual_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise physics residual loss matrix
 
 
-        for batch_index, (blur_data, data) in enumerate(test_loader):
+        for batch_index, (blur_data, data) in enumerate(test_loader): 
             self.log('Batch: {} / Total batch {}'.format(batch_index, len(test_loader)))
-            x0 = blur_data.to(self.device)
-
-            gt = data.to(self.device)
-
+            x0 = blur_data.to(self.device)  # Move blurry data to device
+            # x0 dim: (32, 3, 256, 256)
+            gt = data.to(self.device) # Move high res (ground truth) data to device
+            # gt dim: (32, 3, 256, 256)
             self.log('Preparing reference image')
             self.log('Dumping visualization...')
 
-            sample_folder = 'sample_batch{}'.format(batch_index)
-            ensure_dir(os.path.join(self.image_sample_dir, sample_folder))
+            sample_folder = 'sample_batch{}'.format(batch_index) # Create folder name for each batch
+            ensure_dir(os.path.join(self.image_sample_dir, sample_folder)) # Check if folder already exists
 
-            sample_img_filename = 'input_image.png'
-            path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename)
-            x0_masked = x0.clone()
+            sample_img_filename = 'input_image.png' # Name the file for the low-resolution or sparse visualization.
+            path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename) # Combine paths to save sample_img_filename inside sample_folder
+            x0_masked = x0.clone() # Create seperate, idential copy of x0 (blurry) in GPU memory
             # print(torch.any(mask))
             # x0_masked[~mask] = np.nan
             make_image_grid(slice2sequence(x0_masked), path_to_dump)
@@ -426,7 +432,7 @@ class Diffusion(object):
                     # l2_loss_log[f'run_{repeat}'].append(l2_loss_f.item())
                     # residual_loss_log[f'run_{repeat}'].append(residual_loss_f.item())
                     l2_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, it] = l2_loss_f.item()
-                    residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat,
+                    residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, 
                     it] = residual_loss_f.item()
 
                     if self.config.sampling.dump_arr:
