@@ -40,4 +40,5 @@ sampling:
     batch_size: 20
     last_only: True
     guidance_weight: 0.0
+    dump_arr: 'False'
 

@@ -71,7 +71,10 @@ def load_flow_data(path, stat_path=None):
 
 def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale):
     with np.load(sample_path, allow_pickle=True) as f:
-        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) # u3232 has shape (40, 320, 256, 256), extract last 4: (4, 320, 256, 256)
+        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) 
+        # u3232 has dim (40, 320, 256, 256), extract last 4 (test set): (4, 320, 256, 256)
+        #(number of batches, total frames in batch, height, width)
+
         # idx_lst = f[idx_kw][-4:]
     sampled_data = torch.as_tensor(sampled_data, dtype=torch.float32)
     ref_data = np.load(ref_path).astype(np.float32)
@@ -184,7 +187,7 @@ def ensure_dir(path):
         os.makedirs(path)
 
 
-def slice2sequence(data):
+def slice2sequence(data): # Remove overlapping 
     data = rearrange(data[:, 1:2], 't f h w -> (t f) h w')
     return data
 
@@ -326,10 +329,10 @@ class Diffusion(object):
         # pack data loader
         testset = torch.utils.data.TensorDataset(blur_data, ref_data) # Pair blurry data to reference data (ground truth)
         test_loader = torch.utils.data.DataLoader(testset,
-                                                  batch_size=self.config.sampling.batch_size,  # Feed data in batch sizes instead of all at once
+                                                  batch_size=self.config.sampling.batch_size,  # Feed data in batch sizes instead of all at once (size = 20)
                                                   shuffle=False, num_workers=self.config.data.num_workers) # Number of paralel processes (4 by default in config files)
-        # testset len() = 1272 pairs (blurry and ref) of matching data　(3, 256, 256)　tensor
-        # test_loader len() = 40 batches of pairs of (32, 3, 256, 256)
+        # testset len() = 1272 pairs (blurry and ref) of matching data　(3, 256, 256)　tensor (frame, height, width)
+        # test_loader len() = 64 batches of pairs of (20, 3, 256, 256) (batch size, frame, H, W)
 
         l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise l2 loss btwn ground truth and blurry: ( , default=1, default=1)
         residual_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise physics residual loss matrix
@@ -337,10 +340,14 @@ class Diffusion(object):
 
         for batch_index, (blur_data, data) in enumerate(test_loader): 
             self.log('Batch: {} / Total batch {}'.format(batch_index, len(test_loader)))
+
             x0 = blur_data.to(self.device)  # Move blurry data to device
-            # x0 dim: (32, 3, 256, 256)
+            # x0 dim: a single batch with dim (20, 3, 256, 256) (batch size, frame, H, W) 20 different 3-frame sequence of blurry data
+
             gt = data.to(self.device) # Move high res (ground truth) data to device
-            # gt dim: (32, 3, 256, 256)
+            # gt dim: a single batch with dim (20, 3, 256, 256) (batch size, frame, H, W) 20 different 3-frame sequence of ref data
+            gt = data.to(self.device) # Move high res (ground truth) data to device 
+
             self.log('Preparing reference image')
             self.log('Dumping visualization...')
 
@@ -352,13 +359,18 @@ class Diffusion(object):
             x0_masked = x0.clone() # Create seperate, idential copy of x0 (blurry) in GPU memory
             # print(torch.any(mask))
             # x0_masked[~mask] = np.nan
-            make_image_grid(slice2sequence(x0_masked), path_to_dump)
+
+            # slice2sequence remove edges of each 3-frame sequence to prevent overlapping: dim: (20, 256, 256)
+            # make_image_grid make an image with 20 images of each frame dim 256*256 for blurry data
+            make_image_grid(slice2sequence(x0_masked), path_to_dump) 
+
+
             sample_img_filename = 'reference_image.png'
             path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename)
-            make_image_grid(slice2sequence(gt), path_to_dump)
-
+            make_image_grid(slice2sequence(gt), path_to_dump) # Make an image with 20 images of each frame dim 256*256 for ref data
+ 
             # save as array
-            if self.config.sampling.dump_arr:
+            if self.config.sampling.dump_arr: 
                 np.save(os.path.join(self.image_sample_dir, sample_folder, 'input_arr.npy'),
                         slice2sequence(x0).cpu().numpy())
                 np.save(os.path.join(self.image_sample_dir, sample_folder, 'reference_arr.npy'),
