@@ -41,4 +41,5 @@ sampling:
     last_only: True
     guidance_weight: 0.0
     dump_arr: 'False'
+    log_loss: 'False'
 
