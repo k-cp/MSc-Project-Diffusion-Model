@@ -71,7 +71,10 @@ def load_flow_data(path, stat_path=None):
 
 def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale):
     with np.load(sample_path, allow_pickle=True) as f:
-        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32)
+        sampled_data = f[data_kw][-4:, ...].copy().astype(np.float32) 
+        # u3232 has dim (40, 320, 256, 256), extract last 4 (test set): (4, 320, 256, 256)
+        #(number of batches, total frames in batch, height, width)
+
         # idx_lst = f[idx_kw][-4:]
     sampled_data = torch.as_tensor(sampled_data, dtype=torch.float32)
     ref_data = np.load(ref_path).astype(np.float32)
@@ -82,15 +85,16 @@ def load_recons_data(ref_path, sample_path, data_kw, smoothing, smoothing_scale)
     flattened_sampled_data = []
     flattened_ref_data = []
 
-    for i in range(ref_data.shape[0]):
+    for i in range(ref_data.shape[0]):  # data restrucuturing
         for j in range(ref_data.shape[1] - 2):
             flattened_ref_data.append(ref_data[i, j:j + 3, ...])
             flattened_sampled_data.append(sampled_data[i, j:j + 3, ...])
             # mask_lst.append(mask)
+    # flattened_ref_data and flattened_sampled_data are a list of 1272 (3, 256, 256)
 
-    flattened_ref_data = torch.stack(flattened_ref_data, dim=0)
-    flattened_sampled_data = torch.stack(flattened_sampled_data, dim=0)
-    if smoothing:
+    flattened_ref_data = torch.stack(flattened_ref_data, dim=0) # Compress list into single tensor of dim (1272, 3, 256, 256)
+    flattened_sampled_data = torch.stack(flattened_sampled_data, dim=0) # Compress list into single tensor of dim (1272, 3, 256, 256)
+    if smoothing: # Apply Gaussian blur
         arr = flattened_sampled_data
         ker_size = smoothing_scale
         # peridoic padding
@@ -183,7 +187,7 @@ def ensure_dir(path):
         os.makedirs(path)
 
 
-def slice2sequence(data):
+def slice2sequence(data): # Remove overlapping 
     data = rearrange(data[:, 1:2], 't f h w -> (t f) h w')
     return data
 
@@ -197,56 +201,67 @@ def l2_loss(x, y):
 
 
 def voriticity_residual(w, re=1000.0, dt=1/32, calc_grad=True):
-    # w [b t h w]
+    # w [b t h w] Vorticity
     batchsize = w.size(0)
     w = w.clone()
     w.requires_grad_(True)
-    nx = w.size(2)
-    ny = w.size(3)
+    nx = w.size(2) # Spatial resolution: x size
+    ny = w.size(3) # Spatial resolution: y size
     device = w.device
 
-    w_h = torch.fft.fft2(w[:, 1:-1], dim=[2, 3])
+    # Extract central frame from 3 frame: w[:, 1:-1] (20, 1, 256, 256)
+    # Run 2D Fast Fourier Transform to turn to complex frequency space
+    w_h = torch.fft.fft2(w[:, 1:-1], dim=[2, 3]) 
+
     # Wavenumbers in y-direction
     k_max = nx//2
     N = nx
-    k_x = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device),
+
+    k_x = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device), # frequenceis = [0, 1, 2, ... , 127, -128, -127, ... , -1]
                      torch.arange(start=-k_max, end=0, step=1, device=device)), 0).\
-        reshape(N, 1).repeat(1, N).reshape(1,1,N,N)
-    k_y = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device),
+        reshape(N, 1).repeat(1, N).reshape(1,1,N,N)  # Replcate column to to form N * N and change into 4dtensor of (1, 1, 256, 256)
+    k_y = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device), # frequenceis = [0, 1, 2, ... , 127, -128, -127, ... , -1]
                      torch.arange(start=-k_max, end=0, step=1, device=device)), 0).\
-        reshape(1, N).repeat(N, 1).reshape(1,1,N,N)
-    # Negative Laplacian in Fourier space
-    lap = (k_x ** 2 + k_y ** 2)
+        reshape(1, N).repeat(N, 1).reshape(1,1,N,N)   # Replcate column to to form N * N and change into 4dtensor of (1, 1, 256, 256)
+    
+    lap = (k_x ** 2 + k_y ** 2) # Lacplacian operator 
     lap[..., 0, 0] = 1.0
-    psi_h = w_h / lap
+    psi_h = w_h / lap # Streamfunction
 
-    u_h = 1j * k_y * psi_h
-    v_h = -1j * k_x * psi_h
-    wx_h = 1j * k_x * w_h
-    wy_h = 1j * k_y * w_h
-    wlap_h = -lap * w_h
+    u_h = 1j * k_y * psi_h # Horizontal velocity: u
+    v_h = -1j * k_x * psi_h # Vertical velocity: v
 
+    wx_h = 1j * k_x * w_h # Horizontal gradient of vorticity: d ω / d x 
+    wy_h = 1j * k_y * w_h # Vertical gradient of vorticity: d ω / d y
+
+    wlap_h = -lap * w_h# Full physical diffusion term: -∇^2 ω
+
+    # Inverse Real Fast Fourier Transform: convert back to real-numbered grid
     u = torch.fft.irfft2(u_h[..., :, :k_max + 1], dim=[2, 3])
     v = torch.fft.irfft2(v_h[..., :, :k_max + 1], dim=[2, 3])
     wx = torch.fft.irfft2(wx_h[..., :, :k_max + 1], dim=[2, 3])
     wy = torch.fft.irfft2(wy_h[..., :, :k_max + 1], dim=[2, 3])
     wlap = torch.fft.irfft2(wlap_h[..., :, :k_max + 1], dim=[2, 3])
-    advection = u*wx + v*wy
 
-    wt = (w[:, 2:, :, :] - w[:, :-2, :, :]) / (2 * dt)
+    advection = u*wx + v*wy # u・∇ω = u * d ω / d x  + u * d ω / d y 
+
+    wt = (w[:, 2:, :, :] - w[:, :-2, :, :]) / (2 * dt) # Time derivative: dω / dt (Take difference between frame 2 and 0)
 
     # establish forcing term
-    x = torch.linspace(0, 2*np.pi, nx + 1, device=device)
+    x = torch.linspace(0, 2*np.pi, nx + 1, device=device) # inisialise coordinate line from $0$ to $2\pi$ split into 256 steps
     x = x[0:-1]
-    X, Y = torch.meshgrid(x, x)
-    f = -4*torch.cos(4*Y)
+    X, Y = torch.meshgrid(x, x) # create a full 2D grid of physical coordinates 256 * 256
+    f = -4*torch.cos(4*Y) # Create a steady, sinusoidal force field that pushes horizontally across the Y-axis
 
-    residual = wt + (advection - (1.0 / re) * wlap + 0.1*w[:, 1:-1]) - f
-    residual_loss = (residual**2).mean()
-    if calc_grad:
-        dw = torch.autograd.grad(residual_loss, w)[0]
+    residual = wt + (advection - (1.0 / re) * wlap + 0.1*w[:, 1:-1]) - f # Navier Stokes equation for vorticity transport rearranged to one side 
+    # (20, 1, 256, 256) (calculated independently for all 20 batch sequences)
+
+    residual_loss = (residual**2).mean() # Calculate residual loss for the entire batch of 20 sequences.
+
+    if calc_grad: # Physics guidance
+        dw = torch.autograd.grad(residual_loss, w)[0] # dw= d(residual loss) / dw
         return dw, residual_loss
-    else:
+    else: # Evaluation
         return residual_loss
 
 
@@ -308,11 +323,14 @@ class Diffusion(object):
         self.log('Preparing data')
         
         # Data preprocessing
-        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir, # reference data
-                                                                    self.config.data.sample_data_dir, # 
-                                                                    self.config.data.data_kw, # which array inside the npz file to choose
+        ref_data, blur_data, data_mean, data_std = load_recons_data(self.config.data.data_dir, # reference data: High resolution data (ground truth for the super-resolution task)
+                                                                    self.config.data.sample_data_dir, # Low resolution data measured from random grid locations (input data for the super-resolution task) 
+                                                                    self.config.data.data_kw, # which array inside the npz file to choose 
                                                                     smoothing=self.config.data.smoothing,
                                                                     smoothing_scale=self.config.data.smoothing_scale)
+
+        # ref_data (1272, 3, 256, 256)
+        # blur_data (1272, 3, 256, 256)
 
         scaler = StdScaler(data_mean, data_std)
         # minmax_scaler = MinMaxScaler(ref_data.min(), ref_data.max())
@@ -320,39 +338,50 @@ class Diffusion(object):
         self.log("Start sampling")
 
         # pack data loader
-        testset = torch.utils.data.TensorDataset(blur_data, ref_data)
+        testset = torch.utils.data.TensorDataset(blur_data, ref_data) # Pair blurry data to reference data (ground truth)
         test_loader = torch.utils.data.DataLoader(testset,
-                                                  batch_size=self.config.sampling.batch_size,
-                                                  shuffle=False, num_workers=self.config.data.num_workers)
+                                                  batch_size=self.config.sampling.batch_size,  # Feed data in batch sizes instead of all at once (size = 20)
+                                                  shuffle=False, num_workers=self.config.data.num_workers) # Number of paralel processes (4 by default in config files)
+        # testset len() = 1272 pairs (blurry and ref) of matching data　(3, 256, 256)　tensor (frame, height, width)
+        # test_loader len() = 64 batches of pairs of (20, 3, 256, 256) (batch size, frame, H, W)
 
-        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step))
-        residual_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step))
+        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise l2 loss btwn ground truth and blurry: ( , default=1, default=1)
+        residual_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run, self.args.sample_step)) # Initialise physics residual loss matrix
 
 
-        for batch_index, (blur_data, data) in enumerate(test_loader):
+        for batch_index, (blur_data, data) in enumerate(test_loader): 
             self.log('Batch: {} / Total batch {}'.format(batch_index, len(test_loader)))
-            x0 = blur_data.to(self.device)
 
-            gt = data.to(self.device)
+            x0 = blur_data.to(self.device)  # Move blurry data to device
+            # x0: a single batch with dim (20, 3, 256, 256) (batch size, frame, H, W) 20 different 3-frame sequence of blurry data
+
+            gt = data.to(self.device) # Move high res (ground truth) data to device
+            # gt: a single batch with dim (20, 3, 256, 256) (batch size, frame, H, W) 20 different 3-frame sequence of ref data
+            gt = data.to(self.device) # Move high res (ground truth) data to device 
 
             self.log('Preparing reference image')
             self.log('Dumping visualization...')
 
-            sample_folder = 'sample_batch{}'.format(batch_index)
-            ensure_dir(os.path.join(self.image_sample_dir, sample_folder))
+            sample_folder = 'sample_batch{}'.format(batch_index) # Create folder name for each batch
+            ensure_dir(os.path.join(self.image_sample_dir, sample_folder)) # Check if folder already exists
 
-            sample_img_filename = 'input_image.png'
-            path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename)
-            x0_masked = x0.clone()
+            sample_img_filename = 'input_image.png' # Name the file for the low-resolution or sparse visualization.
+            path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename) # Combine paths to save sample_img_filename inside sample_folder
+            x0_masked = x0.clone() # Create seperate, idential copy of x0 (blurry) in GPU memory
             # print(torch.any(mask))
             # x0_masked[~mask] = np.nan
-            make_image_grid(slice2sequence(x0_masked), path_to_dump)
+
+            # slice2sequence remove edges of each 3-frame sequence to prevent overlapping: dim: (20, 256, 256)
+            # make_image_grid make an image with 20 images of each frame dim 256*256 for blurry data
+            make_image_grid(slice2sequence(x0_masked), path_to_dump) 
+
+
             sample_img_filename = 'reference_image.png'
             path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename)
-            make_image_grid(slice2sequence(gt), path_to_dump)
-
+            make_image_grid(slice2sequence(gt), path_to_dump) # Make an image with 20 images of each frame dim 256*256 for ref data
+ 
             # save as array
-            if self.config.sampling.dump_arr:
+            if self.config.sampling.dump_arr: 
                 np.save(os.path.join(self.image_sample_dir, sample_folder, 'input_arr.npy'),
                         slice2sequence(x0).cpu().numpy())
                 np.save(os.path.join(self.image_sample_dir, sample_folder, 'reference_arr.npy'),
@@ -363,77 +392,92 @@ class Diffusion(object):
             l2_loss_init = l2_loss(x0, gt)
 
             self.log('L2 loss init: {}'.format(l2_loss_init))
-            gt_residual = voriticity_residual(gt)[1].detach()
-            init_residual = voriticity_residual(x0)[1].detach()
+            gt_residual = voriticity_residual(gt)[1].detach() # Residual loss of reference data
+            init_residual = voriticity_residual(x0)[1].detach() # Residual loss of blurry data
             self.log('Residual init: {}'.format(init_residual))
             self.log('Residual reference: {}'.format(gt_residual))
 
-            x0 = scaler(x0)
+            x0 = scaler(x0) # Scale values
             xinit = x0.clone()
             
             # prepare loss function
             if self.config.sampling.log_loss:
-                l2_loss_fn = lambda x: l2_loss(scaler.inverse(x).to(gt.device), gt)
+                l2_loss_fn = lambda x: l2_loss(scaler.inverse(x).to(gt.device), gt) # L2 Loss function
                 equation_loss_fn = lambda x: voriticity_residual(scaler.inverse(x),
-                                                                 calc_grad=False)
+                                                                 calc_grad=False) # Equation Loss function: residual loss of Navier Stokes
 
-                logger = MetricLogger({
+                logger = MetricLogger({ # Save functions
                     'l2 loss': l2_loss_fn,
                     'residual loss': equation_loss_fn
                 })
 
             # we repeat the sampling for multiple times
-            for repeat in range(self.args.repeat_run):
+            for repeat in range(self.args.repeat_run): # Repeat number of times as probabilistic
                 self.log(f'Run No.{repeat}:')
                 x0 = xinit.clone()
                 for it in range(self.args.sample_step):  # we run the sampling for three times
-
-                    e = torch.randn_like(x0)
+                    
+                    # Forward process
+                    e = torch.randn_like(x0) # Tensor of randam gaussian noise with the same shape as x0
                     total_noise_levels = int(self.args.t * (0.7 ** it))
 
-                    a = (1 - self.betas).cumprod(dim=0)
-                    x = x0 * a[total_noise_levels - 1].sqrt() + e * (1.0 - a[total_noise_levels - 1]).sqrt()
+                    a = (1 - self.betas).cumprod(dim=0) # cumulative variance schedule array
+                    x = x0 * a[total_noise_levels - 1].sqrt() + e * (1.0 - a[total_noise_levels - 1]).sqrt() # closed-form forward diffusion equation:
 
-                    if self.config.model.type == 'conditional':
+                    if self.config.model.type == 'conditional': # Create function to extract dw: gradient of the Navier-Stokes residual loss
                         physical_gradient_func = lambda x: voriticity_residual(scaler.inverse(x))[0] / scaler.scale()
-                    elif self.config.sampling.lambda_ > 0:
+                    elif self.config.sampling.lambda_ > 0: # Create function for physics guidance: irect gradient descent of physics-informed condition
                         physical_gradient_func = lambda x: \
                             voriticity_residual(scaler.inverse(x))[0] / scaler.scale() * self.config.sampling.lambda_
 
                     num_of_reverse_steps = int(self.args.reverse_steps * (0.7 ** it ))
                     betas = self.betas.to(self.device)
-                    skip = total_noise_levels // num_of_reverse_steps
-                    seq = range(0, total_noise_levels, skip)
 
-                    if self.config.model.type == 'conditional':
-                        xs, _ = guided_ddim_steps(x, seq, model, betas,
+                    # DDIM allow faster computation by skipping
+                    skip = total_noise_levels // num_of_reverse_steps
+                    seq = range(0, total_noise_levels, skip) # sparse indexing sequence
+
+
+                    # Executing sampling
+
+
+                    if self.config.model.type == 'conditional': # conditional generation process
+                        xs, _ = guided_ddim_steps(x, seq, model, betas, 
                                                   w=self.config.sampling.guidance_weight,
                                                   dx_func=physical_gradient_func, cache=False, logger=logger)
-                    elif self.config.sampling.lambda_ > 0:
-                        xs, _ = ddim_steps(x, seq, model, betas,
+                        
+
+                    elif self.config.sampling.lambda_ > 0: # physics-guided generation using the lambda weighted physics gradient map
+                        xs, _ = ddim_steps(x, seq, model, betas, 
                                            dx_func=physical_gradient_func, cache=False, logger=logger)
-                    else:
+                    else: # Run sampling without physics guidance
                         xs, _ = ddim_steps(x, seq, model, betas, cache=False, logger=logger)
 
-                    x = xs[-1]
+                    x = xs[-1] # Obtain final fully-denoised image
                     x0 = xs[-1].cuda()
 
+
+                    # Measure L2 loss between ground truth and log it
                     l2_loss_f = l2_loss(scaler.inverse(x.clone()).to(gt.device), gt)
                     self.log('L2 loss it{}: {}'.format(it, l2_loss_f))
+
+                    # Measure Navier Stokes euqation loss between ground truth and log it
                     residual_loss_f = voriticity_residual(scaler.inverse(x.clone()), calc_grad=False).detach()
                     self.log('Residual it{}: {}'.format(it, residual_loss_f))
 
                     # l2_loss_log[f'run_{repeat}'].append(l2_loss_f.item())
                     # residual_loss_log[f'run_{repeat}'].append(residual_loss_f.item())
+
+                    # Store final losses
                     l2_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, it] = l2_loss_f.item()
-                    residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat,
+                    residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, 
                     it] = residual_loss_f.item()
 
-                    if self.config.sampling.dump_arr:
+                    if self.config.sampling.dump_arr: # Save raw data
                         np.save(os.path.join(self.image_sample_dir, sample_folder, f'sample_arr_run_{repeat}_it{it}.npy'),
                                 slice2sequence(scaler.inverse(x)).cpu().numpy())
 
-                    if self.config.sampling.log_loss:
+                    if self.config.sampling.log_loss: # Save log loss
                         logger.log(os.path.join(self.image_sample_dir, sample_folder), f'run_{repeat}_it{it}')
                         logger.reset()
 
