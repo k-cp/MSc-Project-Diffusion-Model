@@ -1,0 +1,721 @@
+INFO:LOG:Doing sparse reconstruction task
+INFO:LOG:Loading model
+INFO:LOG:Model loaded
+INFO:LOG:Preparing data
+INFO:LOG:Start sampling
+Use residual gradient guidance during sampling
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Using conditional model
+data shape: torch.Size([1272, 3, 256, 256])
+INFO:LOG:Batch: 0 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 1.9673895835876465
+/scratch/u6ki/kayaay.u6ki/diffusion_env/lib/python3.11/site-packages/torch/functional.py:505: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /pytorch/aten/src/ATen/native/TensorShape.cpp:4381.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+INFO:LOG:Residual init: 8999.671875
+INFO:LOG:Residual reference: 0.2325914204120636
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.475250482559204
+INFO:LOG:Residual it0: 37.171546936035156
+INFO:LOG:Finished batch 0
+INFO:LOG:========================================================
+INFO:LOG:Batch: 1 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.471971273422241
+INFO:LOG:Residual init: 16169.1064453125
+INFO:LOG:Residual reference: 1.1843996047973633
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.9419668912887573
+INFO:LOG:Residual it0: 93.67597198486328
+INFO:LOG:Finished batch 1
+INFO:LOG:========================================================
+INFO:LOG:Batch: 2 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.8902246952056885
+INFO:LOG:Residual init: 19126.615234375
+INFO:LOG:Residual reference: 10.77868938446045
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.3579092025756836
+INFO:LOG:Residual it0: 165.35354614257812
+INFO:LOG:Finished batch 2
+INFO:LOG:========================================================
+INFO:LOG:Batch: 3 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 3.0648622512817383
+INFO:LOG:Residual init: 19332.76953125
+INFO:LOG:Residual reference: 38.94977569580078
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.558497190475464
+INFO:LOG:Residual it0: 197.03985595703125
+INFO:LOG:Finished batch 3
+INFO:LOG:========================================================
+INFO:LOG:Batch: 4 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 3.1027965545654297
+INFO:LOG:Residual init: 19382.330078125
+INFO:LOG:Residual reference: 36.11654281616211
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.6118240356445312
+INFO:LOG:Residual it0: 195.9599609375
+INFO:LOG:Finished batch 4
+INFO:LOG:========================================================
+INFO:LOG:Batch: 5 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.9071550369262695
+INFO:LOG:Residual init: 19144.833984375
+INFO:LOG:Residual reference: 26.219879150390625
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.40083384513855
+INFO:LOG:Residual it0: 158.82046508789062
+INFO:LOG:Finished batch 5
+INFO:LOG:========================================================
+INFO:LOG:Batch: 6 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.775669574737549
+INFO:LOG:Residual init: 15028.7333984375
+INFO:LOG:Residual reference: 31.30133056640625
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.3241477012634277
+INFO:LOG:Residual it0: 104.52093505859375
+INFO:LOG:Finished batch 6
+INFO:LOG:========================================================
+INFO:LOG:Batch: 7 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.552703380584717
+INFO:LOG:Residual init: 12726.9267578125
+INFO:LOG:Residual reference: 18.1815242767334
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.130326509475708
+INFO:LOG:Residual it0: 76.69722747802734
+INFO:LOG:Finished batch 7
+INFO:LOG:========================================================
+INFO:LOG:Batch: 8 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2542827129364014
+INFO:LOG:Residual init: 11378.55859375
+INFO:LOG:Residual reference: 12.405664443969727
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8213778734207153
+INFO:LOG:Residual it0: 57.0762825012207
+INFO:LOG:Finished batch 8
+INFO:LOG:========================================================
+INFO:LOG:Batch: 9 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2205734252929688
+INFO:LOG:Residual init: 11292.6552734375
+INFO:LOG:Residual reference: 9.762338638305664
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.7735235691070557
+INFO:LOG:Residual it0: 67.61814880371094
+INFO:LOG:Finished batch 9
+INFO:LOG:========================================================
+INFO:LOG:Batch: 10 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.269026756286621
+INFO:LOG:Residual init: 12229.8935546875
+INFO:LOG:Residual reference: 14.777048110961914
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.827359914779663
+INFO:LOG:Residual it0: 83.6456527709961
+INFO:LOG:Finished batch 10
+INFO:LOG:========================================================
+INFO:LOG:Batch: 11 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.358168125152588
+INFO:LOG:Residual init: 10395.947265625
+INFO:LOG:Residual reference: 23.427417755126953
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.938754916191101
+INFO:LOG:Residual it0: 69.03670501708984
+INFO:LOG:Finished batch 11
+INFO:LOG:========================================================
+INFO:LOG:Batch: 12 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.318079948425293
+INFO:LOG:Residual init: 9090.6875
+INFO:LOG:Residual reference: 24.262832641601562
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.904322624206543
+INFO:LOG:Residual it0: 61.10978317260742
+INFO:LOG:Finished batch 12
+INFO:LOG:========================================================
+INFO:LOG:Batch: 13 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2335824966430664
+INFO:LOG:Residual init: 8250.8779296875
+INFO:LOG:Residual reference: 13.854331016540527
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8516569137573242
+INFO:LOG:Residual it0: 46.276580810546875
+INFO:LOG:Finished batch 13
+INFO:LOG:========================================================
+INFO:LOG:Batch: 14 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2217535972595215
+INFO:LOG:Residual init: 8987.642578125
+INFO:LOG:Residual reference: 7.3335723876953125
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8282324075698853
+INFO:LOG:Residual it0: 42.62040328979492
+INFO:LOG:Finished batch 14
+INFO:LOG:========================================================
+INFO:LOG:Batch: 15 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.23649263381958
+INFO:LOG:Residual init: 9880.626953125
+INFO:LOG:Residual reference: 4.920243263244629
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8094104528427124
+INFO:LOG:Residual it0: 47.350181579589844
+INFO:LOG:Finished batch 15
+INFO:LOG:========================================================
+INFO:LOG:Batch: 16 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.131826877593994
+INFO:LOG:Residual init: 7824.23583984375
+INFO:LOG:Residual reference: 0.4530046582221985
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6745270490646362
+INFO:LOG:Residual it0: 42.32535934448242
+INFO:LOG:Finished batch 16
+INFO:LOG:========================================================
+INFO:LOG:Batch: 17 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.506688117980957
+INFO:LOG:Residual init: 10409.5
+INFO:LOG:Residual reference: 2.1408298015594482
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.0512399673461914
+INFO:LOG:Residual it0: 61.416954040527344
+INFO:LOG:Finished batch 17
+INFO:LOG:========================================================
+INFO:LOG:Batch: 18 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.5891215801239014
+INFO:LOG:Residual init: 11256.1748046875
+INFO:LOG:Residual reference: 11.557971000671387
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.139235019683838
+INFO:LOG:Residual it0: 86.5954818725586
+INFO:LOG:Finished batch 18
+INFO:LOG:========================================================
+INFO:LOG:Batch: 19 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.5779969692230225
+INFO:LOG:Residual init: 11068.2412109375
+INFO:LOG:Residual reference: 14.477574348449707
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.148378610610962
+INFO:LOG:Residual it0: 73.2861099243164
+INFO:LOG:Finished batch 19
+INFO:LOG:========================================================
+INFO:LOG:Batch: 20 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.455000877380371
+INFO:LOG:Residual init: 10577.9482421875
+INFO:LOG:Residual reference: 8.642523765563965
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.035264730453491
+INFO:LOG:Residual it0: 64.4614028930664
+INFO:LOG:Finished batch 20
+INFO:LOG:========================================================
+INFO:LOG:Batch: 21 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.4399402141571045
+INFO:LOG:Residual init: 10270.9755859375
+INFO:LOG:Residual reference: 17.337251663208008
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.0358505249023438
+INFO:LOG:Residual it0: 59.52246856689453
+INFO:LOG:Finished batch 21
+INFO:LOG:========================================================
+INFO:LOG:Batch: 22 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2977895736694336
+INFO:LOG:Residual init: 8573.3486328125
+INFO:LOG:Residual reference: 10.907928466796875
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.918020486831665
+INFO:LOG:Residual it0: 57.5827751159668
+INFO:LOG:Finished batch 22
+INFO:LOG:========================================================
+INFO:LOG:Batch: 23 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2409276962280273
+INFO:LOG:Residual init: 7294.5517578125
+INFO:LOG:Residual reference: 6.297004699707031
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8642374277114868
+INFO:LOG:Residual it0: 47.06903076171875
+INFO:LOG:Finished batch 23
+INFO:LOG:========================================================
+INFO:LOG:Batch: 24 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.1884419918060303
+INFO:LOG:Residual init: 6907.49365234375
+INFO:LOG:Residual reference: 7.96990966796875
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8043771982192993
+INFO:LOG:Residual it0: 38.147544860839844
+INFO:LOG:Finished batch 24
+INFO:LOG:========================================================
+INFO:LOG:Batch: 25 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0916786193847656
+INFO:LOG:Residual init: 7874.78076171875
+INFO:LOG:Residual reference: 9.730875015258789
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6788495779037476
+INFO:LOG:Residual it0: 39.723487854003906
+INFO:LOG:Finished batch 25
+INFO:LOG:========================================================
+INFO:LOG:Batch: 26 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.236253499984741
+INFO:LOG:Residual init: 9046.0244140625
+INFO:LOG:Residual reference: 5.89499044418335
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8176153898239136
+INFO:LOG:Residual it0: 47.03655242919922
+INFO:LOG:Finished batch 26
+INFO:LOG:========================================================
+INFO:LOG:Batch: 27 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.325181245803833
+INFO:LOG:Residual init: 10048.9189453125
+INFO:LOG:Residual reference: 9.004637718200684
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.900676965713501
+INFO:LOG:Residual it0: 47.903175354003906
+INFO:LOG:Finished batch 27
+INFO:LOG:========================================================
+INFO:LOG:Batch: 28 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.502277135848999
+INFO:LOG:Residual init: 11880.9599609375
+INFO:LOG:Residual reference: 9.752290725708008
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.085340738296509
+INFO:LOG:Residual it0: 72.61751556396484
+INFO:LOG:Finished batch 28
+INFO:LOG:========================================================
+INFO:LOG:Batch: 29 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.6053237915039062
+INFO:LOG:Residual init: 16093.5546875
+INFO:LOG:Residual reference: 10.89304256439209
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.168137311935425
+INFO:LOG:Residual it0: 117.58860778808594
+INFO:LOG:Finished batch 29
+INFO:LOG:========================================================
+INFO:LOG:Batch: 30 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.6890311241149902
+INFO:LOG:Residual init: 15246.0595703125
+INFO:LOG:Residual reference: 21.821125030517578
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.244929313659668
+INFO:LOG:Residual it0: 136.51010131835938
+INFO:LOG:Finished batch 30
+INFO:LOG:========================================================
+INFO:LOG:Batch: 31 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.5012784004211426
+INFO:LOG:Residual init: 12867.6865234375
+INFO:LOG:Residual reference: 18.880874633789062
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.0570526123046875
+INFO:LOG:Residual it0: 100.31124114990234
+INFO:LOG:Finished batch 31
+INFO:LOG:========================================================
+INFO:LOG:Batch: 32 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 1.9301425218582153
+INFO:LOG:Residual init: 7432.04248046875
+INFO:LOG:Residual reference: 0.33292698860168457
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.4778223037719727
+INFO:LOG:Residual it0: 33.17225646972656
+INFO:LOG:Finished batch 32
+INFO:LOG:========================================================
+INFO:LOG:Batch: 33 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.3707985877990723
+INFO:LOG:Residual init: 10952.4921875
+INFO:LOG:Residual reference: 2.2062270641326904
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8835442066192627
+INFO:LOG:Residual it0: 67.37309265136719
+INFO:LOG:Finished batch 33
+INFO:LOG:========================================================
+INFO:LOG:Batch: 34 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.6586477756500244
+INFO:LOG:Residual init: 12754.244140625
+INFO:LOG:Residual reference: 7.665576457977295
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.175686836242676
+INFO:LOG:Residual it0: 103.53187561035156
+INFO:LOG:Finished batch 34
+INFO:LOG:========================================================
+INFO:LOG:Batch: 35 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.724421501159668
+INFO:LOG:Residual init: 11207.337890625
+INFO:LOG:Residual reference: 18.167978286743164
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.283749580383301
+INFO:LOG:Residual it0: 89.1385269165039
+INFO:LOG:Finished batch 35
+INFO:LOG:========================================================
+INFO:LOG:Batch: 36 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.5683529376983643
+INFO:LOG:Residual init: 9970.103515625
+INFO:LOG:Residual reference: 25.210546493530273
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.1641480922698975
+INFO:LOG:Residual it0: 67.08268737792969
+INFO:LOG:Finished batch 36
+INFO:LOG:========================================================
+INFO:LOG:Batch: 37 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2999680042266846
+INFO:LOG:Residual init: 9781.3271484375
+INFO:LOG:Residual reference: 17.16460418701172
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8712729215621948
+INFO:LOG:Residual it0: 54.90692901611328
+INFO:LOG:Finished batch 37
+INFO:LOG:========================================================
+INFO:LOG:Batch: 38 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2169699668884277
+INFO:LOG:Residual init: 8785.6513671875
+INFO:LOG:Residual reference: 6.1300272941589355
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.7891525030136108
+INFO:LOG:Residual it0: 45.786277770996094
+INFO:LOG:Finished batch 38
+INFO:LOG:========================================================
+INFO:LOG:Batch: 39 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.130150556564331
+INFO:LOG:Residual init: 9104.5615234375
+INFO:LOG:Residual reference: 4.941177845001221
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.713252067565918
+INFO:LOG:Residual it0: 47.860107421875
+INFO:LOG:Finished batch 39
+INFO:LOG:========================================================
+INFO:LOG:Batch: 40 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2264785766601562
+INFO:LOG:Residual init: 10035.845703125
+INFO:LOG:Residual reference: 6.80880880355835
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8036830425262451
+INFO:LOG:Residual it0: 68.70797729492188
+INFO:LOG:Finished batch 40
+INFO:LOG:========================================================
+INFO:LOG:Batch: 41 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.434323787689209
+INFO:LOG:Residual init: 12005.3251953125
+INFO:LOG:Residual reference: 12.230463981628418
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.9802186489105225
+INFO:LOG:Residual it0: 83.52311706542969
+INFO:LOG:Finished batch 41
+INFO:LOG:========================================================
+INFO:LOG:Batch: 42 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.4527506828308105
+INFO:LOG:Residual init: 14565.8642578125
+INFO:LOG:Residual reference: 48.10746383666992
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.9641509056091309
+INFO:LOG:Residual it0: 119.7518081665039
+INFO:LOG:Finished batch 42
+INFO:LOG:========================================================
+INFO:LOG:Batch: 43 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.46327805519104
+INFO:LOG:Residual init: 14596.900390625
+INFO:LOG:Residual reference: 30.381805419921875
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.9731510877609253
+INFO:LOG:Residual it0: 113.15252685546875
+INFO:LOG:Finished batch 43
+INFO:LOG:========================================================
+INFO:LOG:Batch: 44 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.524503707885742
+INFO:LOG:Residual init: 14481.8349609375
+INFO:LOG:Residual reference: 27.47104263305664
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.0528042316436768
+INFO:LOG:Residual it0: 100.92642974853516
+INFO:LOG:Finished batch 44
+INFO:LOG:========================================================
+INFO:LOG:Batch: 45 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.5373737812042236
+INFO:LOG:Residual init: 14767.2529296875
+INFO:LOG:Residual reference: 24.951963424682617
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.071587562561035
+INFO:LOG:Residual it0: 96.97675323486328
+INFO:LOG:Finished batch 45
+INFO:LOG:========================================================
+INFO:LOG:Batch: 46 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.4782798290252686
+INFO:LOG:Residual init: 13746.994140625
+INFO:LOG:Residual reference: 19.61075782775879
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.046741485595703
+INFO:LOG:Residual it0: 83.53628540039062
+INFO:LOG:Finished batch 46
+INFO:LOG:========================================================
+INFO:LOG:Batch: 47 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.240605592727661
+INFO:LOG:Residual init: 11113.0146484375
+INFO:LOG:Residual reference: 12.178547859191895
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.7918281555175781
+INFO:LOG:Residual it0: 61.38938522338867
+INFO:LOG:Finished batch 47
+INFO:LOG:========================================================
+INFO:LOG:Batch: 48 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.114382743835449
+INFO:LOG:Residual init: 8748.8955078125
+INFO:LOG:Residual reference: 0.6329018473625183
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6400116682052612
+INFO:LOG:Residual it0: 51.63173294067383
+INFO:LOG:Finished batch 48
+INFO:LOG:========================================================
+INFO:LOG:Batch: 49 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.54883074760437
+INFO:LOG:Residual init: 11288.70703125
+INFO:LOG:Residual reference: 2.5307483673095703
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.07753586769104
+INFO:LOG:Residual it0: 81.35408782958984
+INFO:LOG:Finished batch 49
+INFO:LOG:========================================================
+INFO:LOG:Batch: 50 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.6680426597595215
+INFO:LOG:Residual init: 10834.7490234375
+INFO:LOG:Residual reference: 9.084022521972656
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.197115182876587
+INFO:LOG:Residual it0: 88.247802734375
+INFO:LOG:Finished batch 50
+INFO:LOG:========================================================
+INFO:LOG:Batch: 51 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.435088872909546
+INFO:LOG:Residual init: 8423.1201171875
+INFO:LOG:Residual reference: 10.788734436035156
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 2.0037407875061035
+INFO:LOG:Residual it0: 66.9982681274414
+INFO:LOG:Finished batch 51
+INFO:LOG:========================================================
+INFO:LOG:Batch: 52 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.293536901473999
+INFO:LOG:Residual init: 6814.50634765625
+INFO:LOG:Residual reference: 13.7975492477417
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8915467262268066
+INFO:LOG:Residual it0: 48.51959228515625
+INFO:LOG:Finished batch 52
+INFO:LOG:========================================================
+INFO:LOG:Batch: 53 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.2288339138031006
+INFO:LOG:Residual init: 6192.24560546875
+INFO:LOG:Residual reference: 14.184832572937012
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.8227540254592896
+INFO:LOG:Residual it0: 41.62263488769531
+INFO:LOG:Finished batch 53
+INFO:LOG:========================================================
+INFO:LOG:Batch: 54 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0811877250671387
+INFO:LOG:Residual init: 5345.08154296875
+INFO:LOG:Residual reference: 7.087840557098389
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.7042322158813477
+INFO:LOG:Residual it0: 35.35609817504883
+INFO:LOG:Finished batch 54
+INFO:LOG:========================================================
+INFO:LOG:Batch: 55 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.067589521408081
+INFO:LOG:Residual init: 6283.31396484375
+INFO:LOG:Residual reference: 6.100526809692383
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6536856889724731
+INFO:LOG:Residual it0: 41.49802780151367
+INFO:LOG:Finished batch 55
+INFO:LOG:========================================================
+INFO:LOG:Batch: 56 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0428049564361572
+INFO:LOG:Residual init: 7121.828125
+INFO:LOG:Residual reference: 4.251646518707275
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6261953115463257
+INFO:LOG:Residual it0: 46.475303649902344
+INFO:LOG:Finished batch 56
+INFO:LOG:========================================================
+INFO:LOG:Batch: 57 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.058016061782837
+INFO:LOG:Residual init: 6292.92333984375
+INFO:LOG:Residual reference: 3.8696815967559814
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6362351179122925
+INFO:LOG:Residual it0: 48.187782287597656
+INFO:LOG:Finished batch 57
+INFO:LOG:========================================================
+INFO:LOG:Batch: 58 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.183102607727051
+INFO:LOG:Residual init: 6544.11865234375
+INFO:LOG:Residual reference: 5.081969738006592
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.777968406677246
+INFO:LOG:Residual it0: 47.952186584472656
+INFO:LOG:Finished batch 58
+INFO:LOG:========================================================
+INFO:LOG:Batch: 59 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.087273359298706
+INFO:LOG:Residual init: 7177.0673828125
+INFO:LOG:Residual reference: 5.744744777679443
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6625010967254639
+INFO:LOG:Residual it0: 55.252174377441406
+INFO:LOG:Finished batch 59
+INFO:LOG:========================================================
+INFO:LOG:Batch: 60 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0964505672454834
+INFO:LOG:Residual init: 5933.30859375
+INFO:LOG:Residual reference: 5.954959392547607
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.731110692024231
+INFO:LOG:Residual it0: 34.92766571044922
+INFO:LOG:Finished batch 60
+INFO:LOG:========================================================
+INFO:LOG:Batch: 61 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0566964149475098
+INFO:LOG:Residual init: 6198.01904296875
+INFO:LOG:Residual reference: 3.7218551635742188
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.6805248260498047
+INFO:LOG:Residual it0: 30.389728546142578
+INFO:LOG:Finished batch 61
+INFO:LOG:========================================================
+INFO:LOG:Batch: 62 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.0165047645568848
+INFO:LOG:Residual init: 7745.4033203125
+INFO:LOG:Residual reference: 1.453823208808899
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.5959678888320923
+INFO:LOG:Residual it0: 38.193241119384766
+INFO:LOG:Finished batch 62
+INFO:LOG:========================================================
+INFO:LOG:Batch: 63 / Total batch 64
+INFO:LOG:Preparing reference image
+INFO:LOG:Dumping visualization...
+INFO:LOG:L2 loss init: 2.1664364337921143
+INFO:LOG:Residual init: 9460.49609375
+INFO:LOG:Residual reference: 2.726055145263672
+INFO:LOG:Run No.0:
+INFO:LOG:L2 loss it0: 1.7599873542785645
+INFO:LOG:Residual it0: 34.99000930786133
+INFO:LOG:Finished batch 63
+INFO:LOG:========================================================
+INFO:LOG:Finished sampling
+INFO:LOG:mean l2 loss: 1.9164956511941347
+INFO:LOG:std l2 loss: 0.0
+INFO:LOG:mean residual loss: 72.0313133383697
+INFO:LOG:std residual loss: 0.0
