@@ -40,6 +40,6 @@ sampling:
     batch_size: 20
     last_only: True
     guidance_weight: 0.0
-    dump_arr: 'False'
-    log_loss: 'False'
+    dump_arr: 'True'
+    log_loss: 'True'
 
