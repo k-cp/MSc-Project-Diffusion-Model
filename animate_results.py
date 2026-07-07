@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 
 #  name of the folder
 
-EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_recons_conditional_log"
+EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 # Select among
 # kmflow_re1000_rs256_ddim_conditional_new
@@ -78,7 +78,7 @@ if LAYOUT == 'combined':
     ims = [axes[i].imshow(get_display_frame(data, 0), cmap='jet') 
            for i, data in enumerate([inputs, samples, references])]
     
-    for ax, title in zip(axes, ["Sparse Input", "Diffusion Recons", "Reference"]):
+    for ax, title in zip(axes, [" Input", "Diffusion Recons", "Reference"]):
         ax.set_title(title)
         ax.axis('off')
 
@@ -103,6 +103,6 @@ elif LAYOUT == 'individual':
         save_animation(ani, f"{BASE_EXP_NAME}_w{W}_{suffix}")
         plt.close()
 
-    render_single(inputs, "Sparse Input", "input")
+    render_single(inputs, " Input", "input")
     render_single(samples, "Diffusion Reconstruction", "sample")
     render_single(references, "Ground Truth", "ref")
