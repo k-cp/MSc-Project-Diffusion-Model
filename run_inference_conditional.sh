@@ -1,24 +1,30 @@
 #!/bin/bash
-
-#SBATCH --job-name=fluid_dps_inference
-#SBATCH --output=logs/dps_%j.out
-#SBATCH --error=logs/dps_%j.err
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
-#SBATCH --time=02:00:00
+#SBATCH --job-name=fluid_dps
+#SBATCH --partition=workq
+#SBATCH --nodes=1
+#SBATCH --gpus=1
+#SBATCH --mem=32G
+#SBATCH --time=04:00:00
+#SBATCH --output=dps_recons_%j.log
 
 
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate ml_env
+module load cray-python/3.11.7
 
-mkdir -p logs
+
+source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
+
+
+cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model
+
+
+export ATEN_CPU_CAPABILITY=default
+export USE_MKLDNN=0
+
 
 python main.py \
-    --config configs/kmflow_re1000_rs256.yml \
+    --config kmflow_re1000_rs256_conditional.yml \
+    --seed 1234 \
     --sample_step 2 \
     --scale_factor 4 \
     --zeta 0.5 \
-    --comment "Running Diffusion Posterior Sampling reconstruction baseline"
+    --comment "Running customized Diffusion Posterior Sampling super resolution"
