@@ -23,6 +23,10 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument('--t', type=int, default=400, help='Sampling noise scale')
     parser.add_argument('--r', dest='reverse_steps', type=int, default=20, help='Revserse steps')
     parser.add_argument('--comment', type=str, default='', help='Comment')
+
+    parser.add_argument("--sample_step", type=int, default=1, help="1 for standard repo sampling, 2 for custom DPS posterior sampling")
+    parser.add_argument("--scale_factor", type=int, default=4, help="The downsampling factor for the fluid operator A(x)")
+    parser.add_argument("--zeta", type=float, default=0.5, help="The gradient scale step-size for DPS guidance")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -100,8 +104,21 @@ def main():
     print("<" * 80)
 
     try:
-        runner = Diffusion(args, config, logger, log_dir) # create insrance of diffusion with inputs
-        runner.reconstruct() # trigger reconstruction
+
+        if hasattr(args, "sample_step") and args.sample_step == 2:
+            logging.info("Master Switch Activated: Routing to Diffusion Posterior Sampling (DPS)...")
+            
+
+            from runners.posterior_sampling import PosteriorRunner
+            
+            runner = PosteriorRunner(args, config)
+            
+
+            runner.dps_sample_pipeline() 
+            
+        else:
+            runner = Diffusion(args, config, logger, log_dir) # create instance of diffusion with inputs
+            runner.reconstruct() # trigger reconstruction
 
     except Exception:
         logging.error(traceback.format_exc())

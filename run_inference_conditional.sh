@@ -1,20 +1,24 @@
 #!/bin/bash
-#SBATCH --job-name=infer_cond
-#SBATCH --partition=workq
-#SBATCH --nodes=1
-#SBATCH --gpus=1
-#SBATCH --mem=32G
-#SBATCH --time=04:00:00
-#SBATCH --output=infer_cond_%j.log
 
-module load cray-python/3.11.7
+#SBATCH --job-name=fluid_dps_inference
+#SBATCH --output=logs/dps_%j.out
+#SBATCH --error=logs/dps_%j.err
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --time=02:00:00
 
-# Activate virtual environment
-source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
 
-#Ensure we are in the main directory where kmflow_re1000_rs256.yml lives
-cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model
-export ATEN_CPU_CAPABILITY=default
-export USE_MKLDNN=0
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate ml_env
 
-python main.py --config kmflow_re1000_rs256_conditional.yml --seed 1234 --sample_step 1 --t 240 --r 30
+mkdir -p logs
+
+python main.py \
+    --config configs/kmflow_re1000_rs256.yml \
+    --sample_step 2 \
+    --scale_factor 4 \
+    --zeta 0.5 \
+    --comment "Running Diffusion Posterior Sampling reconstruction baseline"
