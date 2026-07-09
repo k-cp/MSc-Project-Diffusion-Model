@@ -1,17 +1,25 @@
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
 
-from models.diffusion import Model
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+
 import torch
 import torch.nn.functional as F
 import numpy as np
 from tqdm import tqdm
+import logging
 
 
+try:
+    from models.diffusion import Model
+except ModuleNotFoundError:
+    from models.rs256_guided_diffusion import Model
 
-from models.diffusion import Model 
-from functions.denoising import get_beta_schedule 
+
 
 class PosteriorRunner:
     def __init__(self, args, config):
