@@ -108,7 +108,7 @@ def main():
         if hasattr(args, "run_dps") and args.run_dps == 1:
             logging.info("Master Switch Activated: Routing to Diffusion Posterior Sampling (DPS)...")
             from runners.posterior_sampling import PosteriorRunner
-            runner = PosteriorRunner(args, config)
+            runner = PosteriorRunner(args, config, logger, log_dir)
             runner.dps_sample_pipeline()
         else:
             # DEFAULT REPOSITORY FLOW
