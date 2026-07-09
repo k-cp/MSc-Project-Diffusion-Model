@@ -19,7 +19,6 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument('--config', type=str, required=True, help='Path to the config file') # Must provide argument for --config
     parser.add_argument('--seed', type=int, default=1234, help='Random seed')
     parser.add_argument('--repeat_run', type=int, default=1, help='Repeat run')
-    parser.add_argument('--sample_step', type=int, default=1, help='Total sampling steps')
     parser.add_argument('--t', type=int, default=400, help='Sampling noise scale')
     parser.add_argument('--r', dest='reverse_steps', type=int, default=20, help='Revserse steps')
     parser.add_argument('--comment', type=str, default='', help='Comment')
@@ -27,6 +26,7 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument("--sample_step", type=int, default=1, help="1 for standard repo sampling, 2 for custom DPS posterior sampling")
     parser.add_argument("--scale_factor", type=int, default=4, help="The downsampling factor for the fluid operator A(x)")
     parser.add_argument("--zeta", type=float, default=0.5, help="The gradient scale step-size for DPS guidance")
+    parser.add_argument("--run_dps", type=int, default=0, help="Set to 1 to activate custom DPS posterior sampling")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -105,20 +105,15 @@ def main():
 
     try:
 
-        if hasattr(args, "sample_step") and args.sample_step == 2:
+        if hasattr(args, "run_dps") and args.run_dps == 1:
             logging.info("Master Switch Activated: Routing to Diffusion Posterior Sampling (DPS)...")
-            
-
             from runners.posterior_sampling import PosteriorRunner
-            
             runner = PosteriorRunner(args, config)
-            
-
-            runner.dps_sample_pipeline() 
-            
+            runner.dps_sample_pipeline()
         else:
-            runner = Diffusion(args, config, logger, log_dir) # create instance of diffusion with inputs
-            runner.reconstruct() # trigger reconstruction
+            # DEFAULT REPOSITORY FLOW
+            runner = Diffusion(args, config, logger, log_dir)
+            runner.reconstruct()
 
     except Exception:
         logging.error(traceback.format_exc())
