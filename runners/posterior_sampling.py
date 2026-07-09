@@ -162,13 +162,17 @@ class PosteriorRunner:
             gt = gt_batch.to(self.device)
             blur = blur_batch.to(self.device)
             blur_scaled = scaler(blur)
+            
+          
             y = self.fluid_downsample_operator(
                 blur_scaled, scale_factor=self.args.scale_factor
             )
 
+
             sample_folder = f"sample_batch{batch_index}"
             batch_dir = os.path.join(self.log_dir, sample_folder)
             ensure_dir(batch_dir)
+
 
             make_image_grid(slice2sequence(blur), os.path.join(batch_dir, "input_image.png"))
             make_image_grid(slice2sequence(gt), os.path.join(batch_dir, "reference_image.png"))
@@ -178,7 +182,11 @@ class PosteriorRunner:
 
             for repeat in range(self.args.repeat_run):
                 self.log(f"Run {repeat + 1}/{self.args.repeat_run}")
+                
+
                 sample = self.dps_sample(y, zeta=self.args.zeta)
+                
+
                 sample = scaler.inverse(sample)
 
                 l2_final = l2_loss(sample, gt)
@@ -196,6 +204,7 @@ class PosteriorRunner:
                         slice2sequence(sample).cpu().numpy(),
                     )
 
+   
                 make_image_grid(
                     slice2sequence(sample),
                     os.path.join(batch_dir, f"sample_run_{repeat}.png"),
