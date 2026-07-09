@@ -1,5 +1,8 @@
+import sys
 import os
-import logging
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from models.diffusion import Model
 import torch
 import torch.nn.functional as F
 import numpy as np
