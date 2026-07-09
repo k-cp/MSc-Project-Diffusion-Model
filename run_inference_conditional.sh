@@ -26,5 +26,5 @@ python main.py \
     --seed 1234 \
     --run_dps 1 \
     --scale_factor 4 \
-    --zeta 0.5 \
+    --zeta 0.1 \
     --comment "Running customized Diffusion Posterior Sampling super resolution"
