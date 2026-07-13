@@ -58,6 +58,11 @@ def parse_args_and_config(): # Set default arguements
     else:
         print('Not use physical gradient during sampling')
 
+    # Keep DPS output in its own folder so it never overwrites the baseline
+    # reconstruct() results at the same t/r/w (DPS wipes each sample_batch dir).
+    if getattr(args, 'run_dps', 0) == 1:
+        dir_name = 'dps_' + dir_name
+
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)
     with open(os.path.join(log_dir, 'config.yml'), 'w') as outfile: # Create full path to a new file named config.yml inside log_dir
