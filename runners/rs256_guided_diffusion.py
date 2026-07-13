@@ -473,6 +473,11 @@ class Diffusion(object):
                     residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, 
                     it] = residual_loss_f.item()
 
+                    # Save the reconstruction as an image (same as input/reference).
+                    sample_img_filename = f'sample_run_{repeat}_it{it}.png'
+                    path_to_dump = os.path.join(self.image_sample_dir, sample_folder, sample_img_filename)
+                    make_image_grid(slice2sequence(scaler.inverse(x)), path_to_dump)
+
                     if self.config.sampling.dump_arr: # Save raw data
                         np.save(os.path.join(self.image_sample_dir, sample_folder, f'sample_arr_run_{repeat}_it{it}.npy'),
                                 slice2sequence(scaler.inverse(x)).cpu().numpy())
