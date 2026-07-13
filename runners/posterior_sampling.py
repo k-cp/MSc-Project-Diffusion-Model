@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -192,6 +193,17 @@ class PosteriorRunner:
 
         scaler = StdScaler(data_mean, data_std)
 
+        # Isolated, self-cleaning output dir so DPS never mixes with (or clobbers)
+        # the physics-guided baseline outputs that share self.log_dir. Operator +
+        # zeta in the name keep different runs separate; the folder is wiped at the
+        # start so no stale files from a previous run of THIS config survive.
+        run_tag = f"dps_{self.args.operator}_zeta{self.args.zeta}"
+        self.output_dir = os.path.join(self.log_dir, run_tag)
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
+        ensure_dir(self.output_dir)
+        self.log(f"DPS outputs -> {self.output_dir}")
+
         # Per-sample sensor indices for the sparse operator, aligned with the
         # trajectory-major flattening done inside load_recons_data (for each of
         # the last 4 test trajectories, every (frames-2) sub-sample shares that
@@ -241,13 +253,19 @@ class PosteriorRunner:
             # unreachable.) The coarse observed field seeds the warm start.
             y = self.apply_forward(gt_scaled, sensor_idx=sensor_idx)
 
-            # Clean chronological naming for folders
-            sample_folder = f"sample_batch{batch_index + 1}"
-            batch_dir = os.path.join(self.log_dir, sample_folder)
+            # One folder per batch (0-indexed, matching the repo convention).
+            batch_dir = os.path.join(self.output_dir, f"sample_batch{batch_index}")
             ensure_dir(batch_dir)
 
+            # Input (sparse/coarse observation) and reference (ground truth):
+            # dump both the image and the raw data array.
             make_image_grid(slice2sequence(blur), os.path.join(batch_dir, "input_image.png"))
             make_image_grid(slice2sequence(gt), os.path.join(batch_dir, "reference_image.png"))
+            if self.config.sampling.dump_arr:
+                np.save(os.path.join(batch_dir, "input_arr.npy"),
+                        slice2sequence(blur).cpu().numpy())
+                np.save(os.path.join(batch_dir, "reference_arr.npy"),
+                        slice2sequence(gt).cpu().numpy())
 
             l2_init = l2_loss(blur, gt)
             self.log(f"L2 loss init: {l2_init}")
@@ -268,17 +286,16 @@ class PosteriorRunner:
                 end = start + blur_batch.shape[0]
                 l2_loss_all[start:end, repeat] = l2_final.item()
 
-        
-                if self.config.sampling.dump_arr:
-                    np.save(
-                        os.path.join(batch_dir, f"sample_arr_run_{repeat + 1}.npy"),
-                        slice2sequence(sample).cpu().numpy(),
-                    )
-
+                # Sample (reconstruction): image + data, named by run (0-indexed).
                 make_image_grid(
                     slice2sequence(sample),
-                    os.path.join(batch_dir, f"sample_run_{repeat + 1}.png"),
+                    os.path.join(batch_dir, f"sample_run_{repeat}.png"),
                 )
+                if self.config.sampling.dump_arr:
+                    np.save(
+                        os.path.join(batch_dir, f"sample_arr_run_{repeat}.npy"),
+                        slice2sequence(sample).cpu().numpy(),
+                    )
 
         self.log("Finished DPS sampling")
         self.log(f"Mean L2 loss: {l2_loss_all[..., -1].mean()}")
