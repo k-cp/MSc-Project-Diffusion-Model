@@ -192,17 +192,7 @@ class PosteriorRunner:
         )
 
         scaler = StdScaler(data_mean, data_std)
-
-        # Isolated, self-cleaning output dir so DPS never mixes with (or clobbers)
-        # the physics-guided baseline outputs that share self.log_dir. Operator +
-        # zeta in the name keep different runs separate; the folder is wiped at the
-        # start so no stale files from a previous run of THIS config survive.
-        run_tag = f"dps_{self.args.operator}_zeta{self.args.zeta}"
-        self.output_dir = os.path.join(self.log_dir, run_tag)
-        if os.path.exists(self.output_dir):
-            shutil.rmtree(self.output_dir)
-        ensure_dir(self.output_dir)
-        self.log(f"DPS outputs -> {self.output_dir}")
+        self.log(f"DPS outputs -> {self.log_dir}  (sample_batch<i> folders)")
 
         # Per-sample sensor indices for the sparse operator, aligned with the
         # trajectory-major flattening done inside load_recons_data (for each of
@@ -253,12 +243,16 @@ class PosteriorRunner:
             # unreachable.) The coarse observed field seeds the warm start.
             y = self.apply_forward(gt_scaled, sensor_idx=sensor_idx)
 
-            # One folder per batch (0-indexed, matching the repo convention).
-            batch_dir = os.path.join(self.output_dir, f"sample_batch{batch_index}")
+            # One folder per batch, 0-indexed, directly under log_dir -- matching
+            # reconstruct() and what animate_results.py / generate_metrics expect.
+            # Wipe it first so no stale files from a previous run survive.
+            batch_dir = os.path.join(self.log_dir, f"sample_batch{batch_index}")
+            if os.path.exists(batch_dir):
+                shutil.rmtree(batch_dir)
             ensure_dir(batch_dir)
 
-            # Input (sparse/coarse observation) and reference (ground truth):
-            # dump both the image and the raw data array.
+            # Input (coarse/sparse observation) and reference (ground truth):
+            # image + raw data array, with the exact filenames the repo uses.
             make_image_grid(slice2sequence(blur), os.path.join(batch_dir, "input_image.png"))
             make_image_grid(slice2sequence(gt), os.path.join(batch_dir, "reference_image.png"))
             if self.config.sampling.dump_arr:
@@ -286,14 +280,15 @@ class PosteriorRunner:
                 end = start + blur_batch.shape[0]
                 l2_loss_all[start:end, repeat] = l2_final.item()
 
-                # Sample (reconstruction): image + data, named by run (0-indexed).
+                # Sample reconstruction: IMAGE (new -- reconstruct() never made one)
+                # + data array named like reconstruct() so animate_results.py works.
                 make_image_grid(
                     slice2sequence(sample),
-                    os.path.join(batch_dir, f"sample_run_{repeat}.png"),
+                    os.path.join(batch_dir, f"sample_run_{repeat}_it0.png"),
                 )
                 if self.config.sampling.dump_arr:
                     np.save(
-                        os.path.join(batch_dir, f"sample_arr_run_{repeat}.npy"),
+                        os.path.join(batch_dir, f"sample_arr_run_{repeat}_it0.npy"),
                         slice2sequence(sample).cpu().numpy(),
                     )
 
