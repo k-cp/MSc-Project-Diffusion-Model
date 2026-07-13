@@ -60,10 +60,38 @@ class PosteriorRunner:
         self.logger.info(message)
 
     def fluid_downsample_operator(self, x, scale_factor=4):
-        """Forward operator A(x): high-res field -> low-res measurement."""
+        """Bicubic downsample: high-res field -> low-res grid measurement."""
         return F.interpolate(
             x, scale_factor=1.0 / scale_factor, mode="bicubic", align_corners=False
         )
+
+    def sensor_operator(self, x, sensor_idx):
+        """Sparse-sensor forward operator A(x): sample x at the given sensor
+        locations. sensor_idx: (B, n_sensors) flat indices into the H*W grid.
+        Returns (B, C, n_sensors) -- the true measurement for this dataset.
+        """
+        b, c = x.shape[0], x.shape[1]
+        flat = x.reshape(b, c, -1)                     # (B, C, H*W)
+        gather_idx = sensor_idx.unsqueeze(1).expand(-1, c, -1)  # (B, C, n_sensors)
+        return torch.gather(flat, 2, gather_idx)
+
+    def apply_forward(self, x, sensor_idx=None):
+        """Dispatch to the configured forward operator A. Using ONE method for
+        both the measurement y = A(gt) and the guidance term A(x0_hat)
+        guarantees they are consistent (a hard requirement for DPS)."""
+        if self.args.operator == "sparse":
+            return self.sensor_operator(x, sensor_idx)
+        return self.fluid_downsample_operator(x, scale_factor=self.args.scale_factor)
+
+    def _alpha_bar(self, idx):
+        """Cumulative product alpha-bar at a scheduled index; idx == -1 -> 1.0.
+
+        Mirrors functions.denoising_step.compute_alpha so the strided reverse
+        chain uses the same schedule bookkeeping as the repo's DDIM/DDPM samplers.
+        """
+        if idx < 0:
+            return torch.tensor(1.0, device=self.device)
+        return self.alphas_bar[idx]
 
     def _build_timesteps(self):
         total_noise_levels = min(self.args.t, self.num_timesteps)
@@ -71,69 +99,84 @@ class PosteriorRunner:
         skip = max(1, total_noise_levels // num_reverse_steps)
         return list(range(0, total_noise_levels, skip))
 
-    def dps_sample(self, low_res_measurement, zeta=1.0):
-        """Reconstruct high-res flow from noise guided by low-res measurement y."""
+    def dps_sample(self, low_res_measurement, init_field, sensor_idx=None, zeta=1.0):
+        """Reconstruct a high-res flow field guided by the low-res measurement y.
+
+        Follows Diffusion Posterior Sampling (Chung et al., 2023, Alg. 1) using
+        the repo's own strided reverse-diffusion bookkeeping:
+          - x0_hat is predicted from the network's noise estimate (no [-1, 1]
+            clamp: this data is standardized vorticity, not [-1, 1] pixels);
+          - the prior step is the ancestral DDPM update evaluated between two
+            *scheduled* timesteps (so strided schedules stay self-consistent);
+          - measurement guidance uses the normalized DPS step
+            zeta_i = zeta / ||y - A(x0_hat)|| on the gradient of the L2 *norm*.
+        """
         y = low_res_measurement.to(self.device)
         batch_size = y.shape[0]
-        high_res_shape = (
-            batch_size,
-            self.config.data.channels,
-            self.config.data.image_size,
-            self.config.data.image_size,
-        )
-        x = torch.randn(high_res_shape, device=self.device)
-        timesteps = self._build_timesteps()
+
+        # Timestep pairs (i -> j) matching functions.denoising_step: j is the
+        # next lower scheduled step, or -1 (=> clean signal) on the last step.
+        seq = self._build_timesteps()
+        seq_next = [-1] + list(seq[:-1])
+
+        # Warm start: diffuse the observed coarse field to the top noise level,
+        # consistent with a partial-t (t < num_timesteps) reverse schedule.
+        i_max = seq[-1]
+        abar_top = self._alpha_bar(i_max)
+        x = torch.sqrt(abar_top) * init_field.to(self.device) + \
+            torch.sqrt(1.0 - abar_top) * torch.randn_like(init_field, device=self.device)
 
         self.log(
-            f"Starting Stable DPS reverse sampling: {len(timesteps)} steps, "
+            f"Starting DPS reverse sampling: {len(seq)} steps, "
             f"scale_factor={self.args.scale_factor}, zeta={zeta}"
         )
 
-        for i in tqdm(reversed(timesteps), total=len(timesteps), desc="DPS sampling"):
+        for i, j in tqdm(list(zip(reversed(seq), reversed(seq_next))),
+                         total=len(seq), desc="DPS sampling"):
             t = torch.full((batch_size,), i, device=self.device, dtype=torch.long)
             x = x.detach().requires_grad_(True)
 
-            alpha_bar_t = self.alphas_bar[i]
-            beta_t = self.betas[i]
-            alpha_t = self.alphas[i]
+            at = self._alpha_bar(i)       # alpha_bar_t
+            atm1 = self._alpha_bar(j)     # alpha_bar_{t_next}
+            beta_t = 1.0 - at / atm1      # effective beta over the (i -> j) jump
 
             if self.config.model.type == "conditional":
                 noise_pred = self.model(x, t, dx=None)
             else:
                 noise_pred = self.model(x, t)
 
-            x0_hat = (x - torch.sqrt(1.0 - alpha_bar_t) * noise_pred) / torch.sqrt(alpha_bar_t)
-            x0_hat = torch.clamp(x0_hat, -1.0, 1.0)
+            # Tweedie estimate of the clean field (no data-range clamp).
+            x0_hat = (x - torch.sqrt(1.0 - at) * noise_pred) / torch.sqrt(at)
 
-            y_hat = self.fluid_downsample_operator(x0_hat, scale_factor=self.args.scale_factor)
-            
+            y_hat = self.apply_forward(x0_hat, sensor_idx=sensor_idx)
 
-            loss = torch.norm(y - y_hat, p=2)
-            
+            # DPS guidance: per-sample gradient of the measurement L2 norm.
+            # Summing per-sample norms keeps each sample's gradient independent,
+            # so grad[b] = d||y_b - A(x0_hat)_b|| / dx (no cross-sample coupling).
+            per_sample_norm = torch.linalg.norm((y - y_hat).reshape(batch_size, -1), dim=1)
+            guidance_grad = torch.autograd.grad(outputs=per_sample_norm.sum(), inputs=x)[0]
 
-            guidance_grad = torch.autograd.grad(outputs=loss, inputs=x)[0]
-            
-            # Nan guard safety check
+            # NaN guard.
             if torch.isnan(guidance_grad).any():
                 guidance_grad = torch.nan_to_num(guidance_grad, nan=0.0)
 
             with torch.no_grad():
-            
-                x_mean = (1.0 / torch.sqrt(alpha_t)) * (
-                    x - (beta_t / torch.sqrt(1.0 - alpha_bar_t)) * noise_pred
-                )
+                # Ancestral DDPM prior step between the two scheduled timesteps.
+                mean = (
+                    torch.sqrt(atm1) * beta_t * x0_hat
+                    + torch.sqrt(1.0 - beta_t) * (1.0 - atm1) * x
+                ) / (1.0 - at)
 
-   
-                x_mean = x_mean - zeta * guidance_grad
-
-                if i > 0:
-                    prev_idx = max(i - 1, 0)
-                    variance = beta_t * (1.0 - self.alphas_bar[prev_idx]) / (1.0 - alpha_bar_t)
-                    x = x_mean + torch.sqrt(variance) * torch.randn_like(x)
+                if j >= 0:
+                    noise = torch.sqrt(beta_t) * torch.randn_like(x)
                 else:
-                    x = x_mean
+                    noise = 0.0  # no noise injected on the final step
+                x_prior = mean + noise
 
-                x = x.detach()
+                # Normalized DPS update (Alg. 1): zeta_i = zeta / ||residual||,
+                # applied per sample so the step is independent of batch size.
+                step = (zeta / (per_sample_norm.detach() + 1e-8)).view(batch_size, 1, 1, 1)
+                x = (x_prior - step * guidance_grad).detach()
 
         return x
 
@@ -148,7 +191,26 @@ class PosteriorRunner:
         )
 
         scaler = StdScaler(data_mean, data_std)
-        testset = torch.utils.data.TensorDataset(blur_data, ref_data)
+
+        # Per-sample sensor indices for the sparse operator, aligned with the
+        # trajectory-major flattening done inside load_recons_data (for each of
+        # the last 4 test trajectories, every (frames-2) sub-sample shares that
+        # trajectory's 1024 sensor locations).
+        if self.args.operator == "sparse":
+            with np.load(self.config.data.sample_data_dir, allow_pickle=True) as f:
+                idx_test = f["idx_lst"][-4:].astype(np.int64)      # (4, n_sensors)
+                n_frames = f[self.config.data.data_kw].shape[1]
+            per_traj = n_frames - 2
+            sensor_idx_all = np.repeat(idx_test, per_traj, axis=0)  # (4*per_traj, n_sensors)
+            sensor_idx_all = torch.from_numpy(sensor_idx_all)
+            assert sensor_idx_all.shape[0] == ref_data.shape[0], (
+                f"sensor idx count {sensor_idx_all.shape[0]} != samples {ref_data.shape[0]}"
+            )
+            self.log(f"Sparse operator: {sensor_idx_all.shape[1]} sensors per field")
+            testset = torch.utils.data.TensorDataset(blur_data, ref_data, sensor_idx_all)
+        else:
+            testset = torch.utils.data.TensorDataset(blur_data, ref_data)
+
         test_loader = torch.utils.data.DataLoader(
             testset,
             batch_size=self.config.sampling.batch_size,
@@ -158,16 +220,26 @@ class PosteriorRunner:
 
         l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run))
 
-        for batch_index, (blur_batch, gt_batch) in enumerate(test_loader):
+        for batch_index, batch in enumerate(test_loader):
+            if self.args.operator == "sparse":
+                blur_batch, gt_batch, idx_batch = batch
+                sensor_idx = idx_batch.to(self.device)
+            else:
+                blur_batch, gt_batch = batch
+                sensor_idx = None
             # batch_index starts at 0, so folder will be sample_batch1, sample_batch2...
             self.log(f"Batch {batch_index + 1}/{len(test_loader)}")
 
             gt = gt_batch.to(self.device)
             blur = blur_batch.to(self.device)
+            gt_scaled = scaler(gt)
             blur_scaled = scaler(blur)
-            y = self.fluid_downsample_operator(
-                blur_scaled, scale_factor=self.args.scale_factor
-            )
+
+            # Measurement y = A(x_true): a genuine observation of the ground
+            # truth through the SAME forward operator used in the guidance term.
+            # (Guiding toward A(blur) would double-degrade and make gt
+            # unreachable.) The coarse observed field seeds the warm start.
+            y = self.apply_forward(gt_scaled, sensor_idx=sensor_idx)
 
             # Clean chronological naming for folders
             sample_folder = f"sample_batch{batch_index + 1}"
@@ -182,7 +254,9 @@ class PosteriorRunner:
 
             for repeat in range(self.args.repeat_run):
                 self.log(f"Run {repeat + 1}/{self.args.repeat_run}")
-                sample = self.dps_sample(y, zeta=self.args.zeta)
+                sample = self.dps_sample(
+                    y, init_field=blur_scaled, sensor_idx=sensor_idx, zeta=self.args.zeta
+                )
                 sample = scaler.inverse(sample)
 
                 l2_final = l2_loss(sample, gt)
@@ -197,13 +271,13 @@ class PosteriorRunner:
         
                 if self.config.sampling.dump_arr:
                     np.save(
-                        os.path.join(batch_dir, f"sample_arr_run_{batch_index + 1}.npy"),
+                        os.path.join(batch_dir, f"sample_arr_run_{repeat + 1}.npy"),
                         slice2sequence(sample).cpu().numpy(),
                     )
 
                 make_image_grid(
                     slice2sequence(sample),
-                    os.path.join(batch_dir, f"sample_run_{batch_index + 1}.png"),
+                    os.path.join(batch_dir, f"sample_run_{repeat + 1}.png"),
                 )
 
         self.log("Finished DPS sampling")

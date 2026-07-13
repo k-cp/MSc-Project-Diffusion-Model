@@ -21,10 +21,5 @@ export ATEN_CPU_CAPABILITY=default
 export USE_MKLDNN=0
 
 
-python main.py \
-    --config kmflow_re1000_rs256_conditional.yml \
-    --seed 1234 \
-    --run_dps 1 \
-    --scale_factor 4 \
-    --zeta 0.1 \
-    --comment "Running customized Diffusion Posterior Sampling super resolution"
+python main.py --config kmflow_re1000_rs256_conditional.yml --seed 1234 \
+    --run_dps 1 --operator downsample --scale_factor 4 --zeta 0.3

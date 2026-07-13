@@ -27,6 +27,9 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument("--scale_factor", type=int, default=4, help="The downsampling factor for the fluid operator A(x)")
     parser.add_argument("--zeta", type=float, default=0.5, help="The gradient scale step-size for DPS guidance")
     parser.add_argument("--run_dps", type=int, default=0, help="Set to 1 to activate custom DPS posterior sampling")
+    parser.add_argument("--operator", type=str, default="sparse", choices=["sparse", "downsample"],
+                        help="DPS forward operator A: 'sparse' = 1024 random sensors from idx_lst (true measurement), "
+                             "'downsample' = bicubic downsample by scale_factor (self-consistent SR smoke test)")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
