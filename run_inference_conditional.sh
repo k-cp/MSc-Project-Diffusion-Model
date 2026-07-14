@@ -19,7 +19,7 @@
 # ---------------------------------------------------------------------------
 
 MODE="${1:-baseline}"
-ZETA="${2:-0.1}"
+ZETA="${2:-3.0}"          # zeta=3.0 chosen from the sweep (best L2, stable)
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg

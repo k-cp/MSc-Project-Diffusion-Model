@@ -58,10 +58,11 @@ def parse_args_and_config(): # Set default arguements
     else:
         print('Not use physical gradient during sampling')
 
-    # Keep DPS output in its own folder so it never overwrites the baseline
-    # reconstruct() results at the same t/r/w (DPS wipes each sample_batch dir).
+    # Keep DPS output in its own per-zeta folder so it never overwrites the
+    # baseline (same t/r/w) AND so concurrent zeta-sweep jobs don't wipe each
+    # other's sample_batch dirs (DPS clears each dir before writing).
     if getattr(args, 'run_dps', 0) == 1:
-        dir_name = 'dps_' + dir_name
+        dir_name = 'dps_' + dir_name + '_z{}'.format(args.zeta)
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

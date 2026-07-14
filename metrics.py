@@ -62,6 +62,7 @@ DATA_KW = "u3232"
 T = 400
 R = 20
 W = 0.0
+ZETA = 3.0   # which DPS zeta run to load (float, matches the --zeta you ran, e.g. 0.1, 3.0, 10.0)
 
 # Style / folder-prefix for each method. Reference is handled separately below.
 METHOD_CONFIG = {
@@ -72,9 +73,12 @@ REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--
 
 
 def method_dir(method):
-    """Build the experiment folder path for a given method ('baseline' or 'dps')."""
+    """Build the experiment folder path for a given method ('baseline' or 'dps').
+    DPS runs live in a per-zeta folder (…_z<ZETA>)."""
     cfg = METHOD_CONFIG[method]
     folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}"
+    if method == "dps":
+        folder += f"_z{ZETA}"
     return os.path.join("experiments", EXPERIMENT_FOLDER, folder)
 
 

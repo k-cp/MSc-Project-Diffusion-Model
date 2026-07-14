@@ -22,6 +22,7 @@ METHOD = "dps"          # "baseline" or "dps"
 DATA_KW = "u3232"
 T = 400
 R = 20
+ZETA = 3.0              # which DPS zeta run to load (only used when METHOD == "dps")
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)
 W = 0.0
@@ -34,9 +35,10 @@ LAYOUT = 'combined'
 
 
 PREFIX = "dps_" if METHOD == "dps" else ""
+ZTAG = f"_z{ZETA}" if METHOD == "dps" else ""
 BASE_EXP_NAME = f"{PREFIX}guided_recons_{DATA_KW}_t{T}_r{R}"
 
-parent_dir = f"experiments/{EXPERIMENT_FOLDER}/{BASE_EXP_NAME}_w{W}"
+parent_dir = f"experiments/{EXPERIMENT_FOLDER}/{BASE_EXP_NAME}_w{W}{ZTAG}"
 num_batches = 64
 
 if not os.path.exists(parent_dir):
