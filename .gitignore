@@ -15,6 +15,13 @@ env_gpu/
 data/
 datasets/
 
+# Ignore python bytecode caches
+__pycache__/
+*.pyc
+
+# Ignore SLURM / run logs
+*.log
+
 # Ignore OS-specific files
 .DS_Store
 Thumbs.db
