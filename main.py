@@ -30,6 +30,12 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument("--operator", type=str, default="sparse", choices=["sparse", "downsample"],
                         help="DPS forward operator A: 'sparse' = 1024 random sensors from idx_lst (true measurement), "
                              "'downsample' = bicubic downsample by scale_factor (self-consistent SR smoke test)")
+    parser.add_argument("--run_si", type=int, default=0,
+                        help="Set to 1 to run Stochastic Interpolant super-resolution (needs a trained --si_ckpt)")
+    parser.add_argument("--si_ckpt", type=str, default="./pretrained_weights/si_ckpt.pth",
+                        help="Trained SI drift-network checkpoint (produced by train_si.py)")
+    parser.add_argument("--si_steps", type=int, default=100,
+                        help="Number of SDE integration steps for SI sampling")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -63,6 +69,10 @@ def parse_args_and_config(): # Set default arguements
     # other's sample_batch dirs (DPS clears each dir before writing).
     if getattr(args, 'run_dps', 0) == 1:
         dir_name = 'dps_' + dir_name + '_z{}'.format(args.zeta)
+
+    # Stochastic Interpolant runs get their own si_ folder.
+    if getattr(args, 'run_si', 0) == 1:
+        dir_name = 'si_' + dir_name
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)
@@ -114,7 +124,12 @@ def main():
 
     try:
 
-        if hasattr(args, "run_dps") and args.run_dps == 1:
+        if getattr(args, "run_si", 0) == 1:
+            logging.info("Routing to Stochastic Interpolant super-resolution...")
+            from runners.stochastic_interpolant import SIRunner
+            runner = SIRunner(args, config, logger, log_dir)
+            runner.si_sample_pipeline()
+        elif getattr(args, "run_dps", 0) == 1:
             logging.info("Master Switch Activated: Routing to Diffusion Posterior Sampling (DPS)...")
             from runners.posterior_sampling import PosteriorRunner
             runner = PosteriorRunner(args, config, logger, log_dir)

@@ -1,0 +1,132 @@
+"""Train a Stochastic Interpolant drift network for flow super-resolution.
+
+Trains b_theta on paired (x0=low-res, x1=high-res) standardized vorticity
+stacks using the drift-matching objective (Eq 9 of Schiodt et al. 2026), then
+saves the weights to --si_ckpt. Use main.py --run_si to super-resolve with the
+trained checkpoint.
+
+Example:
+    python train_si.py --config kmflow_re1000_rs256_conditional.yml \
+        --epochs 2000 --batch_size 32 --lr 2e-4 --frame_stride 4 \
+        --si_ckpt ./pretrained_weights/si_ckpt.pth
+"""
+
+import argparse
+import logging
+import math
+import os
+import sys
+
+import numpy as np
+import torch
+import yaml
+
+from runners.rs256_guided_diffusion import StdScaler
+from runners.stochastic_interpolant import StochasticInterpolant, load_si_pairs
+
+
+def dict2namespace(config):
+    namespace = argparse.Namespace()
+    for key, value in config.items():
+        setattr(namespace, key, dict2namespace(value) if isinstance(value, dict) else value)
+    return namespace
+
+
+def parse_args():
+    p = argparse.ArgumentParser(description="Train a stochastic-interpolant drift network")
+    p.add_argument("--config", type=str, required=True, help="Config file in configs/")
+    p.add_argument("--seed", type=int, default=1234)
+    p.add_argument("--epochs", type=int, default=2000)
+    p.add_argument("--batch_size", type=int, default=32)
+    p.add_argument("--lr", type=float, default=2e-4)
+    p.add_argument("--weight_decay", type=float, default=1e-4)
+    p.add_argument("--warmup_epochs", type=int, default=50)
+    p.add_argument("--frame_stride", type=int, default=4,
+                   help="Subsample frames within each trajectory (decorrelate + save memory)")
+    p.add_argument("--num_workers", type=int, default=0)
+    p.add_argument("--si_ckpt", type=str, default="./pretrained_weights/si_ckpt.pth",
+                   help="Output path for the trained drift network")
+    p.add_argument("--log_every", type=int, default=1)
+    p.add_argument("--save_every", type=int, default=100)
+    return p.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+    logger = logging.getLogger("LOG")
+
+    with open(os.path.join("configs", args.config), "r") as f:
+        config = dict2namespace(yaml.safe_load(f))
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    config.device = device
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+
+    logger.info("Loading training pairs (x0=low-res, x1=high-res)...")
+    x0, x1, data_mean, data_std = load_si_pairs(
+        config.data.data_dir,
+        config.data.sample_data_dir,
+        config.data.data_kw,
+        split="train",
+        frame_stride=args.frame_stride,
+    )
+    scaler = StdScaler(data_mean, data_std)
+    logger.info(f"Train pairs: {x0.shape[0]} (frame_stride={args.frame_stride}), "
+                f"mean={data_mean:.4f} std={data_std:.4f}")
+
+    # Keep raw tensors; standardize per-batch to avoid a second full-size copy.
+    dataset = torch.utils.data.TensorDataset(x0, x1)
+    loader = torch.utils.data.DataLoader(
+        dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.num_workers, drop_last=True,
+    )
+
+    si = StochasticInterpolant(config, device, logger)
+    si.model.train()
+    optimizer = torch.optim.AdamW(si.model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+    def lr_at(epoch):
+        # linear warmup, then cosine annealing to 0
+        if epoch < args.warmup_epochs:
+            return (epoch + 1) / max(1, args.warmup_epochs)
+        progress = (epoch - args.warmup_epochs) / max(1, args.epochs - args.warmup_epochs)
+        return 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
+
+    os.makedirs(os.path.dirname(args.si_ckpt) or ".", exist_ok=True)
+
+    for epoch in range(args.epochs):
+        scale = lr_at(epoch)
+        for group in optimizer.param_groups:
+            group["lr"] = args.lr * scale
+
+        running, n_batches = 0.0, 0
+        for x0_b, x1_b in loader:
+            x0_b = scaler(x0_b.to(device))
+            x1_b = scaler(x1_b.to(device))
+
+            optimizer.zero_grad()
+            loss = si.interpolant_loss(x0_b, x1_b)
+            loss.backward()
+            optimizer.step()
+
+            running += loss.item()
+            n_batches += 1
+
+        if epoch % args.log_every == 0:
+            logger.info(f"epoch {epoch + 1}/{args.epochs}  loss={running / max(1, n_batches):.6f}  "
+                        f"lr={args.lr * scale:.2e}")
+
+        if (epoch + 1) % args.save_every == 0 or epoch == args.epochs - 1:
+            torch.save([si.model.state_dict()], args.si_ckpt)
+            logger.info(f"Saved checkpoint -> {args.si_ckpt}")
+
+    logger.info("Training finished.")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

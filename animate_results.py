@@ -18,7 +18,7 @@ EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 # Which run to animate: "baseline" (reconstruct) or "dps" (posterior sampling).
 # DPS saves to a "dps_"-prefixed folder, so the path is built from the pieces below.
-METHOD = "dps"          # "baseline" or "dps"
+METHOD = "dps"          # "baseline", "dps", or "si"
 DATA_KW = "u3232"
 T = 400
 R = 20
@@ -34,7 +34,7 @@ OUTPUT_FORMAT = 'mp4'
 LAYOUT = 'combined'
 
 
-PREFIX = "dps_" if METHOD == "dps" else ""
+PREFIX = {"dps": "dps_", "si": "si_"}.get(METHOD, "")
 ZTAG = f"_z{ZETA}" if METHOD == "dps" else ""
 BASE_EXP_NAME = f"{PREFIX}guided_recons_{DATA_KW}_t{T}_r{R}"
 

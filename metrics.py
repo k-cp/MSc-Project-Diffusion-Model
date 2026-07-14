@@ -66,8 +66,9 @@ ZETA = 3.0   # which DPS zeta run to load (float, matches the --zeta you ran, e.
 
 # Style / folder-prefix for each method. Reference is handled separately below.
 METHOD_CONFIG = {
-    "baseline": {"prefix": "",     "label": "Baseline (physics-guided)", "color": "red",   "linestyle": "-"},
-    "dps":      {"prefix": "dps_", "label": "Posterior sampling (DPS)",   "color": "green", "linestyle": "-"},
+    "baseline": {"prefix": "",     "label": "Baseline (physics-guided)", "color": "red",        "linestyle": "-"},
+    "dps":      {"prefix": "dps_", "label": "Posterior sampling (DPS)",   "color": "green",      "linestyle": "-"},
+    "si":       {"prefix": "si_",  "label": "Stochastic interpolant",     "color": "darkorange", "linestyle": "-"},
 }
 REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--"}
 
