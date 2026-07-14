@@ -21,6 +21,17 @@
 MODE="${1:-baseline}"
 ZETA="${2:-0.1}"
 
+# Fail loudly on a bad mode instead of silently running the baseline.
+# (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
+# is the MODE, not zeta. Correct: `... dps 0.1`.)
+if [ "$MODE" != "baseline" ] && [ "$MODE" != "dps" ]; then
+    echo "ERROR: first argument must be 'baseline' or 'dps' (got '$MODE')."
+    echo "Usage: sbatch run_inference_conditional.sh [baseline|dps] [zeta]"
+    echo "  baseline:  sbatch run_inference_conditional.sh"
+    echo "  DPS:       sbatch run_inference_conditional.sh dps 0.3"
+    exit 1
+fi
+
 module load cray-python/3.11.7
 source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
 cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model
