@@ -16,7 +16,12 @@ EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 
 
-BASE_EXP_NAME = "guided_recons_u3232_t240_r30"
+# Which run to animate: "baseline" (reconstruct) or "dps" (posterior sampling).
+# DPS saves to a "dps_"-prefixed folder, so the path is built from the pieces below.
+METHOD = "dps"          # "baseline" or "dps"
+DATA_KW = "u3232"
+T = 400
+R = 20
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)
 W = 0.0
@@ -28,6 +33,8 @@ OUTPUT_FORMAT = 'mp4'
 LAYOUT = 'combined'
 
 
+PREFIX = "dps_" if METHOD == "dps" else ""
+BASE_EXP_NAME = f"{PREFIX}guided_recons_{DATA_KW}_t{T}_r{R}"
 
 parent_dir = f"experiments/{EXPERIMENT_FOLDER}/{BASE_EXP_NAME}_w{W}"
 num_batches = 64
