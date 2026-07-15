@@ -46,6 +46,8 @@ def parse_args():
     p.add_argument("--num_workers", type=int, default=0)
     p.add_argument("--si_ckpt", type=str, default="./pretrained_weights/si_ckpt.pth",
                    help="Output path for the trained drift network")
+    p.add_argument("--resume", type=int, default=0,
+                   help="Set to 1 to resume from --si_ckpt if it exists (continue epoch/optimizer)")
     p.add_argument("--log_every", type=int, default=1)
     p.add_argument("--save_every", type=int, default=100)
     return p.parse_args()
@@ -99,7 +101,30 @@ def main():
 
     os.makedirs(os.path.dirname(args.si_ckpt) or ".", exist_ok=True)
 
-    for epoch in range(args.epochs):
+    # Resume from a previous checkpoint if requested (e.g. after a 24h timeout).
+    start_epoch = 0
+    if args.resume and os.path.exists(args.si_ckpt):
+        ckpt = torch.load(args.si_ckpt, map_location=device)
+        if isinstance(ckpt, dict) and "model" in ckpt:
+            si.model.load_state_dict(ckpt["model"])
+            if "optimizer" in ckpt:
+                optimizer.load_state_dict(ckpt["optimizer"])
+            start_epoch = int(ckpt.get("epoch", 0))
+            logger.info(f"Resumed from {args.si_ckpt} at epoch {start_epoch}")
+        else:
+            # Old inference-only format ([state_dict]); load weights, restart schedule.
+            state = ckpt[-1] if isinstance(ckpt, (list, tuple)) else ckpt
+            si.model.load_state_dict(state)
+            logger.info(f"Loaded weights from {args.si_ckpt} (no epoch info); starting at epoch 0")
+    elif args.resume:
+        logger.info(f"--resume set but {args.si_ckpt} not found; starting fresh")
+
+    def save_ckpt(epoch):
+        torch.save({"epoch": epoch, "model": si.model.state_dict(),
+                    "optimizer": optimizer.state_dict()}, args.si_ckpt)
+        logger.info(f"Saved checkpoint (epoch {epoch}) -> {args.si_ckpt}")
+
+    for epoch in range(start_epoch, args.epochs):
         scale = lr_at(epoch)
         for group in optimizer.param_groups:
             group["lr"] = args.lr * scale
@@ -122,8 +147,7 @@ def main():
                         f"lr={args.lr * scale:.2e}")
 
         if (epoch + 1) % args.save_every == 0 or epoch == args.epochs - 1:
-            torch.save([si.model.state_dict()], args.si_ckpt)
-            logger.info(f"Saved checkpoint -> {args.si_ckpt}")
+            save_ckpt(epoch + 1)
 
     logger.info("Training finished.")
 

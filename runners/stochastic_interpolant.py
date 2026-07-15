@@ -205,7 +205,12 @@ class SIRunner:
                 f"SI checkpoint not found: {ckpt_path}. Train one first with train_si.py."
             )
         states = torch.load(ckpt_path, map_location=self.device)
-        state_dict = states[-1] if isinstance(states, (list, tuple)) else states
+        if isinstance(states, dict) and "model" in states:
+            state_dict = states["model"]            # {'epoch','model','optimizer'} (train_si.py)
+        elif isinstance(states, (list, tuple)):
+            state_dict = states[-1]                  # [state_dict] legacy format
+        else:
+            state_dict = states                      # raw state_dict
         self.si.model.load_state_dict(state_dict)
         self.si.model.eval()
         self.log(f"Loaded SI drift network from {ckpt_path}")
