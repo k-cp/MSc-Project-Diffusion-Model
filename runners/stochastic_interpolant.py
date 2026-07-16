@@ -32,6 +32,7 @@ if REPO_ROOT not in sys.path:
 
 
 import torch
+import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 import logging
@@ -115,17 +116,34 @@ def load_si_pairs(ref_path, sample_path, data_kw, split="train", frame_stride=1)
 class StochasticInterpolant:
     """Drift network + interpolant math + SDE sampler."""
 
-    def __init__(self, config, device, logger=None):
+    def __init__(self, config, device, logger=None, physics="none"):
         self.config = config
         self.device = device
         self.logger = logger or logging.getLogger("LOG")
         self.coeff = InterpolantCoefficients()
+        self.physics = physics
 
         # Reuse the conditional UNet as the drift network b_theta.
         if config.model.type == "conditional":
             self.model = ConditionalModel(config)
         else:
             self.model = Model(config)
+
+        # "learned" physics conditioning (Shu et al. method 1) feeds BOTH the
+        # coarse field x0 and the PDE residual gradient c through the
+        # conditioning branch, so emb_conv must ingest 2*in_channels. Patched
+        # here rather than in models/diffusion_new.py so the diffusion model
+        # used by baseline/DPS is untouched (its checkpoint still loads).
+        if self.physics == "learned":
+            ch = config.model.ch
+            in_ch = config.model.in_channels
+            self.model.emb_conv = nn.Sequential(
+                nn.Conv2d(2 * in_ch, ch, kernel_size=1, stride=1, padding=0),
+                nn.GELU(),
+                nn.Conv2d(ch, ch, kernel_size=3, stride=1, padding=1,
+                          padding_mode="circular"),
+            )
+
         self.model.to(device)
 
         # Pseudo-time tau in [0,1] is scaled into the timestep-embedding range
@@ -135,15 +153,47 @@ class StochasticInterpolant:
     def log(self, msg):
         self.logger.info(msg)
 
-    def drift(self, x_state, tau_vec, x0_cond):
-        """b_theta(x_state, tau, x0_cond). tau_vec: (B,) pseudo-time in [0,1]."""
-        t = tau_vec.float() * self.time_scale
-        if self.config.model.type == "conditional":
-            return self.model(x_state, t, dx=x0_cond)
-        return self.model(x_state, t)
+    def physics_grad(self, x_std, scaler):
+        """PDE residual gradient c = dr/dx in standardized units.
 
-    def interpolant_loss(self, x0, x1):
-        """Drift-matching objective (Eq 9), estimated on a minibatch."""
+        Mirrors reconstruct()'s physical_gradient_func exactly, so 'linear' and
+        'learned' here use the same quantity the baseline uses. The residual is
+        evaluated on the CURRENT state (Shu et al. Eq 6: r_t = G|u=x_t), which
+        suits SI even better than diffusion -- the interpolant carries only ~4%
+        noise at its peak, so it is far closer to a physical field than a
+        diffusion x_t.
+
+        voriticity_residual() calls torch.autograd.grad internally, so grad must
+        be enabled even when the caller is under torch.no_grad().
+        """
+        with torch.enable_grad():
+            return voriticity_residual(scaler.inverse(x_std))[0] / scaler.scale()
+
+    def drift(self, x_state, tau_vec, x0_cond, phys_cond=None):
+        """b_theta(x_state, tau, x0_cond[, c]). tau_vec: (B,) pseudo-time in [0,1].
+
+        physics='learned': the conditioning branch receives cat([x0, c]); passing
+        phys_cond=None gives the unconditional branch (c = empty set), which is what
+        classifier-free guidance needs.
+        """
+        t = tau_vec.float() * self.time_scale
+        if self.config.model.type != "conditional":
+            return self.model(x_state, t)
+
+        cond = x0_cond
+        if self.physics == "learned":
+            if phys_cond is None:
+                phys_cond = torch.zeros_like(x0_cond)
+            cond = torch.cat([x0_cond, phys_cond], dim=1)
+        return self.model(x_state, t, dx=cond)
+
+    def interpolant_loss(self, x0, x1, scaler=None, p_uncond=0.1):
+        """Drift-matching objective (Eq 9), estimated on a minibatch.
+
+        physics='learned' additionally computes c = dr/dI_tau and feeds it to the
+        conditioning branch, dropping it with probability p_uncond so the
+        unconditional branch is trained too (Shu et al. Algorithm 1, line 6).
+        """
         b = x0.shape[0]
         tau = torch.rand(b, 1, 1, 1, device=x0.device)          # tau ~ U[0,1]
         z = torch.randn_like(x0)
@@ -153,16 +203,50 @@ class StochasticInterpolant:
         interpolant = c.alpha(tau) * x0 + c.beta(tau) * x1 + c.sigma(tau) * w
         target = c.alpha_dot(tau) * x0 + c.beta_dot(tau) * x1 + c.sigma_dot(tau) * w
 
-        pred = self.drift(interpolant, tau.reshape(b), x0)
+        phys_cond = None
+        if self.physics == "learned":
+            if scaler is None:
+                raise ValueError("physics='learned' training requires a scaler")
+            phys_cond = self.physics_grad(interpolant.detach(), scaler)
+            if torch.rand(1).item() < p_uncond:      # unconditional dropout
+                phys_cond = None
+
+        pred = self.drift(interpolant, tau.reshape(b), x0, phys_cond)
         return ((pred - target) ** 2).mean()
 
     @torch.no_grad()
-    def sample(self, x0, n_steps=100):
+    def sample(self, x0, n_steps=100, scaler=None, lam=0.0, w_cond=0.0):
         """Integrate the generative SDE (Eq 7) from X_0 = x0 with a stochastic
-        Heun (predictor-corrector) scheme, returning X_1."""
+        Heun (predictor-corrector) scheme, returning X_1.
+
+        Physics guidance (self.physics), following Shu et al. (JCP 2023):
+          'none'    -- plain SI.
+          'linear'  -- direct gradient descent of the physics-informed condition:
+                       subtract lam * c from the update (their Eq 9, the "Linear"
+                       variant). Inference-only; works with a plain SI checkpoint.
+          'learned' -- learned encoding of the physics-informed condition: c is fed
+                       to the conditioning branch and combined classifier-free with
+                       strength w_cond (their Algorithm 2, line 8). REQUIRES a
+                       checkpoint trained with physics='learned'.
+        """
         b = x0.shape[0]
         x = x0.clone()
         taus = torch.linspace(0.0, 1.0, n_steps + 1, device=x0.device)
+
+        if self.physics != "none" and scaler is None:
+            raise ValueError(f"physics='{self.physics}' sampling requires a scaler")
+
+        def _drift(state, tau_scalar):
+            """One drift evaluation, applying 'learned' guidance if enabled."""
+            tvec = torch.full((b,), tau_scalar, device=x0.device)
+            if self.physics != "learned":
+                return self.drift(state, tvec, x0)
+            c = self.physics_grad(state, scaler)
+            b_cond = self.drift(state, tvec, x0, c)
+            if w_cond == 0.0:
+                return b_cond
+            b_uncond = self.drift(state, tvec, x0, None)
+            return b_cond + w_cond * (b_cond - b_uncond)
 
         for i in range(n_steps):
             tau = taus[i].item()
@@ -171,13 +255,15 @@ class StochasticInterpolant:
             sig = self.coeff.sigma_scale * (1.0 - tau)
             noise = sig * math.sqrt(dtau) * torch.randn_like(x)
 
-            tvec = torch.full((b,), tau, device=x0.device)
-            drift1 = self.drift(x, tvec, x0)
+            drift1 = _drift(x, tau)
             x_pred = x + drift1 * dtau + noise
 
-            tvec_next = torch.full((b,), tau_next, device=x0.device)
-            drift2 = self.drift(x_pred, tvec_next, x0)
+            drift2 = _drift(x_pred, tau_next)
             x = x + 0.5 * (drift1 + drift2) * dtau + noise
+
+            # 'linear': direct gradient descent on the PDE residual (Eq 9).
+            if self.physics == "linear" and lam != 0.0:
+                x = x - lam * self.physics_grad(x, scaler)
 
         return x
 
@@ -196,8 +282,12 @@ class SIRunner:
         self.log_dir = log_dir or config.log_dir
         self.device = config.device
         self.n_steps = getattr(args, "si_steps", 100)
+        self.physics = getattr(args, "si_physics", "none")
+        self.lam = getattr(args, "si_lambda", 0.0)
+        self.w_cond = getattr(args, "si_w", 0.0)
 
-        self.si = StochasticInterpolant(config, self.device, self.logger)
+        self.si = StochasticInterpolant(config, self.device, self.logger,
+                                        physics=self.physics)
 
         ckpt_path = getattr(args, "si_ckpt", None) or "./pretrained_weights/si_ckpt.pth"
         if not os.path.exists(ckpt_path):
@@ -214,6 +304,12 @@ class SIRunner:
         self.si.model.load_state_dict(state_dict)
         self.si.model.eval()
         self.log(f"Loaded SI drift network from {ckpt_path}")
+        if self.physics == "linear":
+            self.log(f"Physics guidance: linear (direct gradient descent), lambda={self.lam}")
+        elif self.physics == "learned":
+            self.log(f"Physics guidance: learned (conditioned), w={self.w_cond}")
+        else:
+            self.log("Physics guidance: none")
 
     def log(self, msg):
         self.logger.info(msg)
@@ -268,7 +364,13 @@ class SIRunner:
 
             for repeat in range(self.args.repeat_run):
                 self.log(f"Run {repeat + 1}/{self.args.repeat_run} (SDE steps={self.n_steps})")
-                sample = self.si.sample(x0, n_steps=self.n_steps)
+                sample = self.si.sample(
+                    x0,
+                    n_steps=self.n_steps,
+                    scaler=scaler,
+                    lam=self.lam,
+                    w_cond=self.w_cond,
+                )
                 sample = scaler.inverse(sample)
 
                 l2_final = l2_loss(sample, gt)

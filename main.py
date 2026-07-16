@@ -36,6 +36,16 @@ def parse_args_and_config(): # Set default arguements
                         help="Trained SI drift-network checkpoint (produced by train_si.py)")
     parser.add_argument("--si_steps", type=int, default=100,
                         help="Number of SDE integration steps for SI sampling")
+    parser.add_argument("--si_physics", type=str, default="none",
+                        choices=["none", "linear", "learned"],
+                        help="Physics guidance for SI (Shu et al. JCP 2023): 'linear' = direct "
+                             "gradient descent of the PDE residual (inference-only, use --si_lambda); "
+                             "'learned' = PDE residual gradient as conditioning, classifier-free "
+                             "(use --si_w; REQUIRES a checkpoint trained with --si_physics learned)")
+    parser.add_argument("--si_lambda", type=float, default=0.0,
+                        help="Step size for SI 'linear' physics guidance")
+    parser.add_argument("--si_w", type=float, default=0.0,
+                        help="Conditioning strength for SI 'learned' physics guidance")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -70,9 +80,15 @@ def parse_args_and_config(): # Set default arguements
     if getattr(args, 'run_dps', 0) == 1:
         dir_name = 'dps_' + dir_name + '_z{}'.format(args.zeta)
 
-    # Stochastic Interpolant runs get their own si_ folder.
+    # Stochastic Interpolant runs get their own si_ folder, tagged with the
+    # physics-guidance mode and its strength so sweeps don't clobber each other.
     if getattr(args, 'run_si', 0) == 1:
         dir_name = 'si_' + dir_name
+        si_physics = getattr(args, 'si_physics', 'none')
+        if si_physics == 'linear':
+            dir_name += '_linear_lam{}'.format(args.si_lambda)
+        elif si_physics == 'learned':
+            dir_name += '_learned_w{}'.format(args.si_w)
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

@@ -48,6 +48,13 @@ def parse_args():
                    help="Output path for the trained drift network")
     p.add_argument("--resume", type=int, default=0,
                    help="Set to 1 to resume from --si_ckpt if it exists (continue epoch/optimizer)")
+    p.add_argument("--si_physics", type=str, default="none", choices=["none", "learned"],
+                   help="'learned' trains the drift net with the PDE residual gradient as an extra "
+                        "conditioning input (Shu et al. Alg 1). 'linear' guidance needs NO special "
+                        "training -- train with 'none' and enable it at inference.")
+    p.add_argument("--si_pu", type=float, default=0.1,
+                   help="Probability of dropping the physics condition during 'learned' training "
+                        "(enables classifier-free guidance at sampling)")
     p.add_argument("--log_every", type=int, default=1)
     p.add_argument("--save_every", type=int, default=100)
     return p.parse_args()
@@ -88,8 +95,11 @@ def main():
         num_workers=args.num_workers, drop_last=True,
     )
 
-    si = StochasticInterpolant(config, device, logger)
+    si = StochasticInterpolant(config, device, logger, physics=args.si_physics)
     si.model.train()
+    if args.si_physics == "learned":
+        logger.info(f"Training WITH learned physics conditioning (p_uncond={args.si_pu}). "
+                    f"This checkpoint is only usable with --si_physics learned at inference.")
     optimizer = torch.optim.AdamW(si.model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     def lr_at(epoch):
@@ -135,7 +145,7 @@ def main():
             x1_b = scaler(x1_b.to(device))
 
             optimizer.zero_grad()
-            loss = si.interpolant_loss(x0_b, x1_b)
+            loss = si.interpolant_loss(x0_b, x1_b, scaler=scaler, p_uncond=args.si_pu)
             loss.backward()
             optimizer.step()
 
