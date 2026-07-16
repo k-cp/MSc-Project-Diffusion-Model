@@ -33,7 +33,7 @@ def compute_ke_spectrum(vorticity_field):
 
 def collect_and_average_data(batch_dir_pattern, file_name):
     """
-    Finds all matching .npy files across your batch folders and collects them.
+    Finds all matching .npy files across batch folders and collects them.
     """
     search_path = os.path.join(batch_dir_pattern, file_name)
     file_list = glob.glob(search_path)
@@ -53,16 +53,13 @@ def collect_and_average_data(batch_dir_pattern, file_name):
         
     return fields
 
-# ---------------------------------------------------------------------------
-# Experiment settings. Baseline and DPS save to different folders (the DPS one
-# is prefixed with "dps_"), so we build each method's path from these pieces.
-# ---------------------------------------------------------------------------
+
 EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 DATA_KW = "u3232"
 T = 400
 R = 20
 W = 0.0
-ZETA = 3.0   # which DPS zeta run to load (float, matches the --zeta you ran, e.g. 0.1, 3.0, 10.0)
+ZETA = 3.0   # which DPS zeta run to load 
 
 # Style / folder-prefix for each method. Reference is handled separately below.
 METHOD_CONFIG = {
@@ -74,8 +71,7 @@ REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--
 
 
 def method_dir(method):
-    """Build the experiment folder path for a given method ('baseline' or 'dps').
-    DPS runs live in a per-zeta folder (…_z<ZETA>)."""
+
     cfg = METHOD_CONFIG[method]
     folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}"
     if method == "dps":
@@ -84,8 +80,7 @@ def method_dir(method):
 
 
 def plot_fluid_statistics(methods_to_plot):
-    """Plot E(k) and p(w). Always includes Reference, plus each selected method
-    ('baseline' and/or 'dps')."""
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     plt.rcParams.update({'font.size': 12, 'axes.linewidth': 1.5})
 
@@ -122,7 +117,7 @@ def plot_fluid_statistics(methods_to_plot):
             print(e)
             continue
 
-        # ---- (a) Kinetic Energy Spectrum E(k) ----
+        #  (a) Kinetic Energy Spectrum E(k)
         total_E_k = None
         k = None
         for field in fields:
@@ -131,13 +126,13 @@ def plot_fluid_statistics(methods_to_plot):
         avg_E_k = total_E_k / len(fields)
         ax1.loglog(k, avg_E_k, color=color, linestyle=linestyle, linewidth=1.5, label=label)
 
-        # ---- (b) Vorticity Distribution p(w) ----
+        #  (b) Vorticity Distribution p(w) 
         all_vorticity = np.concatenate([f.flatten() for f in fields])
         kde = gaussian_kde(all_vorticity, bw_method=0.1)
         w_range = np.linspace(-10, 10, 500)
         ax2.plot(w_range, kde(w_range), color=color, linestyle=linestyle, linewidth=2, label=label)
 
-    # --- Formatting Ax1: Kinetic Energy Spectrum ---
+
     ax1.set_xlabel(r'$k$', fontsize=14)
     ax1.set_ylabel(r'$E(k)$', fontsize=14)
     ax1.set_xlim(left=1)
@@ -165,10 +160,10 @@ def plot_fluid_statistics(methods_to_plot):
 
 
 if __name__ == "__main__":
-    # Choose what to graph. Reference is ALWAYS included. Options:
+    # Choose what to graph
     #   ["baseline"]          -> baseline vs reference
     #   ["dps"]               -> DPS vs reference
     #   ["baseline", "dps"]   -> both vs reference (three curves)
-    METHODS_TO_PLOT = ["baseline", "dps"]
+    METHODS_TO_PLOT = ["baseline", "dps", "si"]
 
     plot_fluid_statistics(METHODS_TO_PLOT)

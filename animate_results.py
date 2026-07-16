@@ -16,13 +16,15 @@ EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 
 
+
+
 # Which run to animate: "baseline" (reconstruct) or "dps" (posterior sampling).
 # DPS saves to a "dps_"-prefixed folder, so the path is built from the pieces below.
-METHOD = "dps"          # "baseline", "dps", or "si"
+METHOD = "si"          # "baseline", "dps", or "si"
 DATA_KW = "u3232"
 T = 400
 R = 20
-ZETA = 3.0              # which DPS zeta run to load (only used when METHOD == "dps")
+ZETA = 3.0              # which DPS zeta run to load (only used when method == "dps")
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)
 W = 0.0
