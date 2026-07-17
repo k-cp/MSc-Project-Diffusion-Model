@@ -18,13 +18,18 @@ EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 
 
-# Which run to animate: "baseline" (reconstruct) or "dps" (posterior sampling).
-# DPS saves to a "dps_"-prefixed folder, so the path is built from the pieces below.
+# Which run to animate. Each method writes to its own folder, so the path is
+# assembled from the pieces below (must match the folder main.py created).
 METHOD = "si"          # "baseline", "dps", or "si"
 DATA_KW = "u3232"
 T = 400
 R = 20
-ZETA = 3.0              # which DPS zeta run to load (only used when method == "dps")
+ZETA = 3.0              # which DPS zeta run to load        (only used when METHOD == "dps")
+
+# Physics guidance for SI                                   (only used when METHOD == "si")
+SI_PHYSICS = "none"     # "none" | "linear" | "learned"
+SI_LAMBDA = 0.01        # lambda of the linear run to load  (only used when SI_PHYSICS == "linear")
+SI_W = 3.0              # w of the learned run to load      (only used when SI_PHYSICS == "learned")
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)
 W = 0.0
@@ -37,10 +42,20 @@ LAYOUT = 'combined'
 
 
 PREFIX = {"dps": "dps_", "si": "si_"}.get(METHOD, "")
-ZTAG = f"_z{ZETA}" if METHOD == "dps" else ""
+
+# Folder suffix, matching main.py's naming.
+if METHOD == "dps":
+    TAG = f"_z{ZETA}"
+elif METHOD == "si" and SI_PHYSICS == "linear":
+    TAG = f"_linear_lam{SI_LAMBDA}"
+elif METHOD == "si" and SI_PHYSICS == "learned":
+    TAG = f"_learned_w{SI_W}"
+else:
+    TAG = ""
+
 BASE_EXP_NAME = f"{PREFIX}guided_recons_{DATA_KW}_t{T}_r{R}"
 
-parent_dir = f"experiments/{EXPERIMENT_FOLDER}/{BASE_EXP_NAME}_w{W}{ZTAG}"
+parent_dir = f"experiments/{EXPERIMENT_FOLDER}/{BASE_EXP_NAME}_w{W}{TAG}"
 num_batches = 64
 
 if not os.path.exists(parent_dir):
@@ -100,7 +115,7 @@ if LAYOUT == 'combined':
         return ims
 
     ani = animation.FuncAnimation(fig, update, frames=total_frames, interval=50, blit=True)
-    save_animation(ani, f"{BASE_EXP_NAME}_w{W}_combined")
+    save_animation(ani, f"{BASE_EXP_NAME}_w{W}{TAG}_combined")
     plt.close()
 
 elif LAYOUT == 'individual':
@@ -111,7 +126,7 @@ elif LAYOUT == 'individual':
         ax.axis('off')
         ani = animation.FuncAnimation(fig, lambda f: [im.set_data(get_display_frame(data, f))], 
                                       frames=total_frames, interval=50, blit=False)
-        save_animation(ani, f"{BASE_EXP_NAME}_w{W}_{suffix}")
+        save_animation(ani, f"{BASE_EXP_NAME}_w{W}{TAG}_{suffix}")
         plt.close()
 
     render_single(inputs, " Input", "input")
