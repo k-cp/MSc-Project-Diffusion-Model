@@ -15,8 +15,9 @@
 #   sbatch run_inference_conditional.sh dps 0.3            # DPS, custom zeta
 #   sbatch run_inference_conditional.sh si                 # Stochastic Interpolants, no physics
 #   sbatch run_inference_conditional.sh si linear 0.01     # SI + linear physics guidance (lambda)
-#   sbatch run_inference_conditional.sh si learned 3.0     # SI + learned physics conditioning (w)
-#
+#   sbatch run_inference_conditional.sh si learned 3.0     # SI + learned physics conditioning (w) from ε̃_θ = ε_θ(x_τi, τi, c) + w·[ ε_θ(x_τi, τi, c) − ε_θ(x_τi, τi, ∅) ]
+
+
 # MODE=dps      -> routes main.py to the DPS PosteriorRunner (--run_dps 1)
 # MODE=si       -> routes main.py to the SIRunner (--run_si 1); train first with run_train_si.sh
 #                  arg2 = physics guidance {none|linear|learned}, arg3 = its strength

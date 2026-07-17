@@ -178,6 +178,13 @@ The UNet's three inputs map onto SI as:
 `x₀` passes through `emb_conv` (1×1 conv → GELU → 3×3 **circular** conv — circular because
 the domain is periodic), is concatenated with `conv_in(I_τ)`, and fused by `combine_conv`.
 
+**Architecture caveat:** the config's `attn_resolutions: [16]` is **dead** — the resolution
+ladder is 256 → 128 → 64 → 32 (from `ch_mult` length 4) and never reaches 16, so no
+attention blocks are created in the down/up paths. The only attention in the network is the
+unconditional one at the 32×32 bottleneck (`mid.attn_1`). Describe it as "attention at the
+32×32 bottleneck", not "at 16×16". (This is inherited from the repo and affects the
+diffusion model identically.)
+
 **The `×1000` scaling** (`time_scale = config.diffusion.num_diffusion_timesteps`): the UNet's
 sinusoidal `get_timestep_embedding` was designed for diffusion timesteps 0–1000. Feeding raw
 `τ ∈ [0,1]` would leave the embedding nearly constant across the whole interval. The constant
@@ -226,6 +233,8 @@ python train_si.py \
 | save_every | 100 epochs |
 | seed | 1234 |
 | σ noise scale | 0.1 |
+| si_physics | none (the shipped checkpoint; `learned` is a separate option, see §6) |
+| EMA | **not used** — the checkpoint is raw final weights (the config's `ema: True` is diffusion-only and ignored by `train_si.py`) |
 
 ### 5.3 Data preparation
 
@@ -345,9 +354,33 @@ python main.py \
 | `--si_steps` | 100 | SDE integration steps; 50 ≈ halves runtime |
 | `--seed` | 1234 | changes sampling noise → a **different but equally valid** sample |
 | `--repeat_run` | 1 | N samples per batch → `sample_run_0_it0`, `sample_run_1_it0`, … |
+| `--si_physics` | none | physics guidance: `none` / `linear` / `learned` (see below) |
+| `--si_lambda` | 0.0 | step size for `linear` guidance (0.0 = no-op — must be set explicitly) |
+| `--si_w` | 0.0 | classifier-free strength for `learned` guidance |
 
 `--t`, `--r`, `--zeta`, `--operator`, `--scale_factor` are **ignored** by SI. `--t`/`--r`
 still appear in the output folder name only because the naming code is shared.
+
+**Physics guidance (optional, Shu et al. JCP 2023).** Two mechanisms are implemented:
+
+- `--si_physics linear --si_lambda <λ>` — *direct gradient descent of the physics-informed
+  condition* (their Eq 9): after each Heun step, `x ← x − λ·c` with
+  `c = ∇(NS residual)/std`, the same quantity the baseline uses. **Inference-only** — works
+  with the plain `si_ckpt.pth`. Sbatch: `sbatch run_inference_conditional.sh si linear 0.01`.
+- `--si_physics learned --si_w <w>` — *learned encoding of the physics-informed condition*
+  (their Alg 1+2): `c` is fed through the conditioning branch (`emb_conv` widened to
+  2×in_channels, taking `cat([x₀, c])`), combined classifier-free:
+  `b̃ = b(·,c) + w·[b(·,c) − b(·,∅)]`. **Requires its own training run**
+  (`sbatch run_train_si.sh 2000 4 fresh learned` → `si_ckpt_learned.pth`; trains with
+  condition-dropout `--si_pu 0.1`). Loading the plain checkpoint fails with an
+  `emb_conv` shape mismatch — that error is the architecture guard working.
+
+Each physics run gets its own output folder:
+`si_..._linear_lam0.01`, `si_..._learned_w3.0` — so sweeps never overwrite each other.
+
+**The shipped `si_ckpt.pth` was trained with `--si_physics none`.** Given §7.2 (SI's
+residual 8.28 already beats the ground truth's own 12.5), physics guidance is a diagnostic
+option here, not a needed fix.
 
 ### 6.2 What happens internally
 
@@ -473,28 +506,90 @@ frames. 256×256 is **hard-asserted** — any other resolution raises an `Assert
 
 ---
 
-## 7. Verifying it worked
+## 7. Results — full held-out test set (1272 frames, 64 batches)
 
-Measured over 5 of the 64 test batches (100 frames), reference std = 4.963:
+All comparison metrics below are computed on the **complete test set** (last 4 trajectories),
+in **physical vorticity units**, from the saved middle-frame arrays
+(`sample_arr_run_0_it0.npy`). The reference and input arrays are byte-identical across the
+three method folders (verified), so every method is scored on exactly the same data. Runs
+compared: baseline and DPS at `t=400, r=20, seed 1234`; DPS at its best zeta (3.0); SI as
+documented in §5/§6.
 
-| method | mean | std | RMSE vs ref | corr vs ref |
+### 7.1 Field error vs ground truth
+
+| method | MSE | RMSE | repo-L2 * | correlation |
 |---|---|---|---|---|
-| reference | −0.000 | **4.963** | — | — |
-| input (x₀) | 0.028 | 4.954 | 2.059 | 0.914 |
-| baseline (physics-guided diffusion) | 0.025 | 4.236 | 1.548 | 0.956 |
-| DPS | 0.028 | 4.698 | 1.475 | 0.955 |
-| **SI** | **0.000** | **4.945** | **0.724** | **0.989** |
+| input (x₀, sensor NN-fill) | 5.694 | 2.386 | 2.370 | 0.874 |
+| baseline (physics-guided diffusion) | 3.642 | 1.908 | 1.892 | 0.920 |
+| DPS (zeta = 3.0) | 3.589 | 1.894 | 1.877 | 0.918 |
+| **SI** | **1.449** | **1.204** | **1.179** | **0.968** |
 
-**Expected behaviour of a correct SI run:**
+\* repo-L2 is the repository's `l2_loss`: per-frame RMSE `sqrt(mean((x−y)²))`, then averaged
+over frames. For reference, the values each run *itself* reported in its log ("Mean L2
+loss", slightly different frame/batch weighting): baseline **1.8742**, DPS **1.8614**,
+SI **1.1695**.
 
-- RMSE vs reference ≈ **0.7** — roughly **half** the baseline's, and well below the input's 2.06.
-- **std ≈ 4.94**, i.e. within ~0.4 % of the reference. This is the key signal: SI preserves
-  fine-scale energy, whereas the baseline is over-smoothed (std 4.24, a ~15 % variance deficit).
-- The sample image should show structured turbulence with fine detail, not noise and not a
-  blur.
+### 7.2 Physics and statistics
+
+| method | NS residual † | std (ref = 4.763) | excess kurtosis (ref = 0.332) |
+|---|---|---|---|
+| input (x₀) | 10,693 | 4.759 | 0.339 |
+| baseline | 62.8 | 4.008 | 0.501 |
+| DPS (zeta = 3.0) | 3,178.8 | 4.463 | 0.516 |
+| **SI** | **8.28** | **4.724** | **0.358** |
+| *ground truth itself* | *12.5* | — | — |
+
+† `voriticity_residual` — the mean-squared residual of the vorticity-transport
+Navier–Stokes equation (`wt + u·∇ω − (1/Re)∇²ω + 0.1ω − f`). It needs 3 consecutive
+frames, so these come from each run's `logging_info.txt` (mean of the 64 per-batch values),
+not from the single-frame arrays.
+
+**The headline result:** SI's residual (8.28) is the best of all methods and *below the
+ground truth's own discretised residual* (~12.5) — achieved **without any physics
+guidance**. The baseline gets its low residual (62.8) by explicit PDE-gradient guidance at
+every step, and pays for it in over-smoothing: a 16 % variance deficit (std 4.008 vs
+4.763). DPS trades the PDE term for measurement guidance and its residual explodes
+(~3,179). SI is near-perfect on variance (−0.8 %) and kurtosis simultaneously.
+
+### 7.3 Kinetic-energy spectrum error
+
+Mean relative error of E(k) vs the reference spectrum, per wavenumber band
+(E(k) = ½|ω̂|²/k², annulus-summed as in `metrics.py`, averaged over all 1272 frames):
+
+| method | k 1–8 (large scales) | k 9–32 (mid) | k 33–127 (fine) |
+|---|---|---|---|
+| input (x₀) | 8.5 % | 33 % | 19,433 % |
+| baseline | 29 % | 48 % | 346 % |
+| DPS (zeta = 3.0) | 10 % | 45 % | 8,736 % |
+| **SI** | **0.76 %** | **15 %** | **53 %** |
+
+Readings: the input's enormous high-k error is the spurious energy of the blocky Voronoi
+fill; DPS inherits a large high-k excess from its per-step guidance noise; the baseline
+suppresses energy across *all* bands (over-smoothing, consistent with its std deficit);
+SI tracks the spectrum best in every band.
+
+### 7.4 DPS zeta sweep (context for zeta = 3.0)
+
+| zeta | mean L2 | mean residual | note |
+|---|---|---|---|
+| 0.1 | 1.8823 | 3,184.9 | |
+| 0.3 | 1.8819 | 3,184.5 | |
+| 1.0 | 1.8806 | 3,183.0 | |
+| **3.0** | **1.8769** | **3,178.7** | chosen |
+| 10.0 | 1.9142 | 3,318.7 | incomplete (47/64, folder-race crash) |
+
+### 7.5 What a correct SI run looks like
+
+- Log ends with `Mean L2 loss: ≈ 1.17` — well below the input's 2.37 and the
+  baseline/DPS ≈ 1.86–1.89.
+- Per-batch `Residual final` values of order **1–30** (mean ≈ 8) — not hundreds
+  (baseline ≈ 63) and not thousands (DPS ≈ 3,180).
+- Reconstruction std within ~1 % of 4.76; the sample image shows fine-scale turbulent
+  structure, neither noise nor blur.
 
 An **under-trained** model produces a recognisable but **blurry, wavy** field — that is what
-100 epochs looks like, and it is normal.
+100 epochs looks like, and it is normal. (An earlier version of this document quoted
+RMSE ≈ 0.72 from a 5-batch subset; the full-test-set numbers above supersede it.)
 
 ---
 
@@ -543,6 +638,8 @@ evaluates on **temporally decorrelated snapshots** and never claims temporal coh
 | 4000 epochs, batch 40, 2000 pairs | 2000 epochs, batch 32, 2880 pairs |
 | **divergence-free Helmholtz–Hodge projection** | **omitted** — it is defined for velocity fields; this data is vorticity |
 | **patch-wise `SI_patch`** (free + cond generators) | **full-field only** (the `SI_full` analogue) |
+| x₀ manufactured by lowpass (k=8) of the ground truth | x₀ is the dataset's **measured sparse-sensor field** (`u3232`) — the paper's `Up()` role is played by the NN fill; the paper states alternative interpolation operators are "equally viable" |
+| (common practice) EMA of weights | **no EMA** — raw final weights |
 
 The last two are the paper's own physics-fidelity and scalability mechanisms. If SI's
 **physical** metrics need improvement, those are the first things to add — not more epochs.
