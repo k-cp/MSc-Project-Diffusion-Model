@@ -179,6 +179,6 @@ if __name__ == "__main__":
     #   "si_learned"  -> SI + learned physics cond.    (uses SI_W)
     # e.g. ["si", "si_linear"]              -> does physics guidance help SI?
     #      ["baseline", "dps", "si"]        -> the three-method comparison
-    METHODS_TO_PLOT = ["baseline", "dps", "si"]
+    METHODS_TO_PLOT = ["baseline", "si", "si_linear"]
 
     plot_fluid_statistics(METHODS_TO_PLOT)

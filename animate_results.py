@@ -27,7 +27,7 @@ R = 20
 ZETA = 3.0              # which DPS zeta run to load        (only used when METHOD == "dps")
 
 # Physics guidance for SI                                   (only used when METHOD == "si")
-SI_PHYSICS = "none"     # "none" | "linear" | "learned"
+SI_PHYSICS = "linear"     # "none" | "linear" | "learned"
 SI_LAMBDA = 0.01        # lambda of the linear run to load  (only used when SI_PHYSICS == "linear")
 SI_W = 3.0              # w of the learned run to load      (only used when SI_PHYSICS == "learned")
 
