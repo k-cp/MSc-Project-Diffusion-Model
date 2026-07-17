@@ -80,8 +80,8 @@ class InterpolantCoefficients:
 def load_si_pairs(ref_path, sample_path, data_kw, split="train", frame_stride=1):
     """Load paired (x0=low-res, x1=high-res) 3-frame stacks.
 
-    Mirrors runners.rs256_guided_diffusion.load_recons_data, but selects the
-    train split (all but the last 4 trajectories) or the test split (last 4).
+    Selects the
+    train split (all but the last 4 trajectories) or the test split.
     Standardization stats are always computed from the train portion so train
     and test use the same scaler. frame_stride>1 subsamples frames within each
     trajectory to reduce dataset size and decorrelate samples (paper uses
@@ -104,12 +104,20 @@ def load_si_pairs(ref_path, sample_path, data_kw, split="train", frame_stride=1)
     samp_sel = torch.as_tensor(samp_sel.copy(), dtype=torch.float32)
 
     x1_list, x0_list = [], []
+
+    # Grab 3 consecutive frames
     for i in range(ref_sel.shape[0]):
         for j in range(0, ref_sel.shape[1] - 2, frame_stride):
             x1_list.append(ref_sel[i, j:j + 3])   # high-res target
             x0_list.append(samp_sel[i, j:j + 3])  # low-res base
     x1 = torch.stack(x1_list, dim=0)
     x0 = torch.stack(x0_list, dim=0)
+
+    # x0: The batched tensor of low-res (blurred) inputs. [Batch Size, 3, 256, 256]
+
+    # x1: The batched tensor of high-res (target) outputs.[ Batch Size, 3, 256, 256]
+    
+
     return x0, x1, float(data_mean), float(data_std)
 
 
