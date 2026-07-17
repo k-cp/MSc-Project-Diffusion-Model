@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from scipy.stats import gaussian_kde
+from collections import defaultdict
 import os
 import glob
 
@@ -59,35 +61,80 @@ DATA_KW = "u3232"
 T = 400
 R = 20
 W = 0.0
-ZETA = 3.0        # which DPS zeta run to load    (matches --zeta)
-SI_LAMBDA = 0.01  # which SI linear run to load   (matches --si_lambda)
-SI_W = 3.0        # which SI learned run to load  (matches --si_w)
+# Defaults used when an entry in METHODS_TO_PLOT gives no explicit value.
+ZETA = 3.0        # DPS      --zeta
+SI_LAMBDA = 0.01  # SI linear   --si_lambda
+SI_W = 3.0        # SI learned  --si_w
 
-# Style + folder prefix/suffix per method; the suffix must match main.py's naming.
-# Reference is handled separately below.
+# Per-method definition. 'suffix' and 'label' are functions of the run's value
+# (zeta / lambda / w), so the same method can be plotted at several values.
+# The suffix must match the folder main.py created.
 METHOD_CONFIG = {
-    "baseline":   {"prefix": "",     "suffix": "",
-                   "label": "Baseline (physics-guided)", "color": "red",        "linestyle": "-"},
-    "dps":        {"prefix": "dps_", "suffix": f"_z{ZETA}",
-                   "label": "Posterior sampling (DPS)",  "color": "green",      "linestyle": "-"},
-    "si":         {"prefix": "si_",  "suffix": "",
-                   "label": "Stochastic interpolant",    "color": "darkorange", "linestyle": "-"},
-    "si_linear":  {"prefix": "si_",  "suffix": f"_linear_lam{SI_LAMBDA}",
-                   "label": f"SI + linear physics (lam={SI_LAMBDA})",
-                   "color": "purple",      "linestyle": "-"},
-    "si_learned": {"prefix": "si_",  "suffix": f"_learned_w{SI_W}",
-                   "label": f"SI + learned physics (w={SI_W})",
-                   "color": "saddlebrown", "linestyle": "-"},
+    "baseline": {
+        "prefix": "", "takes_value": False, "default": None,
+        "suffix": lambda v: "",
+        "label":  lambda v: "Baseline (physics-guided)",
+        "color": "red", "linestyle": "-",
+    },
+    "dps": {
+        "prefix": "dps_", "takes_value": True, "default": ZETA,
+        "suffix": lambda v: f"_z{v}",
+        "label":  lambda v: f"DPS (zeta={v})",
+        "color": "green", "linestyle": "-",
+    },
+    "si": {
+        "prefix": "si_", "takes_value": False, "default": None,
+        "suffix": lambda v: "",
+        "label":  lambda v: "Stochastic interpolant",
+        "color": "darkorange", "linestyle": "-",
+    },
+    "si_linear": {
+        "prefix": "si_", "takes_value": True, "default": SI_LAMBDA,
+        "suffix": lambda v: f"_linear_lam{v}",
+        "label":  lambda v: f"SI + linear physics (lam={v})",
+        "color": "purple", "linestyle": "-",
+    },
+    "si_learned": {
+        "prefix": "si_", "takes_value": True, "default": SI_W,
+        "suffix": lambda v: f"_learned_w{v}",
+        "label":  lambda v: f"SI + learned physics (w={v})",
+        "color": "saddlebrown", "linestyle": "-",
+    },
 }
 REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--"}
 
 
-def method_dir(method):
-    """Folder for a method. The suffix carries the per-run tag (DPS zeta,
-    SI physics mode + strength) and must match what main.py created."""
+def parse_entry(entry):
+    """Accept 'si' or ('si_linear', 0.01) -> (method, value).
+
+    A bare method name falls back to that method's default value.
+    """
+    if isinstance(entry, (tuple, list)):
+        method, value = entry[0], entry[1]
+    else:
+        method, value = entry, None
     cfg = METHOD_CONFIG[method]
-    folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}{cfg['suffix']}"
+    if value is None and cfg["takes_value"]:
+        value = cfg["default"]
+    return method, value
+
+
+def method_dir(method, value=None):
+    """Folder for one run. The suffix carries its tag (DPS zeta, SI physics
+    strength) and must match what main.py created."""
+    cfg = METHOD_CONFIG[method]
+    folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}{cfg['suffix'](value)}"
     return os.path.join("experiments", EXPERIMENT_FOLDER, folder)
+
+
+def shade(base_color, i, n):
+    """Distinguish n runs of the same method: i=0 keeps the base colour,
+    later ones are progressively lightened toward white."""
+    if n <= 1:
+        return base_color
+    rgb = np.array(mcolors.to_rgb(base_color))
+    f = 1.0 - 0.55 * (i / (n - 1))
+    return tuple(1.0 - f * (1.0 - rgb))
 
 
 def plot_fluid_statistics(methods_to_plot):
@@ -98,18 +145,33 @@ def plot_fluid_statistics(methods_to_plot):
     # Build the list of curves: each selected method's reconstruction, then the
     # reference once (loaded from the first available method folder -- the
     # ground truth is identical across folders).
+    # Resolve entries ('si' or ('si_linear', 0.01)) into (method, value) pairs.
+    parsed = []
+    for entry in methods_to_plot:
+        name = entry[0] if isinstance(entry, (tuple, list)) else entry
+        if name not in METHOD_CONFIG:
+            print(f"Unknown method '{name}' (expected one of {list(METHOD_CONFIG)}). Skipping.")
+            continue
+        parsed.append(parse_entry(entry))
+
+    # Count runs per method so several values of the same one get distinct shades.
+    per_method_total = defaultdict(int)
+    for method, _ in parsed:
+        per_method_total[method] += 1
+    per_method_seen = defaultdict(int)
+
     curves = []          # (label, directory, filename, color, linestyle)
     reference_dir = None
-    for method in methods_to_plot:
-        if method not in METHOD_CONFIG:
-            print(f"Unknown method '{method}' (expected 'baseline' or 'dps'). Skipping.")
-            continue
-        d = method_dir(method)
+    for method, value in parsed:
+        d = method_dir(method, value)
         if not os.path.isdir(d):
-            print(f"Warning: folder for '{method}' not found: {d}. Skipping.")
+            print(f"Warning: folder for '{method}' (value={value}) not found: {d}. Skipping.")
             continue
         cfg = METHOD_CONFIG[method]
-        curves.append((cfg['label'], d, 'sample_arr_run_0_it0.npy', cfg['color'], cfg['linestyle']))
+        i = per_method_seen[method]
+        per_method_seen[method] += 1
+        color = shade(cfg['color'], i, per_method_total[method])
+        curves.append((cfg['label'](value), d, 'sample_arr_run_0_it0.npy', color, cfg['linestyle']))
         if reference_dir is None:
             reference_dir = d
 
@@ -163,7 +225,7 @@ def plot_fluid_statistics(methods_to_plot):
     # Save and display
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.2)
-    tag = "_".join(methods_to_plot)
+    tag = "_".join(m if v is None else f"{m}{v}" for m, v in parsed)
     save_target = os.path.join("experiments", EXPERIMENT_FOLDER, f"stats_{tag}_vs_reference.png")
     plt.savefig(save_target, dpi=300, bbox_inches='tight')
     print(f"\nPlot successfully saved to: {save_target}")
@@ -171,14 +233,24 @@ def plot_fluid_statistics(methods_to_plot):
 
 
 if __name__ == "__main__":
-    # Choose what to graph. Reference is ALWAYS included. Available methods:
-    #   "baseline"    -> physics-guided diffusion
-    #   "dps"         -> posterior sampling            (uses ZETA)
-    #   "si"          -> stochastic interpolant, no physics
-    #   "si_linear"   -> SI + linear physics guidance  (uses SI_LAMBDA)
-    #   "si_learned"  -> SI + learned physics cond.    (uses SI_W)
-    # e.g. ["si", "si_linear"]              -> does physics guidance help SI?
-    #      ["baseline", "dps", "si"]        -> the three-method comparison
-    METHODS_TO_PLOT = ["baseline", "si", "si_linear"]
+    # Choose what to graph. Reference is ALWAYS included.
+    #
+    # Each entry is either
+    #   "method"              -> uses that method's default value, or
+    #   ("method", value)     -> that specific run.
+    #
+    #   "baseline"                  physics-guided diffusion   (no value)
+    #   ("dps", 3.0)                posterior sampling         value = zeta
+    #   "si"                        stochastic interpolant     (no value)
+    #   ("si_linear", 0.01)         SI + linear physics        value = lambda
+    #   ("si_learned", 3.0)         SI + learned physics       value = w
+    #
+    # The same method may appear several times at different values; repeats are
+    # drawn in progressively lighter shades of that method's colour.
+    #
+    # e.g. lambda sweep:  [("si_linear", 0.001), ("si_linear", 0.01), ("si_linear", 0.1)]
+    #      does physics help SI?  ["si", ("si_linear", 0.01)]
+    #      three-method compare:  ["baseline", ("dps", 3.0), "si"]
+    METHODS_TO_PLOT = ["baseline", "si", ("si_linear", 0.01)]
 
     plot_fluid_statistics(METHODS_TO_PLOT)
