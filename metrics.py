@@ -59,23 +59,34 @@ DATA_KW = "u3232"
 T = 400
 R = 20
 W = 0.0
-ZETA = 3.0   # which DPS zeta run to load 
+ZETA = 3.0        # which DPS zeta run to load    (matches --zeta)
+SI_LAMBDA = 0.01  # which SI linear run to load   (matches --si_lambda)
+SI_W = 3.0        # which SI learned run to load  (matches --si_w)
 
-# Style / folder-prefix for each method. Reference is handled separately below.
+# Style + folder prefix/suffix per method; the suffix must match main.py's naming.
+# Reference is handled separately below.
 METHOD_CONFIG = {
-    "baseline": {"prefix": "",     "label": "Baseline (physics-guided)", "color": "red",        "linestyle": "-"},
-    "dps":      {"prefix": "dps_", "label": "Posterior sampling (DPS)",   "color": "green",      "linestyle": "-"},
-    "si":       {"prefix": "si_",  "label": "Stochastic interpolant",     "color": "darkorange", "linestyle": "-"},
+    "baseline":   {"prefix": "",     "suffix": "",
+                   "label": "Baseline (physics-guided)", "color": "red",        "linestyle": "-"},
+    "dps":        {"prefix": "dps_", "suffix": f"_z{ZETA}",
+                   "label": "Posterior sampling (DPS)",  "color": "green",      "linestyle": "-"},
+    "si":         {"prefix": "si_",  "suffix": "",
+                   "label": "Stochastic interpolant",    "color": "darkorange", "linestyle": "-"},
+    "si_linear":  {"prefix": "si_",  "suffix": f"_linear_lam{SI_LAMBDA}",
+                   "label": f"SI + linear physics (lam={SI_LAMBDA})",
+                   "color": "purple",      "linestyle": "-"},
+    "si_learned": {"prefix": "si_",  "suffix": f"_learned_w{SI_W}",
+                   "label": f"SI + learned physics (w={SI_W})",
+                   "color": "saddlebrown", "linestyle": "-"},
 }
 REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--"}
 
 
 def method_dir(method):
-
+    """Folder for a method. The suffix carries the per-run tag (DPS zeta,
+    SI physics mode + strength) and must match what main.py created."""
     cfg = METHOD_CONFIG[method]
-    folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}"
-    if method == "dps":
-        folder += f"_z{ZETA}"
+    folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}{cfg['suffix']}"
     return os.path.join("experiments", EXPERIMENT_FOLDER, folder)
 
 
@@ -160,10 +171,14 @@ def plot_fluid_statistics(methods_to_plot):
 
 
 if __name__ == "__main__":
-    # Choose what to graph
-    #   ["baseline"]          -> baseline vs reference
-    #   ["dps"]               -> DPS vs reference
-    #   ["baseline", "dps"]   -> both vs reference (three curves)
+    # Choose what to graph. Reference is ALWAYS included. Available methods:
+    #   "baseline"    -> physics-guided diffusion
+    #   "dps"         -> posterior sampling            (uses ZETA)
+    #   "si"          -> stochastic interpolant, no physics
+    #   "si_linear"   -> SI + linear physics guidance  (uses SI_LAMBDA)
+    #   "si_learned"  -> SI + learned physics cond.    (uses SI_W)
+    # e.g. ["si", "si_linear"]              -> does physics guidance help SI?
+    #      ["baseline", "dps", "si"]        -> the three-method comparison
     METHODS_TO_PLOT = ["baseline", "dps", "si"]
 
     plot_fluid_statistics(METHODS_TO_PLOT)
