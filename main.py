@@ -14,6 +14,8 @@ from runners.rs256_guided_diffusion import Diffusion
 
 torch.backends.mkldnn.enabled = False
 
+
+
 def parse_args_and_config(): # Set default arguements
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--config', type=str, required=True, help='Path to the config file') # Must provide argument for --config
@@ -46,6 +48,9 @@ def parse_args_and_config(): # Set default arguements
                         help="Step size for SI 'linear' physics guidance")
     parser.add_argument("--si_w", type=float, default=0.0,
                         help="Conditioning strength for SI 'learned' physics guidance")
+    parser.add_argument("--si_tag", type=str, default="",
+                        help="Extra suffix on the SI output folder (e.g. 'blind') so runs with "
+                             "different trained checkpoints don't overwrite each other")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -89,6 +94,10 @@ def parse_args_and_config(): # Set default arguements
             dir_name += '_linear_lam{}'.format(args.si_lambda)
         elif si_physics == 'learned':
             dir_name += '_learned_w{}'.format(args.si_w)
+        # training-variant tag (e.g. 'blind') so a different checkpoint's output
+        # lands in its own folder instead of overwriting the plain SI run.
+        if getattr(args, 'si_tag', ''):
+            dir_name += '_' + args.si_tag
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

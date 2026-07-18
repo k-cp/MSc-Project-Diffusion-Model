@@ -15,20 +15,26 @@
 #   sbatch run_inference_conditional.sh si
 #
 # Usage:
-#   sbatch run_train_si.sh                    # fresh, defaults (2000 epochs, frame_stride 4)
-#   sbatch run_train_si.sh 4000 2             # EPOCHS FRAME_STRIDE (fresh)
-#   sbatch run_train_si.sh 2000 4 resume      # RESUME from si_ckpt.pth (after a timeout)
-#   sbatch run_train_si.sh 2000 4 fresh learned   # train WITH learned physics conditioning
+#   sbatch run_train_si.sh                          # fixed u3232, defaults (2000 ep, stride 4)
+#   sbatch run_train_si.sh 4000 2                   # EPOCHS FRAME_STRIDE (fresh)
+#   sbatch run_train_si.sh 2000 4 resume            # RESUME from the checkpoint 
+#   sbatch run_train_si.sh 2000 4 fresh learned     # train WITH learned physics conditioning
+#   sbatch run_train_si.sh 2000 4 fresh none blind  # BLIND training (Option 1): random
+#                                                   # degradations (sensor count+locations)
+#
+# Positionals: EPOCHS  FRAME_STRIDE  (resume|fresh)  (none|learned)  (fixed|blind)
 #
 # NOTE: 'linear' physics guidance needs NO special training -- train normally and
 #       enable it at inference: sbatch run_inference_conditional.sh si linear 0.01
 #       Only 'learned' changes the architecture and therefore needs its own run.
+#       'blind' trains one model robust to many low-res inputs (own checkpoint).
 # ---------------------------------------------------------------------------
 
 EPOCHS="${1:-2000}"
 FRAME_STRIDE="${2:-4}"
 RESUME_ARG="${3:-}"
 SI_PHYSICS="${4:-none}"      # none | learned
+AUG_ARG="${5:-fixed}"        # fixed | blind
 
 if [ "$RESUME_ARG" = "resume" ]; then
     RESUME=1
@@ -42,13 +48,19 @@ if [ "$SI_PHYSICS" != "none" ] && [ "$SI_PHYSICS" != "learned" ]; then
     exit 1
 fi
 
-# 'learned' produces an architecturally different network -> keep it in its own
-# checkpoint so it can never be confused with the plain SI one.
-if [ "$SI_PHYSICS" = "learned" ]; then
-    CKPT=./pretrained_weights/si_ckpt_learned.pth
-else
-    CKPT=./pretrained_weights/si_ckpt.pth
+if [ "$AUG_ARG" != "fixed" ] && [ "$AUG_ARG" != "blind" ]; then
+    echo "ERROR: fifth argument must be 'fixed' or 'blind' (got '$AUG_ARG')."
+    echo "  e.g. sbatch run_train_si.sh 2000 4 fresh none blind"
+    exit 1
 fi
+if [ "$AUG_ARG" = "blind" ]; then AUGMENT=1; else AUGMENT=0; fi
+
+# Each variant produces a differently-behaved (or differently-shaped) network,
+# so keep it in its own checkpoint -- never confuse them at inference.
+CKPT=./pretrained_weights/si_ckpt
+[ "$SI_PHYSICS" = "learned" ] && CKPT="${CKPT}_learned"
+[ "$AUG_ARG" = "blind" ]      && CKPT="${CKPT}_blind"
+CKPT="${CKPT}.pth"
 
 module load cray-python/3.11.7
 source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
@@ -66,4 +78,8 @@ python train_si.py \
     --frame_stride "$FRAME_STRIDE" \
     --resume "$RESUME" \
     --si_physics "$SI_PHYSICS" \
+    --si_augment "$AUGMENT" \
+    --si_aug_families sensor \
+    --si_aug_nmin 256 \
+    --si_aug_nmax 4000 \
     --si_ckpt "$CKPT"

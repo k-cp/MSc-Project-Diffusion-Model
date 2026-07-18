@@ -16,7 +16,7 @@
 #   sbatch run_inference_conditional.sh si                 # Stochastic Interpolants, no physics
 #   sbatch run_inference_conditional.sh si linear 0.01     # SI + linear physics guidance (lambda)
 #   sbatch run_inference_conditional.sh si learned 3.0     # SI + learned physics conditioning (w) from ε̃_θ = ε_θ(x_τi, τi, c) + w·[ ε_θ(x_τi, τi, c) − ε_θ(x_τi, τi, ∅) ]
-
+#   sbatch run_train_si.sh 2000 4 fresh none blind      # → pretrained_weights/si_ckpt_blind.pth
 
 # MODE=dps      -> routes main.py to the DPS PosteriorRunner (--run_dps 1)
 # MODE=si       -> routes main.py to the SIRunner (--run_si 1); train first with run_train_si.sh
@@ -31,6 +31,7 @@ MODE="${1:-baseline}"
 ZETA="${2:-3.0}"          # zeta=3.0 chosen from the sweep (best L2, stable)
 SI_PHYSICS="${2:-none}"   # for MODE=si: none | linear | learned
 SI_STRENGTH="${3:-0.0}"   # for MODE=si: lambda (linear) or w (learned)
+SI_VARIANT="${4:-plain}"  # for MODE=si: plain | blind (which trained checkpoint)
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -54,6 +55,11 @@ if [ "$MODE" = "si" ]; then
         echo "  e.g. sbatch run_inference_conditional.sh si linear 0.01"
         exit 1
     fi
+    if [ "$SI_VARIANT" != "plain" ] && [ "$SI_VARIANT" != "blind" ]; then
+        echo "ERROR: for MODE=si the fourth argument must be 'plain' or 'blind' (got '$SI_VARIANT')."
+        echo "  e.g. sbatch run_inference_conditional.sh si none 0 blind"
+        exit 1
+    fi
 fi
 
 module load cray-python/3.11.7
@@ -67,15 +73,26 @@ if [ "$MODE" = "dps" ]; then
     echo "Running WITH posterior sampling (DPS), zeta=$ZETA"
     EXTRA_ARGS="--run_dps 1 --operator sparse --zeta $ZETA"
 elif [ "$MODE" = "si" ]; then
-    SI_ARGS="--run_si 1 --si_ckpt ./pretrained_weights/si_ckpt.pth --si_steps 100"
+    # Pick the checkpoint that matches the requested variant. 'learned' and
+    # 'blind' are each trained separately, so the folder name (via --si_tag) and
+    # the checkpoint must both reflect it -- otherwise the run either crashes on
+    # a shape mismatch or overwrites another variant's output.
+    CK=si_ckpt
+    [ "$SI_PHYSICS" = "learned" ] && CK="${CK}_learned"
+    [ "$SI_VARIANT" = "blind" ]   && CK="${CK}_blind"
+    CK="./pretrained_weights/${CK}.pth"
+
+    SI_ARGS="--run_si 1 --si_ckpt $CK --si_steps 100"
+    [ "$SI_VARIANT" = "blind" ] && SI_ARGS="$SI_ARGS --si_tag blind"
+
     if [ "$SI_PHYSICS" = "linear" ]; then
-        echo "Running Stochastic Interpolants + LINEAR physics guidance, lambda=$SI_STRENGTH"
+        echo "Running SI ($SI_VARIANT) + LINEAR physics guidance, lambda=$SI_STRENGTH  [ckpt $CK]"
         SI_ARGS="$SI_ARGS --si_physics linear --si_lambda $SI_STRENGTH"
     elif [ "$SI_PHYSICS" = "learned" ]; then
-        echo "Running Stochastic Interpolants + LEARNED physics conditioning, w=$SI_STRENGTH"
+        echo "Running SI ($SI_VARIANT) + LEARNED physics conditioning, w=$SI_STRENGTH  [ckpt $CK]"
         SI_ARGS="$SI_ARGS --si_physics learned --si_w $SI_STRENGTH"
     else
-        echo "Running Stochastic Interpolant super-resolution (no physics guidance)"
+        echo "Running SI ($SI_VARIANT) super-resolution (no physics guidance)  [ckpt $CK]"
     fi
     EXTRA_ARGS="$SI_ARGS"
 else

@@ -22,7 +22,14 @@ import torch
 import yaml
 
 from runners.rs256_guided_diffusion import StdScaler
-from runners.stochastic_interpolant import StochasticInterpolant, load_si_pairs
+from runners.stochastic_interpolant import (
+    StochasticInterpolant,
+    load_si_pairs,
+    load_si_targets,
+    DegradationSampler,
+    SIPairsDataset,
+    si_worker_init_fn,
+)
 
 
 def dict2namespace(config):
@@ -55,6 +62,20 @@ def parse_args():
     p.add_argument("--si_pu", type=float, default=0.1,
                    help="Probability of dropping the physics condition during 'learned' training "
                         "(enables classifier-free guidance at sampling)")
+    # --- blind SI (Option 1): manufacture x0 on the fly with random degradations ---
+    p.add_argument("--si_augment", type=int, default=0,
+                   help="1 = 'blind' training: ignore the fixed u3232 and generate x0 from the "
+                        "ground truth each step with a randomly sampled degradation (robust to "
+                        "different low-res inputs). 0 = train on the fixed u3232 sensor field.")
+    p.add_argument("--si_aug_families", type=str, default="sensor",
+                   help="Comma list of degradation families for --si_augment: "
+                        "sensor,downsample,lowpass")
+    p.add_argument("--si_aug_nmin", type=int, default=256,
+                   help="Min sensor count for the 'sensor' family (random per sample)")
+    p.add_argument("--si_aug_nmax", type=int, default=4000,
+                   help="Max sensor count for the 'sensor' family (random per sample)")
+    p.add_argument("--si_aug_noise", type=float, default=0.0,
+                   help="Std of additive measurement noise on x0 (standardized units)")
     p.add_argument("--log_every", type=int, default=1)
     p.add_argument("--save_every", type=int, default=100)
     return p.parse_args()
@@ -76,23 +97,46 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
 
-    logger.info("Loading training pairs (x0=low-res, x1=high-res)...")
-    x0, x1, data_mean, data_std = load_si_pairs(
-        config.data.data_dir,
-        config.data.sample_data_dir,
-        config.data.data_kw,
-        split="train",
-        frame_stride=args.frame_stride,
-    )
-    scaler = StdScaler(data_mean, data_std)
-    logger.info(f"Train pairs: {x0.shape[0]} (frame_stride={args.frame_stride}), "
-                f"mean={data_mean:.4f} std={data_std:.4f}")
+    worker_init = None
+    if args.si_augment:
+        # Blind SI (Option 1): load only the high-res targets; a fresh random
+        # degradation makes x0 on the fly (in the workers), so x0 is never frozen.
+        families = tuple(f.strip() for f in args.si_aug_families.split(",") if f.strip())
+        logger.info(f"BLIND training: manufacturing x0 on the fly. families={families} "
+                    f"sensor N in [{args.si_aug_nmin},{args.si_aug_nmax}] noise={args.si_aug_noise}")
+        x1, data_mean, data_std = load_si_targets(
+            config.data.data_dir, split="train", frame_stride=args.frame_stride,
+        )
+        scaler = StdScaler(data_mean, data_std)
+        logger.info(f"Train targets: {x1.shape[0]} (frame_stride={args.frame_stride}), "
+                    f"mean={data_mean:.4f} std={data_std:.4f}")
+        degrader = DegradationSampler(
+            families=families, n_min=args.si_aug_nmin, n_max=args.si_aug_nmax,
+            meas_noise=args.si_aug_noise,
+        )
+        dataset = SIPairsDataset(x1, degrader)
+        n_workers = max(4, args.num_workers)     # overlap the CPU degradation with the GPU
+        worker_init = si_worker_init_fn
+    else:
+        logger.info("Loading training pairs (x0=low-res, x1=high-res)...")
+        x0, x1, data_mean, data_std = load_si_pairs(
+            config.data.data_dir,
+            config.data.sample_data_dir,
+            config.data.data_kw,
+            split="train",
+            frame_stride=args.frame_stride,
+        )
+        scaler = StdScaler(data_mean, data_std)
+        logger.info(f"Train pairs: {x0.shape[0]} (frame_stride={args.frame_stride}), "
+                    f"mean={data_mean:.4f} std={data_std:.4f}")
+        # Keep raw tensors; standardize per-batch to avoid a second full-size copy.
+        dataset = torch.utils.data.TensorDataset(x0, x1)
+        n_workers = args.num_workers
 
-    # Keep raw tensors; standardize per-batch to avoid a second full-size copy.
-    dataset = torch.utils.data.TensorDataset(x0, x1)
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=args.num_workers, drop_last=True,
+        num_workers=n_workers, drop_last=True, worker_init_fn=worker_init,
+        persistent_workers=(n_workers > 0),
     )
 
     si = StochasticInterpolant(config, device, logger, physics=args.si_physics)

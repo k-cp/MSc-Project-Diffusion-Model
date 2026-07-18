@@ -88,6 +88,12 @@ METHOD_CONFIG = {
         "label":  lambda v: "Stochastic interpolant",
         "color": "darkorange", "linestyle": "-",
     },
+    "si_blind": {
+        "prefix": "si_", "takes_value": False, "default": None,
+        "suffix": lambda v: "_blind",
+        "label":  lambda v: "SI (blind, robust)",
+        "color": "teal", "linestyle": "-",
+    },
     "si_linear": {
         "prefix": "si_", "takes_value": True, "default": SI_LAMBDA,
         "suffix": lambda v: f"_linear_lam{v}",

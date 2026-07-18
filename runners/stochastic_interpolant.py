@@ -116,9 +116,130 @@ def load_si_pairs(ref_path, sample_path, data_kw, split="train", frame_stride=1)
     # x0: The batched tensor of low-res (blurred) inputs. [Batch Size, 3, 256, 256]
 
     # x1: The batched tensor of high-res (target) outputs.[ Batch Size, 3, 256, 256]
-    
+
 
     return x0, x1, float(data_mean), float(data_std)
+
+
+def load_si_targets(ref_path, split="train", frame_stride=1):
+    """Load high-res target stacks x1 ONLY (for blind training that manufactures
+    x0 on the fly). Avoids loading the 6.7 GB sensor file. Returns
+    (x1_stacks, mean, std) with stats from the train split, as in load_si_pairs.
+    """
+    ref_all = np.load(ref_path).astype(np.float32)
+    data_mean, data_std = np.mean(ref_all[:-4]), np.std(ref_all[:-4])
+    ref_sel = ref_all[:-4] if split == "train" else ref_all[-4:]
+    ref_sel = torch.as_tensor(ref_sel.copy(), dtype=torch.float32)
+
+    stacks = []
+    for i in range(ref_sel.shape[0]):
+        for j in range(0, ref_sel.shape[1] - 2, frame_stride):
+            stacks.append(ref_sel[i, j:j + 3])
+    return torch.stack(stacks, dim=0), float(data_mean), float(data_std)
+
+
+class DegradationSampler:
+    """Manufacture a coarse observation x0 from a high-res field x1 with a
+    RANDOMLY SAMPLED degradation ('blind' SI training, Option 1).
+
+    The point: feed the drift network a different degradation every step so it
+    learns a *family* of inverse maps instead of overfitting one fixed operator
+    (the frozen u3232). Both the degradation *family* and its *parameters*
+    (crucially, the sensor count) are re-rolled per sample.
+
+    Families:
+      * 'sensor'     -- N random point sensors (N ~ U[n_min, n_max]),
+                        nearest-neighbour (Voronoi) filled -- matches how u3232
+                        is built. N is random so the model is robust to how much
+                        low-res data it gets, not just the layout.
+      * 'downsample' -- uniform factor from down_factors, nearest down+up.
+      * 'lowpass'    -- spectral lowpass at a cutoff from lowpass_cutoffs.
+
+    Operates on one (C, H, W) numpy stack; the C channels are the 3 frames and
+    share the same spatial degradation (as real sensors are fixed across frames).
+    Uses np.random.* so DataLoader workers (seeded per worker via
+    si_worker_init_fn) stay independent.
+    """
+
+    def __init__(self, families=("sensor",), n_min=256, n_max=4000,
+                 down_factors=(4, 8, 16), lowpass_cutoffs=(4, 8, 16), meas_noise=0.0):
+        self.families = tuple(families)
+        self.n_min = int(n_min)
+        self.n_max = int(n_max)
+        self.down_factors = tuple(int(f) for f in down_factors)
+        self.lowpass_cutoffs = tuple(float(k) for k in lowpass_cutoffs)
+        self.meas_noise = float(meas_noise)
+
+    def __call__(self, x1):
+        fam = self.families[np.random.randint(len(self.families))]
+        if fam == "sensor":
+            x0 = self._sensor(x1)
+        elif fam == "downsample":
+            x0 = self._downsample(x1)
+        elif fam == "lowpass":
+            x0 = self._lowpass(x1)
+        else:
+            raise ValueError(f"unknown degradation family {fam!r}")
+        if self.meas_noise > 0.0:
+            x0 = x0 + np.random.normal(0.0, self.meas_noise, x0.shape).astype(np.float32)
+        return x0.astype(np.float32)
+
+    def _sensor(self, x1):
+        try:
+            from scipy.ndimage import distance_transform_edt
+        except ImportError as e:
+            raise ImportError("blind SI 'sensor' degradation needs scipy "
+                              "(pip install scipy)") from e
+        c, h, w = x1.shape
+        n = min(np.random.randint(self.n_min, self.n_max + 1), h * w)
+        flat = np.random.choice(h * w, size=n, replace=False)
+        mask = np.zeros(h * w, dtype=bool)
+        mask[flat] = True
+        mask = mask.reshape(h, w)
+        # nearest measured pixel for every location (exact Euclidean, like u3232)
+        iy, ix = distance_transform_edt(~mask, return_distances=False, return_indices=True)
+        return x1[:, iy, ix]
+
+    def _downsample(self, x1):
+        c, h, w = x1.shape
+        f = self.down_factors[np.random.randint(len(self.down_factors))]
+        small = x1[:, ::f, ::f]                                  # nearest subsample
+        up = np.repeat(np.repeat(small, f, axis=1), f, axis=2)   # nearest upsample
+        return up[:, :h, :w]
+
+    def _lowpass(self, x1):
+        c, h, w = x1.shape
+        kc = self.lowpass_cutoffs[np.random.randint(len(self.lowpass_cutoffs))]
+        kx = np.fft.fftfreq(h) * h
+        ky = np.fft.fftfreq(w) * w
+        KX, KY = np.meshgrid(kx, ky, indexing="ij")
+        keep = ((np.abs(KX) <= kc) & (np.abs(KY) <= kc))[None]
+        xh = np.fft.fft2(x1, axes=(-2, -1)) * keep
+        return np.fft.ifft2(xh, axes=(-2, -1)).real
+
+
+class SIPairsDataset(torch.utils.data.Dataset):
+    """Blind-SI training set: holds high-res stacks, manufactures a fresh
+    degraded x0 on every __getitem__ (so num_workers overlap it with the GPU).
+    Returns RAW (x0, x1); the training loop standardizes both."""
+
+    def __init__(self, x1_stacks, degrader):
+        self.x1 = x1_stacks
+        self.degrader = degrader
+
+    def __len__(self):
+        return self.x1.shape[0]
+
+    def __getitem__(self, i):
+        x1 = self.x1[i]
+        x0 = torch.from_numpy(self.degrader(x1.numpy()).copy())
+        return x0, x1
+
+
+def si_worker_init_fn(worker_id):
+    """Give each DataLoader worker an independent numpy RNG stream, re-seeded
+    each epoch (torch sets a distinct base seed per worker per epoch)."""
+    np.random.seed(torch.initial_seed() % (2 ** 32))
 
 
 class StochasticInterpolant:
@@ -345,7 +466,9 @@ class SIRunner:
             num_workers=self.config.data.num_workers,
         )
 
-        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run))
+        l2_loss_all = np.zeros((ref_data.shape[0], self.args.repeat_run))       
+    
+
 
         for batch_index, (blur_batch, gt_batch) in enumerate(test_loader):
             self.log(f"Batch {batch_index + 1}/{len(test_loader)}")
