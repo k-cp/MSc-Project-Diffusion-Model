@@ -51,6 +51,10 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument("--si_tag", type=str, default="",
                         help="Extra suffix on the SI output folder (e.g. 'blind') so runs with "
                              "different trained checkpoints don't overwrite each other")
+    parser.add_argument("--si_eval_degradation", type=str, default="",
+                        help="Robustness eval: build x0 from a CHOSEN degradation of the ground "
+                             "truth instead of the fixed u3232. Format 'family:param', e.g. "
+                             "sensor:512, downsample:8, lowpass:4. Empty = use real u3232.")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -98,6 +102,10 @@ def parse_args_and_config(): # Set default arguements
         # lands in its own folder instead of overwriting the plain SI run.
         if getattr(args, 'si_tag', ''):
             dir_name += '_' + args.si_tag
+        # robustness-eval tag: which degradation the model was fed (e.g. sensor:512
+        # -> _eval_sensor512), so each held-out test gets its own folder.
+        if getattr(args, 'si_eval_degradation', ''):
+            dir_name += '_eval_' + args.si_eval_degradation.replace(':', '')
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

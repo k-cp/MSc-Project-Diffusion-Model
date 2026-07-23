@@ -16,8 +16,12 @@
 #   sbatch run_inference_conditional.sh si                 # Stochastic Interpolants, no physics
 #   sbatch run_inference_conditional.sh si linear 0.01     # SI + linear physics guidance (lambda)
 #   sbatch run_inference_conditional.sh si learned 3.0     # SI + learned physics conditioning (w) from ε̃_θ = ε_θ(x_τi, τi, c) + w·[ ε_θ(x_τi, τi, c) − ε_θ(x_τi, τi, ∅) ]
-#   sbatch run_train_si.sh 2000 4 fresh none blind      # → pretrained_weights/si_ckpt_blind.pth
-
+#   sbatch run_inference_conditional.sh si none 0 blind    # run the BLIND checkpoint on the real u3232
+#   sbatch run_inference_conditional.sh si none 0 blind sensor:512   # ROBUSTNESS eval on a held-out degradation
+#
+# SI positionals: si  (none|linear|learned)  (strength)  (plain|blind)  (eval-degradation)
+#   eval-degradation: sensor:N | downsample:F | lowpass:K  -- builds x0 from the ground
+#   truth so you can test the model on inputs it may never have seen. Empty = real u3232.
 # MODE=dps      -> routes main.py to the DPS PosteriorRunner (--run_dps 1)
 # MODE=si       -> routes main.py to the SIRunner (--run_si 1); train first with run_train_si.sh
 #                  arg2 = physics guidance {none|linear|learned}, arg3 = its strength
@@ -32,6 +36,7 @@ ZETA="${2:-3.0}"          # zeta=3.0 chosen from the sweep (best L2, stable)
 SI_PHYSICS="${2:-none}"   # for MODE=si: none | linear | learned
 SI_STRENGTH="${3:-0.0}"   # for MODE=si: lambda (linear) or w (learned)
 SI_VARIANT="${4:-plain}"  # for MODE=si: plain | blind (which trained checkpoint)
+SI_EVAL="${5:-}"          # for MODE=si: robustness eval degradation, e.g. sensor:512
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -84,6 +89,10 @@ elif [ "$MODE" = "si" ]; then
 
     SI_ARGS="--run_si 1 --si_ckpt $CK --si_steps 100"
     [ "$SI_VARIANT" = "blind" ] && SI_ARGS="$SI_ARGS --si_tag blind"
+    if [ -n "$SI_EVAL" ]; then
+        echo "  robustness eval: feeding the model a '$SI_EVAL' degradation of the ground truth"
+        SI_ARGS="$SI_ARGS --si_eval_degradation $SI_EVAL"
+    fi
 
     if [ "$SI_PHYSICS" = "linear" ]; then
         echo "Running SI ($SI_VARIANT) + LINEAR physics guidance, lambda=$SI_STRENGTH  [ckpt $CK]"

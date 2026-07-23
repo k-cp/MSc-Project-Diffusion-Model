@@ -28,6 +28,8 @@ from runners.stochastic_interpolant import (
     load_si_targets,
     DegradationSampler,
     SIPairsDataset,
+    XTranslateDataset,
+    EMA,
     si_worker_init_fn,
 )
 
@@ -75,7 +77,17 @@ def parse_args():
     p.add_argument("--si_aug_nmax", type=int, default=4000,
                    help="Max sensor count for the 'sensor' family (random per sample)")
     p.add_argument("--si_aug_noise", type=float, default=0.0,
-                   help="Std of additive measurement noise on x0 (standardized units)")
+                   help="Std of additive measurement noise on x0 (standardized units). Leave 0 "
+                        "for the benchmark (measurements are exact); >0 only to target noisy sensors.")
+    # --- free / near-free robustness improvements ---
+    p.add_argument("--si_xshift", type=int, default=1,
+                   help="1 = augment with random x-translation (roll along rows, the "
+                        "forcing-invariant axis). Physics-valid free data. 0 = off.")
+    p.add_argument("--si_ema", type=int, default=1,
+                   help="1 = keep an EMA of the weights and save it for inference (steadier, "
+                        "usually slightly better). 0 = save raw final weights.")
+    p.add_argument("--si_ema_rate", type=float, default=0.9999,
+                   help="EMA decay rate")
     p.add_argument("--log_every", type=int, default=1)
     p.add_argument("--save_every", type=int, default=100)
     return p.parse_args()
@@ -133,6 +145,16 @@ def main():
         dataset = torch.utils.data.TensorDataset(x0, x1)
         n_workers = args.num_workers
 
+    # Physics-valid free augmentation: random x-translation (roll along the
+    # forcing-invariant row axis), applied to both x0 and x1 with the same shift.
+    if args.si_xshift:
+        dataset = XTranslateDataset(dataset)
+        logger.info("x-translation augmentation ON (roll along rows, forcing-invariant axis)")
+        if n_workers == 0:
+            n_workers = 2                 # so the roll's RNG runs in seeded workers
+    if n_workers > 0:
+        worker_init = si_worker_init_fn
+
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True,
         num_workers=n_workers, drop_last=True, worker_init_fn=worker_init,
@@ -146,6 +168,10 @@ def main():
                     f"This checkpoint is only usable with --si_physics learned at inference.")
     optimizer = torch.optim.AdamW(si.model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
+    ema = EMA(si.model, decay=args.si_ema_rate) if args.si_ema else None
+    if ema is not None:
+        logger.info(f"EMA ON (decay={args.si_ema_rate}); the checkpoint's 'model' is the EMA average")
+
     def lr_at(epoch):
         # linear warmup, then cosine annealing to 0
         if epoch < args.warmup_epochs:
@@ -156,13 +182,17 @@ def main():
     os.makedirs(os.path.dirname(args.si_ckpt) or ".", exist_ok=True)
 
     # Resume from a previous checkpoint if requested (e.g. after a 24h timeout).
+    # 'model' in the checkpoint is the EMA copy (for inference); 'model_raw' is
+    # the training weights (for continuing). Fall back to 'model' if raw absent.
     start_epoch = 0
     if args.resume and os.path.exists(args.si_ckpt):
         ckpt = torch.load(args.si_ckpt, map_location=device)
         if isinstance(ckpt, dict) and "model" in ckpt:
-            si.model.load_state_dict(ckpt["model"])
+            si.model.load_state_dict(ckpt.get("model_raw", ckpt["model"]))
             if "optimizer" in ckpt:
                 optimizer.load_state_dict(ckpt["optimizer"])
+            if ema is not None:
+                ema.load_state_dict(ckpt["model"])   # continue the EMA from where it was
             start_epoch = int(ckpt.get("epoch", 0))
             logger.info(f"Resumed from {args.si_ckpt} at epoch {start_epoch}")
         else:
@@ -174,8 +204,13 @@ def main():
         logger.info(f"--resume set but {args.si_ckpt} not found; starting fresh")
 
     def save_ckpt(epoch):
-        torch.save({"epoch": epoch, "model": si.model.state_dict(),
-                    "optimizer": optimizer.state_dict()}, args.si_ckpt)
+        # 'model' is what inference loads -> the EMA average when EMA is on.
+        model_state = ema.state_dict() if ema is not None else si.model.state_dict()
+        payload = {"epoch": epoch, "model": model_state,
+                   "optimizer": optimizer.state_dict()}
+        if ema is not None:
+            payload["model_raw"] = si.model.state_dict()   # needed to resume training
+        torch.save(payload, args.si_ckpt)
         logger.info(f"Saved checkpoint (epoch {epoch}) -> {args.si_ckpt}")
 
     for epoch in range(start_epoch, args.epochs):
@@ -192,6 +227,8 @@ def main():
             loss = si.interpolant_loss(x0_b, x1_b, scaler=scaler, p_uncond=args.si_pu)
             loss.backward()
             optimizer.step()
+            if ema is not None:
+                ema.update(si.model)
 
             running += loss.item()
             n_batches += 1

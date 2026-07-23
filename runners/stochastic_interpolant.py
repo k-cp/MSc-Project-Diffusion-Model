@@ -242,6 +242,65 @@ def si_worker_init_fn(worker_id):
     np.random.seed(torch.initial_seed() % (2 ** 32))
 
 
+class XTranslateDataset(torch.utils.data.Dataset):
+    """Wrap a (x0, x1) dataset and roll BOTH tensors by the SAME random shift
+    along the forcing-invariant spatial axis -- free, physics-valid augmentation.
+
+    The Kolmogorov forcing f = -4 cos(4 y) depends only on the column axis
+    (verified: the mean vorticity has a k=4 band along columns, amplitude ~4.2,
+    and is flat along rows). So translation along ROWS (axis -2) is an exact
+    symmetry: a row-shifted flow field is another valid solution of the same
+    equations. Rolling is circular, which is correct on the periodic domain.
+
+    Rotations / column-shifts / y-flips are NOT applied -- they would move the
+    forcing bands and produce physically invalid fields.
+    """
+
+    FREE_AXIS = -2   # rows; the forcing lives on the column axis (-1)
+
+    def __init__(self, base):
+        self.base = base
+
+    def __len__(self):
+        return len(self.base)
+
+    def __getitem__(self, i):
+        x0, x1 = self.base[i]
+        shift = int(np.random.randint(x0.shape[self.FREE_AXIS]))
+        return (torch.roll(x0, shifts=shift, dims=self.FREE_AXIS),
+                torch.roll(x1, shifts=shift, dims=self.FREE_AXIS))
+
+
+class EMA:
+    """Exponential moving average of model weights.
+
+    Keeps a shadow copy updated every step: shadow = decay*shadow + (1-decay)*w.
+    The shadow is a smoothed average of the late training trajectory -- steadier
+    than the raw final weights, and usually a bit better. Save the shadow for
+    inference; keep the raw weights for resuming training.
+    """
+
+    def __init__(self, model, decay=0.9999):
+        self.decay = decay
+        self.shadow = {k: v.detach().clone() for k, v in model.state_dict().items()}
+
+    @torch.no_grad()
+    def update(self, model):
+        for k, v in model.state_dict().items():
+            s = self.shadow[k]
+            if v.dtype.is_floating_point:
+                s.mul_(self.decay).add_(v.detach(), alpha=1.0 - self.decay)
+            else:
+                s.copy_(v)   # integer buffers (e.g. counters) are copied, not averaged
+
+    def state_dict(self):
+        return self.shadow
+
+    def load_state_dict(self, sd):
+        for k in self.shadow:
+            self.shadow[k].copy_(sd[k])
+
+
 class StochasticInterpolant:
     """Drift network + interpolant math + SDE sampler."""
 
@@ -440,8 +499,41 @@ class SIRunner:
         else:
             self.log("Physics guidance: none")
 
+        # Robustness eval: build x0 from a CHOSEN degradation of the ground truth
+        # instead of the fixed u3232 file. Format 'family:param', e.g. sensor:512,
+        # downsample:8, lowpass:4. Empty -> use the real u3232 sensor data.
+        self.eval_degradation = getattr(args, "si_eval_degradation", "") or ""
+        self.eval_degrader = None
+        if self.eval_degradation:
+            self.eval_degrader = self._build_eval_degrader(self.eval_degradation)
+            self.log(f"EVAL degradation: manufacturing x0 from ground truth as '{self.eval_degradation}'")
+
     def log(self, msg):
         self.logger.info(msg)
+
+    @staticmethod
+    def _build_eval_degrader(spec):
+        """Turn 'family:param' into a deterministic single-operator DegradationSampler."""
+        family, _, val = spec.partition(":")
+        if family == "sensor":
+            n = int(val)
+            return DegradationSampler(("sensor",), n_min=n, n_max=n)
+        if family == "downsample":
+            f = int(val)
+            return DegradationSampler(("downsample",), down_factors=(f,))
+        if family == "lowpass":
+            k = int(val)
+            return DegradationSampler(("lowpass",), lowpass_cutoffs=(float(k),))
+        raise ValueError(f"--si_eval_degradation must be 'sensor:N', 'downsample:F' or "
+                         f"'lowpass:K', got {spec!r}")
+
+    def _degrade_gt(self, gt, batch_index):
+        """Apply the eval degradation to a batch of raw ground truth -> raw x0.
+        Seeded per batch so the sensor locations are reproducible across runs."""
+        np.random.seed(1_000_003 * int(getattr(self.args, "seed", 1234)) + batch_index)
+        g = gt.detach().cpu().numpy()
+        out = np.stack([self.eval_degrader(g[i]) for i in range(g.shape[0])])
+        return torch.from_numpy(out).to(gt.device)
 
     def si_sample_pipeline(self):
         import shutil
@@ -474,7 +566,11 @@ class SIRunner:
             self.log(f"Batch {batch_index + 1}/{len(test_loader)}")
 
             gt = gt_batch.to(self.device)
-            blur = blur_batch.to(self.device)
+            if self.eval_degrader is not None:
+                # robustness eval: coarse field = chosen degradation of the truth
+                blur = self._degrade_gt(gt, batch_index)
+            else:
+                blur = blur_batch.to(self.device)   # the real u3232 sensor field
             x0 = scaler(blur)  # base sample = standardized low-res field
 
             batch_dir = os.path.join(self.log_dir, f"sample_batch{batch_index}")

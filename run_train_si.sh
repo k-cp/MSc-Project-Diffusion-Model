@@ -20,7 +20,9 @@
 #   sbatch run_train_si.sh 2000 4 resume            # RESUME from the checkpoint 
 #   sbatch run_train_si.sh 2000 4 fresh learned     # train WITH learned physics conditioning
 #   sbatch run_train_si.sh 2000 4 fresh none blind  # BLIND training (Option 1): random
-#                                                   # degradations (sensor count+locations)
+# 
+# fresh : not resuming 
+# none : physicsi conditioning
 #
 # Positionals: EPOCHS  FRAME_STRIDE  (resume|fresh)  (none|learned)  (fixed|blind)
 #
@@ -82,4 +84,6 @@ python train_si.py \
     --si_aug_families sensor \
     --si_aug_nmin 256 \
     --si_aug_nmax 4000 \
+    --si_xshift 1 \
+    --si_ema 1 \
     --si_ckpt "$CKPT"
