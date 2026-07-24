@@ -27,10 +27,11 @@ R = 20
 ZETA = 3.0              # which DPS zeta run to load        (only used when METHOD == "dps")
 
 # Physics guidance for SI                                   (only used when METHOD == "si")
-SI_PHYSICS = "linear"     # "none" | "linear" | "learned"
+SI_PHYSICS = "none"       # "none" | "linear" | "learned"
 SI_LAMBDA = 0.01        # lambda of the linear run to load  (only used when SI_PHYSICS == "linear")
 SI_W = 3.0              # w of the learned run to load      (only used when SI_PHYSICS == "learned")
 SI_VARIANT = "plain"    # "plain" | "blind"                 (which trained SI checkpoint)
+SI_EVAL = ""            # "" | "sensor:512" | "downsample:8" | "lowpass:4"  (robustness-eval run)
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)
 W = 0.0
@@ -53,9 +54,11 @@ elif METHOD == "si" and SI_PHYSICS == "learned":
     TAG = f"_learned_w{SI_W}"
 else:
     TAG = ""
-# training-variant tag, appended after any physics tag (matches main.py order)
+# training-variant then eval tag, in main.py's order (physics -> variant -> eval)
 if METHOD == "si" and SI_VARIANT == "blind":
     TAG += "_blind"
+if METHOD == "si" and SI_EVAL:
+    TAG += "_eval_" + SI_EVAL.replace(":", "")
 
 BASE_EXP_NAME = f"{PREFIX}guided_recons_{DATA_KW}_t{T}_r{R}"
 

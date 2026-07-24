@@ -1,64 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from scipy.stats import gaussian_kde
-from collections import defaultdict
 import os
 import glob
 
-from metrics import compute_ke_spectrum
-from metrics import collect_and_average_data, parse_entry, method_dir, shade
-
-
-EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
-DATA_KW = "u3232"
-T = 400
-R = 20
-W = 0.0
-
-ZETA = 3.0        
-SI_LAMBDA = 0.01  
-SI_W = 3.0        
-
-METHOD_CONFIG = {
-    "baseline": {
-        "prefix": "", "takes_value": False, "default": None,
-        "suffix": lambda v: "",
-        "label":  lambda v: "Baseline (physics-guided)",
-        "color": "red", "linestyle": "-",
-    },
-    "dps": {
-        "prefix": "dps_", "takes_value": True, "default": ZETA,
-        "suffix": lambda v: f"_z{v}",
-        "label":  lambda v: f"DPS (zeta={v})",
-        "color": "green", "linestyle": "-",
-    },
-    "si": {
-        "prefix": "si_", "takes_value": False, "default": None,
-        "suffix": lambda v: "",
-        "label":  lambda v: "Stochastic interpolant",
-        "color": "darkorange", "linestyle": "-",
-    },
-    "si_blind": {
-        "prefix": "si_", "takes_value": False, "default": None,
-        "suffix": lambda v: "_blind",
-        "label":  lambda v: "SI (blind, robust)",
-        "color": "teal", "linestyle": "-",
-    },
-    "si_linear": {
-        "prefix": "si_", "takes_value": True, "default": SI_LAMBDA,
-        "suffix": lambda v: f"_linear_lam{v}",
-        "label":  lambda v: f"SI + linear physics (lam={v})",
-        "color": "purple", "linestyle": "-",
-    },
-    "si_learned": {
-        "prefix": "si_", "takes_value": True, "default": SI_W,
-        "suffix": lambda v: f"_learned_w{v}",
-        "label":  lambda v: f"SI + learned physics (w={v})",
-        "color": "saddlebrown", "linestyle": "-",
-    },
-}
-REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--"}
+# Single source of truth for folder naming / run specs -- so energy maps and
+# spectra always point at the same folders (compatible with every configuration,
+# including variant/physics/eval combos).
+from metrics import (
+    compute_ke_spectrum,
+    collect_and_average_data,
+    normalize,
+    spec_to_folder,
+    spec_to_label,
+    EXPERIMENT_FOLDER,
+    REFERENCE_STYLE,
+)
 
 
 
@@ -116,25 +72,25 @@ def plot_energy(methods_to_plot):
     """Spatial energy maps: 'where is the energy?' for each selected config,
     with the reference alongside. Reference is ALWAYS included.
 
-    Each entry is 'method' or ('method', value) -- same selection style as
-    metrics.py (e.g. ["baseline", "si", ("si_linear", 0.01)]).
+    Entries use the same selection style as metrics.py -- a shorthand string,
+    a (shorthand, value) tuple, or a full dict spec (any variant/physics/eval
+    combination). E.g. ["baseline", "si", {"method":"si","eval":"sensor:512"}].
     """
-    # Resolve entries into (method, value), skipping unknown/missing folders.
     panels = []                                     # (label, map)
     reference_dir = None
     for entry in methods_to_plot:
-        name = entry[0] if isinstance(entry, (tuple, list)) else entry
-        if name not in METHOD_CONFIG:
-            print(f"Unknown method '{name}'. Skipping.")
+        try:
+            spec = normalize(entry)
+        except ValueError as e:
+            print(f"Skipping {entry!r}: {e}")
             continue
-        method, value = parse_entry(entry)
-        d = method_dir(method, value)
+        d = spec_to_folder(spec)
         if not os.path.isdir(d):
-            print(f"Warning: folder for '{method}' (value={value}) not found: {d}. Skipping.")
+            print(f"Warning: folder not found, skipping: {d}")
             continue
-        print(f"Computing {QUANTITY} map for {method} (value={value}) ...")
-        panels.append((METHOD_CONFIG[method]["label"](value),
-                       energy_density_map(d, "sample_arr_run_0_it0.npy")))
+        label = spec_to_label(spec)
+        print(f"Computing {QUANTITY} map for {label} ...")
+        panels.append((label, energy_density_map(d, "sample_arr_run_0_it0.npy")))
         if reference_dir is None:
             reference_dir = d
 
@@ -184,10 +140,8 @@ def plot_energy(methods_to_plot):
     fig.suptitle(f"{qname}: where is the energy?  (mean over test frames)",
                  fontsize=12, y=1.0)
 
-    tag = "_".join(m if v is None else f"{m}{v}"
-                   for m, v in (parse_entry(e) for e in methods_to_plot))
     save_target = os.path.join("experiments", EXPERIMENT_FOLDER,
-                               f"energy_map_{QUANTITY}_{tag}.png")
+                               f"energy_map_{QUANTITY}_{len(panels) - 1}runs.png")
     plt.savefig(save_target, dpi=200, bbox_inches="tight")
     print(f"\nPlot saved to: {save_target}")
     plt.show()
@@ -195,9 +149,11 @@ def plot_energy(methods_to_plot):
 
 if __name__ == "__main__":
     # Which configs to map. Reference is ALWAYS included. Same entry style as
-    # metrics.py: "method" or ("method", value).
-    #   ["baseline", "si"]                  -> baseline vs SI vs reference
-    #   ["si", ("si_linear", 0.01)]         -> does physics guidance relocate energy?
+    # metrics.py: a shorthand, a (shorthand, value) tuple, or a full dict spec.
+    #   ["baseline", "si"]                          baseline vs SI
+    #   ["si", "si_blind"]                           specialist vs blind
+    #   [{"method":"si","eval":"sensor:512"},        robustness: where does energy
+    #    {"method":"si","variant":"blind","eval":"sensor:512"}]   land off-distribution?
     METHODS_TO_PLOT = ["baseline", "dps", "si"]
 
     plot_energy(METHODS_TO_PLOT)

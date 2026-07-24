@@ -61,76 +61,120 @@ DATA_KW = "u3232"
 T = 400
 R = 20
 W = 0.0
-# Defaults used when an entry in METHODS_TO_PLOT gives no explicit value.
+# Defaults used when an entry gives no explicit value.
 ZETA = 3.0        # DPS      --zeta
 SI_LAMBDA = 0.01  # SI linear   --si_lambda
 SI_W = 3.0        # SI learned  --si_w
 
-# Per-method definition. 'suffix' and 'label' are functions of the run's value
-# (zeta / lambda / w), so the same method can be plotted at several values.
-# The suffix must match the folder main.py created.
-METHOD_CONFIG = {
-    "baseline": {
-        "prefix": "", "takes_value": False, "default": None,
-        "suffix": lambda v: "",
-        "label":  lambda v: "Baseline (physics-guided)",
-        "color": "red", "linestyle": "-",
-    },
-    "dps": {
-        "prefix": "dps_", "takes_value": True, "default": ZETA,
-        "suffix": lambda v: f"_z{v}",
-        "label":  lambda v: f"DPS (zeta={v})",
-        "color": "green", "linestyle": "-",
-    },
-    "si": {
-        "prefix": "si_", "takes_value": False, "default": None,
-        "suffix": lambda v: "",
-        "label":  lambda v: "Stochastic interpolant",
-        "color": "darkorange", "linestyle": "-",
-    },
-    "si_blind": {
-        "prefix": "si_", "takes_value": False, "default": None,
-        "suffix": lambda v: "_blind",
-        "label":  lambda v: "SI (blind, robust)",
-        "color": "teal", "linestyle": "-",
-    },
-    "si_linear": {
-        "prefix": "si_", "takes_value": True, "default": SI_LAMBDA,
-        "suffix": lambda v: f"_linear_lam{v}",
-        "label":  lambda v: f"SI + linear physics (lam={v})",
-        "color": "purple", "linestyle": "-",
-    },
-    "si_learned": {
-        "prefix": "si_", "takes_value": True, "default": SI_W,
-        "suffix": lambda v: f"_learned_w{v}",
-        "label":  lambda v: f"SI + learned physics (w={v})",
-        "color": "saddlebrown", "linestyle": "-",
-    },
-}
 REFERENCE_STYLE = {"label": "Reference", "color": "mediumblue", "linestyle": "--"}
 
+# Distinct colours assigned in order to curves that don't set an explicit one.
+PALETTE = ["red", "green", "darkorange", "teal", "purple", "saddlebrown",
+           "royalblue", "magenta", "olive", "darkviolet"]
 
-def parse_entry(entry):
-    """Accept 'si' or ('si_linear', 0.01) -> (method, value).
+# Shorthand string -> canonical spec. Anything else must be a dict spec.
+_SHORTHAND = {
+    "baseline":   {"method": "baseline"},
+    "dps":        {"method": "dps"},
+    "si":         {"method": "si"},
+    "si_blind":   {"method": "si", "variant": "blind"},
+    "si_linear":  {"method": "si", "physics": "linear"},
+    "si_learned": {"method": "si", "physics": "learned"},
+}
 
-    A bare method name falls back to that method's default value.
+
+def normalize(entry):
+    """Turn any entry into a canonical spec dict. Accepted forms:
+
+        "si"                                         shorthand
+        ("dps", 3.0) / ("si_linear", 0.1)            shorthand + value
+        {"method":"si", "variant":"blind",           full control -- ANY combo
+         "physics":"linear", "value":0.01,
+         "eval":"sensor:512", "label":..., "color":...}
+
+    Spec keys: method (baseline|dps|si); value (dps zeta / si physics strength);
+    physics (none|linear|learned); variant (plain|blind); eval (e.g. sensor:512);
+    label, color (optional overrides).
     """
+    value = None
     if isinstance(entry, (tuple, list)):
-        method, value = entry[0], entry[1]
+        entry, value = entry[0], entry[1]
+    if isinstance(entry, str):
+        if entry not in _SHORTHAND:
+            raise ValueError(f"unknown shorthand '{entry}'; use a dict spec for custom runs")
+        spec = dict(_SHORTHAND[entry])
     else:
-        method, value = entry, None
-    cfg = METHOD_CONFIG[method]
-    if value is None and cfg["takes_value"]:
-        value = cfg["default"]
-    return method, value
+        spec = dict(entry)                       # already a dict spec
+
+    if value is not None:
+        spec["value"] = value
+    spec.setdefault("method", "si")
+    spec.setdefault("physics", "none")
+    spec.setdefault("variant", "plain")
+    spec.setdefault("eval", None)
+    if "value" not in spec:
+        if spec["method"] == "dps":
+            spec["value"] = ZETA
+        elif spec["physics"] == "linear":
+            spec["value"] = SI_LAMBDA
+        elif spec["physics"] == "learned":
+            spec["value"] = SI_W
+        else:
+            spec["value"] = None
+    return spec
+
+
+def spec_to_folder(spec):
+    """Build the experiment folder for a spec -- MUST match main.py's naming."""
+    base = f"guided_recons_{DATA_KW}_t{T}_r{R}_w{W}"
+    m = spec["method"]
+    if m == "baseline":
+        name = base
+    elif m == "dps":
+        name = f"dps_{base}_z{spec['value']}"
+    elif m == "si":
+        name = f"si_{base}"
+        if spec["physics"] == "linear":
+            name += f"_linear_lam{spec['value']}"
+        elif spec["physics"] == "learned":
+            name += f"_learned_w{spec['value']}"
+        if spec["variant"] == "blind":
+            name += "_blind"
+        if spec["eval"]:
+            name += "_eval_" + str(spec["eval"]).replace(":", "")
+    else:
+        raise ValueError(f"unknown method {m!r}")
+    return os.path.join("experiments", EXPERIMENT_FOLDER, name)
+
+
+def spec_to_label(spec):
+    if spec.get("label"):
+        return spec["label"]
+    m = spec["method"]
+    if m == "baseline":
+        return "Baseline (physics-guided)"
+    if m == "dps":
+        return f"DPS (zeta={spec['value']})"
+    parts = ["SI"]
+    if spec["variant"] == "blind":
+        parts.append("blind")
+    if spec["physics"] == "linear":
+        parts.append(f"linear λ={spec['value']}")
+    elif spec["physics"] == "learned":
+        parts.append(f"learned w={spec['value']}")
+    if spec["eval"]:
+        parts.append(f"@{spec['eval']}")
+    return "Stochastic interpolant" if len(parts) == 1 else " · ".join(parts)
+
+
+# Backward-compat shims (energy.py and older callers import these).
+def parse_entry(entry):
+    spec = normalize(entry)
+    return spec["method"], spec["value"]
 
 
 def method_dir(method, value=None):
-    """Folder for one run. The suffix carries its tag (DPS zeta, SI physics
-    strength) and must match what main.py created."""
-    cfg = METHOD_CONFIG[method]
-    folder = f"{cfg['prefix']}guided_recons_{DATA_KW}_t{T}_r{R}_w{W}{cfg['suffix'](value)}"
-    return os.path.join("experiments", EXPERIMENT_FOLDER, folder)
+    return spec_to_folder(normalize((method, value) if value is not None else method))
 
 
 def shade(base_color, i, n):
@@ -148,36 +192,22 @@ def plot_fluid_statistics(methods_to_plot):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     plt.rcParams.update({'font.size': 12, 'axes.linewidth': 1.5})
 
-    # Build the list of curves: each selected method's reconstruction, then the
-    # reference once (loaded from the first available method folder -- the
-    # ground truth is identical across folders).
-    # Resolve entries ('si' or ('si_linear', 0.01)) into (method, value) pairs.
-    parsed = []
-    for entry in methods_to_plot:
-        name = entry[0] if isinstance(entry, (tuple, list)) else entry
-        if name not in METHOD_CONFIG:
-            print(f"Unknown method '{name}' (expected one of {list(METHOD_CONFIG)}). Skipping.")
-            continue
-        parsed.append(parse_entry(entry))
-
-    # Count runs per method so several values of the same one get distinct shades.
-    per_method_total = defaultdict(int)
-    for method, _ in parsed:
-        per_method_total[method] += 1
-    per_method_seen = defaultdict(int)
-
+    # Resolve every entry (shorthand string, tuple, or full dict spec) into a
+    # canonical spec, then into its folder + label + colour.
     curves = []          # (label, directory, filename, color, linestyle)
     reference_dir = None
-    for method, value in parsed:
-        d = method_dir(method, value)
-        if not os.path.isdir(d):
-            print(f"Warning: folder for '{method}' (value={value}) not found: {d}. Skipping.")
+    for idx, entry in enumerate(methods_to_plot):
+        try:
+            spec = normalize(entry)
+        except ValueError as e:
+            print(f"Skipping {entry!r}: {e}")
             continue
-        cfg = METHOD_CONFIG[method]
-        i = per_method_seen[method]
-        per_method_seen[method] += 1
-        color = shade(cfg['color'], i, per_method_total[method])
-        curves.append((cfg['label'](value), d, 'sample_arr_run_0_it0.npy', color, cfg['linestyle']))
+        d = spec_to_folder(spec)
+        if not os.path.isdir(d):
+            print(f"Warning: folder not found, skipping: {d}")
+            continue
+        color = spec.get("color") or PALETTE[idx % len(PALETTE)]
+        curves.append((spec_to_label(spec), d, 'sample_arr_run_0_it0.npy', color, "-"))
         if reference_dir is None:
             reference_dir = d
 
@@ -231,32 +261,32 @@ def plot_fluid_statistics(methods_to_plot):
     # Save and display
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.2)
-    tag = "_".join(m if v is None else f"{m}{v}" for m, v in parsed)
-    save_target = os.path.join("experiments", EXPERIMENT_FOLDER, f"stats_{tag}_vs_reference.png")
+    n = len(curves) - 1                          # exclude the reference curve
+    save_target = os.path.join("experiments", EXPERIMENT_FOLDER,
+                               f"stats_{n}runs_vs_reference.png")
     plt.savefig(save_target, dpi=300, bbox_inches='tight')
     print(f"\nPlot successfully saved to: {save_target}")
     plt.show()
 
 
 if __name__ == "__main__":
-    # Choose what to graph. Reference is ALWAYS included.
+    # Choose what to graph. Reference is ALWAYS included. Every entry is one of:
     #
-    # Each entry is either
-    #   "method"              -> uses that method's default value, or
-    #   ("method", value)     -> that specific run.
+    #   "baseline" / "dps" / "si" / "si_blind" / "si_linear" / "si_learned"   (shorthands)
+    #   ("dps", 3.0) / ("si_linear", 0.01)                                    (shorthand + value)
+    #   {"method":"si", ...}                                                  (full control -- ANY combo)
     #
-    #   "baseline"                  physics-guided diffusion   (no value)
-    #   ("dps", 3.0)                posterior sampling         value = zeta
-    #   "si"                        stochastic interpolant     (no value)
-    #   ("si_linear", 0.01)         SI + linear physics        value = lambda
-    #   ("si_learned", 3.0)         SI + learned physics       value = w
+    # Dict spec keys: method, physics (none|linear|learned), value (zeta/lambda/w),
+    #                 variant (plain|blind), eval (e.g. "sensor:512"), label, color.
     #
-    # The same method may appear several times at different values; repeats are
-    # drawn in progressively lighter shades of that method's colour.
-    #
-    # e.g. lambda sweep:  [("si_linear", 0.001), ("si_linear", 0.01), ("si_linear", 0.1)]
-    #      does physics help SI?  ["si", ("si_linear", 0.01)]
-    #      three-method compare:  ["baseline", ("dps", 3.0), "si"]
+    # Examples:
+    #   three-method compare:   ["baseline", ("dps", 3.0), "si"]
+    #   specialist vs blind:    ["si", "si_blind"]
+    #   robustness at 512 sensors (specialist vs blind):
+    #       [{"method":"si", "eval":"sensor:512"},
+    #        {"method":"si", "variant":"blind", "eval":"sensor:512"}]
+    #   blind + linear physics:
+    #       [{"method":"si", "variant":"blind", "physics":"linear", "value":0.01}]
     METHODS_TO_PLOT = ["baseline", "si", ("si_linear", 0.01)]
 
     plot_fluid_statistics(METHODS_TO_PLOT)
