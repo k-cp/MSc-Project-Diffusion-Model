@@ -20,7 +20,7 @@ EXPERIMENT_FOLDER = "kmflow_re1000_rs256_ddim_conditional_new"
 
 # Which run to animate. Each method writes to its own folder, so the path is
 # assembled from the pieces below (must match the folder main.py created).
-METHOD = "si"          # "baseline", "dps", or "si"
+METHOD = "dps"          # "baseline", "dps", or "si"
 DATA_KW = "u3232"
 T = 400
 R = 20
@@ -30,7 +30,7 @@ ZETA = 3.0              # which DPS zeta run to load        (only used when METH
 SI_PHYSICS = "none"       # "none" | "linear" | "learned"
 SI_LAMBDA = 0.01        # lambda of the linear run to load  (only used when SI_PHYSICS == "linear")
 SI_W = 3.0              # w of the learned run to load      (only used when SI_PHYSICS == "learned")
-SI_VARIANT = "plain"    # "plain" | "blind"                 (which trained SI checkpoint)
+SI_VARIANT = "blind"    # "plain" | "blind"                 (which trained SI checkpoint)
 SI_EVAL = ""            # "" | "sensor:512" | "downsample:8" | "lowpass:4"  (robustness-eval run)
 
 # Guidance weight (e.g., 0.0, 0.5, 1.0)

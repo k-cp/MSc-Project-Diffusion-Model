@@ -269,24 +269,121 @@ def plot_fluid_statistics(methods_to_plot):
     plt.show()
 
 
+def _load_full(folder, file_name):
+    """Load ALL frames of a run (not just the last per batch)."""
+    files = sorted(glob.glob(os.path.join(folder, "sample_batch*", file_name)))
+    if not files:
+        return None
+    return np.concatenate([np.load(f) for f in files]).astype(np.float64)
+
+
+def _resolve(methods_to_plot):
+    """methods_to_plot -> list of (label, folder, color); reference from the first."""
+    out, ref_dir = [], None
+    for idx, entry in enumerate(methods_to_plot):
+        try:
+            spec = normalize(entry)
+        except ValueError as e:
+            print(f"Skipping {entry!r}: {e}")
+            continue
+        d = spec_to_folder(spec)
+        if not os.path.isdir(d):
+            print(f"Warning: folder not found, skipping: {d}")
+            continue
+        out.append((spec_to_label(spec), d, spec.get("color") or PALETTE[idx % len(PALETTE)]))
+        if ref_dir is None:
+            ref_dir = d
+    return out, ref_dir
+
+
+def metrics_table(methods_to_plot):
+    """Per-run scalar metrics vs ground truth -- these EXPOSE the differences that
+    the E(k)/p(w) plots hide (a genuinely different model shows a different RMSE
+    even when its spectrum overlaps)."""
+    runs, ref_dir = _resolve(methods_to_plot)
+    if not runs:
+        print("No valid folders -- nothing to tabulate.")
+        return
+    ref = _load_full(ref_dir, "reference_arr.npy")
+    rstd = ref.std()
+
+    print(f"\n{'method':30s} {'MSE':>9s} {'RMSE':>8s} {'corr':>8s} {'std':>8s} {'std/ref%':>9s}")
+    print("-" * 76)
+    print(f"{'reference (ground truth)':30s} {'--':>9s} {'--':>8s} {'--':>8s} {rstd:8.3f} {'100.0':>9s}")
+    lines = [f"reference std={rstd:.4f}"]
+    for label, d, _ in runs:
+        x = _load_full(d, "sample_arr_run_0_it0.npy")
+        if x is None:
+            continue
+        mse = float(((x - ref) ** 2).mean())
+        rmse = float(np.sqrt(mse))
+        corr = float(np.corrcoef(x.ravel(), ref.ravel())[0, 1])
+        std = float(x.std())
+        row = f"{label:30s} {mse:9.4f} {rmse:8.4f} {corr:8.4f} {std:8.3f} {100*std/rstd:9.1f}"
+        print(row)
+        lines.append(row)
+    print("\n(lower MSE/RMSE = closer to truth; corr near 1 = better; std/ref near 100% = "
+          "reproduces variance, <100% = over-smoothed.)")
+    out = os.path.join("experiments", EXPERIMENT_FOLDER, "metrics_table.txt")
+    open(out, "w").write("\n".join(lines) + "\n")
+    print(f"Saved: {out}")
+
+
+def plot_spectrum_ratio(methods_to_plot):
+    """E(k) / E_reference(k) on a LINEAR y-axis. The raw log-log E(k) hides errors
+    because it spans ~9 decades; this ratio makes the high-k over/under-shoot
+    (where reconstructions actually differ) obvious. 1.0 = matches reference."""
+    runs, ref_dir = _resolve(methods_to_plot)
+    if not runs:
+        print("No valid folders -- nothing to plot.")
+        return
+
+    def mean_ek(folder, fn):
+        fields = collect_and_average_data(os.path.join(folder, "sample_batch*"), fn)
+        total, k = None, None
+        for field in fields:
+            k, ek = compute_ke_spectrum(field)
+            total = ek if total is None else total + ek
+        return k, total / len(fields)
+
+    k, e_ref = mean_ek(ref_dir, "reference_arr.npy")
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for label, d, color in runs:
+        _, e = mean_ek(d, "sample_arr_run_0_it0.npy")
+        ax.semilogx(k, e / e_ref, color=color, linewidth=2, label=label)
+    ax.axhline(1.0, color=REFERENCE_STYLE['color'], linestyle='--', linewidth=1.5,
+               label="Reference (=1)")
+    ax.set_xlabel(r'$k$', fontsize=14)
+    ax.set_ylabel(r'$E(k)\,/\,E_{\mathrm{ref}}(k)$', fontsize=14)
+    ax.set_ylim(0, 2.5)          # clip: values >2.5 (badly over-energetic) run off-top
+    ax.set_xlim(left=1)
+    ax.grid(True, which="major", linestyle='-.', color='gray', alpha=0.5)
+    ax.set_title("Energy-spectrum ratio to reference "
+                 "(1.0 = perfect; deviations reveal the hidden differences)")
+    ax.legend(loc='upper left', framealpha=0.9)
+    plt.tight_layout()
+    save = os.path.join("experiments", EXPERIMENT_FOLDER,
+                        f"spectrum_ratio_{len(runs)}runs.png")
+    plt.savefig(save, dpi=300, bbox_inches='tight')
+    print(f"\nPlot saved to: {save}")
+    plt.show()
+
+
 if __name__ == "__main__":
-    # Choose what to graph. Reference is ALWAYS included. Every entry is one of:
-    #
+    # Reference is ALWAYS included. Every entry is one of:
     #   "baseline" / "dps" / "si" / "si_blind" / "si_linear" / "si_learned"   (shorthands)
     #   ("dps", 3.0) / ("si_linear", 0.01)                                    (shorthand + value)
-    #   {"method":"si", ...}                                                  (full control -- ANY combo)
-    #
-    # Dict spec keys: method, physics (none|linear|learned), value (zeta/lambda/w),
-    #                 variant (plain|blind), eval (e.g. "sensor:512"), label, color.
-    #
-    # Examples:
-    #   three-method compare:   ["baseline", ("dps", 3.0), "si"]
-    #   specialist vs blind:    ["si", "si_blind"]
-    #   robustness at 512 sensors (specialist vs blind):
-    #       [{"method":"si", "eval":"sensor:512"},
-    #        {"method":"si", "variant":"blind", "eval":"sensor:512"}]
-    #   blind + linear physics:
-    #       [{"method":"si", "variant":"blind", "physics":"linear", "value":0.01}]
-    METHODS_TO_PLOT = ["baseline", "si", ("si_linear", 0.01)]
+    #   {"method":"si", "variant":"blind", "eval":"sensor:512", ...}          (full control)
+    METHODS_TO_PLOT = ["baseline", "si", ("si_linear", 0.01), "si_blind"]
 
-    plot_fluid_statistics(METHODS_TO_PLOT)
+    # --- which outputs to produce (selectable) ---
+    SHOW_SPECTRUM_DISTRIBUTION = True   # (a) E(k) log-log + (b) p(w) -- the paper's plots
+    SHOW_SPECTRUM_RATIO        = True   # E(k)/E_ref, linear axis -- EXPOSES hidden high-k differences
+    PRINT_METRICS_TABLE        = True   # numeric RMSE / corr / std -- exposes pointwise differences
+
+    if SHOW_SPECTRUM_DISTRIBUTION:
+        plot_fluid_statistics(METHODS_TO_PLOT)
+    if PRINT_METRICS_TABLE:
+        metrics_table(METHODS_TO_PLOT)
+    if SHOW_SPECTRUM_RATIO:
+        plot_spectrum_ratio(METHODS_TO_PLOT)

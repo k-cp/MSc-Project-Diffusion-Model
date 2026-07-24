@@ -6,7 +6,8 @@
 #SBATCH --mem=32G
 #SBATCH --time=04:00:00
 #SBATCH --output=infer_conditional_%j.log
-
+#SBATCH --mail-user=kaya.araiyokoi@gmail.com
+#SBATCH --mail-type=END,FAIL
 
 # Usage:
 #   sbatch run_inference_conditional.sh                    # baseline (no posterior sampling)

@@ -154,6 +154,6 @@ if __name__ == "__main__":
     #   ["si", "si_blind"]                           specialist vs blind
     #   [{"method":"si","eval":"sensor:512"},        robustness: where does energy
     #    {"method":"si","variant":"blind","eval":"sensor:512"}]   land off-distribution?
-    METHODS_TO_PLOT = ["baseline", "dps", "si"]
+    METHODS_TO_PLOT = ["baseline", "dps", "si", "si_blind"]
 
     plot_energy(METHODS_TO_PLOT)
