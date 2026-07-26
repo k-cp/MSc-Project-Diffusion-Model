@@ -1,5 +1,5 @@
 reference std=4.7632
 Baseline (physics-guided)         3.6419   1.9084   0.9196    4.008      84.1
 Stochastic interpolant            1.4489   1.2037   0.9678    4.724      99.2
-SI · linear λ=0.01                1.4490   1.2038   0.9678    4.722      99.1
 SI · blind                        1.6987   1.3033   0.9623    4.718      99.0
+SI · blind · @sensor:512          4.7079   2.1698   0.8946    4.684      98.3

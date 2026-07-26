@@ -32,6 +32,12 @@
 
 
 
+# Optional phone/desktop push when the job finishes (works even if the cluster
+# can't send email). Set to a PRIVATE, hard-to-guess topic, e.g. kaya-si-7h3k9x,
+# then subscribe at ntfy.sh/<that-topic> (free app or browser). Empty = disabled.
+# Anyone who knows the topic name can read/post, so keep it random.
+NTFY_TOPIC="kaya-si-7h3k9x"
+
 MODE="${1:-baseline}"
 ZETA="${2:-3.0}"          # zeta=3.0 chosen from the sweep (best L2, stable)
 SI_PHYSICS="${2:-none}"   # for MODE=si: none | linear | learned
@@ -116,3 +122,26 @@ python main.py \
     --t 400 \
     --r 20 \
     $EXTRA_ARGS
+STATUS=$?
+
+# ---------------------------------------------------------------------------
+# Completion notification. Always drops a .flag file (works everywhere); pushes
+# to ntfy too if NTFY_TOPIC is set and the compute node has outbound internet.
+# ---------------------------------------------------------------------------
+[ "$STATUS" -eq 0 ] && RESULT="OK" || RESULT="FAILED (exit $STATUS)"
+LABEL="${MODE}${SI_EVAL:+ $SI_EVAL}${SI_VARIANT:+ ($SI_VARIANT)}"
+MSG="fluid_infer job ${SLURM_JOB_ID:-local}: $LABEL -> $RESULT"
+
+echo "$MSG  $(date)" > "done_${SLURM_JOB_ID:-local}.flag"
+echo "$MSG"
+
+if [ -n "$NTFY_TOPIC" ]; then
+    if curl -s -m 15 -H "Title: fluid_infer $RESULT" -d "$MSG" \
+            "https://ntfy.sh/$NTFY_TOPIC" >/dev/null 2>&1; then
+        echo "notified ntfy topic '$NTFY_TOPIC'"
+    else
+        echo "ntfy notify failed (no outbound internet on the compute node?)"
+    fi
+fi
+
+exit $STATUS

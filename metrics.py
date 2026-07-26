@@ -373,8 +373,9 @@ if __name__ == "__main__":
     # Reference is ALWAYS included. Every entry is one of:
     #   "baseline" / "dps" / "si" / "si_blind" / "si_linear" / "si_learned"   (shorthands)
     #   ("dps", 3.0) / ("si_linear", 0.01)                                    (shorthand + value)
+    #   {"method": "si", "eval": "sensor:512"}
     #   {"method":"si", "variant":"blind", "eval":"sensor:512", ...}          (full control)
-    METHODS_TO_PLOT = ["baseline", "si", ("si_linear", 0.01), "si_blind"]
+    METHODS_TO_PLOT = ["baseline", "si","si_blind" , {"method":"si", "variant":"blind", "eval":"sensor:512"}]
 
     # --- which outputs to produce (selectable) ---
     SHOW_SPECTRUM_DISTRIBUTION = True   # (a) E(k) log-log + (b) p(w) -- the paper's plots

@@ -41,6 +41,12 @@ def read_metrics(folder):
     if not os.path.exists(log):
         return None, None
     txt = open(log, errors="ignore").read()
+    # A folder can be re-run, appending fresh blocks to the same log. Each run
+    # starts by loading the drift network, so only average residuals from the
+    # LAST such block -- otherwise a stale/broken earlier run poisons the mean.
+    marker = "Loaded SI drift network"
+    if marker in txt:
+        txt = marker + txt.rsplit(marker, 1)[1]
     l2 = re.findall(r"Mean L2 loss:\s*([0-9.eE+-]+)", txt)
     res = re.findall(r"Residual final:\s*([0-9.eE+-]+)", txt)
     mean_l2 = float(l2[-1]) if l2 else None
