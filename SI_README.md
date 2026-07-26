@@ -653,3 +653,39 @@ The last two are the paper's own physics-fidelity and scalability mechanisms. If
 - Interpolant math verified numerically: `I₀ = x₀` and `I₁ = x₁` exactly; the Heun
   integrator converges to `x₁` under the ideal drift.
 - Trained once, 2000 epochs, seed 1234, producing the 40 MB `si_ckpt.pth` documented above.
+
+### 11.1 Baseline weights: provided vs retrained
+
+Every number in §7 compares SI against a baseline built from the checkpoint shipped
+with the repo (`conditional_ckpt.pth`), whose training details we cannot inspect. To
+check that the comparison isn't resting on an unknown, the baseline can be retrained
+here and run as a separate variant:
+
+```bash
+sbatch run_train_baseline.sh                       # ~12 h, 300 epochs, seed 1234
+cp train_ddpm/experiments/km256_mine/logs/weights/km256_mine/ckpt.pth \
+   pretrained_weights/conditional_ckpt_mine.pth
+sbatch run_inference_conditional.sh baseline mine  # -> ..._w0.0_mine
+sbatch run_inference_conditional.sh baseline given # -> ..._w0.0  (reference, unchanged)
+```
+
+| variant | weights | output folder | metrics spec |
+|---|---|---|---|
+| given | `conditional_ckpt.pth` (shipped) | `guided_recons_u3232_t400_r20_w0.0` | `"baseline"` |
+| mine | `conditional_ckpt_mine.pth` (ours) | `guided_recons_u3232_t400_r20_w0.0_mine` | `"baseline_mine"` |
+
+The `given` names are unchanged, so existing results stay valid. Both variants train
+on the same split the SI model uses — `KMFlowTensorDataset(train_ratio=0.9)` keeps the
+first 36 of 40 trajectories and holds out the last 4, which are the frames scored at
+inference — so no test data leaks into either baseline.
+
+`metrics.py`, `energy.py` and `generate_metrics_table.py` all resolve folders through
+the same spec system, so adding `"baseline_mine"` to their `METHODS` lists is enough:
+
+```python
+METHODS = ["baseline", "baseline_mine", "si", "si_blind"]
+```
+
+If the two baselines agree, the §7 comparison is sound as published. If they diverge,
+the gap is the provided checkpoint's unknown training, and the retrained one is the
+honest reference to quote.

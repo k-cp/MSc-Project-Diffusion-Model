@@ -29,6 +29,14 @@
 #                  'linear'  works with a plain SI checkpoint (inference-only)
 #                  'learned' NEEDS a checkpoint trained via: sbatch run_train_si.sh ... learned
 # MODE=baseline -> default repository flow, reconstruct() (physics-guided)
+#                  arg2 = which trained weights {given|mine}, default 'given'
+#                  given -> ./pretrained_weights/conditional_ckpt.pth (shipped with the repo)
+#                           folder: guided_recons_u3232_t400_r20_w0.0        (unchanged)
+#                  mine  -> ./pretrained_weights/conditional_ckpt_mine.pth  (train it yourself:
+#                           sbatch run_train_baseline.sh)
+#                           folder: guided_recons_u3232_t400_r20_w0.0_mine
+#   sbatch run_inference_conditional.sh baseline given   # reference run (provided weights)
+#   sbatch run_inference_conditional.sh baseline mine    # your reproduction
 
 
 
@@ -44,6 +52,7 @@ SI_PHYSICS="${2:-none}"   # for MODE=si: none | linear | learned
 SI_STRENGTH="${3:-0.0}"   # for MODE=si: lambda (linear) or w (learned)
 SI_VARIANT="${4:-plain}"  # for MODE=si: plain | blind (which trained checkpoint)
 SI_EVAL="${5:-}"          # for MODE=si: robustness eval degradation, e.g. sensor:512
+BASE_VARIANT="${2:-given}"  # for MODE=baseline: given | mine (whose trained weights)
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -70,6 +79,17 @@ if [ "$MODE" = "si" ]; then
     if [ "$SI_VARIANT" != "plain" ] && [ "$SI_VARIANT" != "blind" ]; then
         echo "ERROR: for MODE=si the fourth argument must be 'plain' or 'blind' (got '$SI_VARIANT')."
         echo "  e.g. sbatch run_inference_conditional.sh si none 0 blind"
+        exit 1
+    fi
+fi
+
+# Reject a typo'd baseline variant rather than silently reproducing the provided
+# run -- otherwise a mistyped 'mine' overwrites the reference output.
+if [ "$MODE" = "baseline" ]; then
+    if [ "$BASE_VARIANT" != "given" ] && [ "$BASE_VARIANT" != "mine" ]; then
+        echo "ERROR: for MODE=baseline the second argument must be 'given' or 'mine' (got '$BASE_VARIANT')."
+        echo "  provided weights: sbatch run_inference_conditional.sh baseline given"
+        echo "  your own weights: sbatch run_inference_conditional.sh baseline mine"
         exit 1
     fi
 fi
@@ -112,8 +132,22 @@ elif [ "$MODE" = "si" ]; then
     fi
     EXTRA_ARGS="$SI_ARGS"
 else
-    echo "Running WITHOUT posterior sampling (baseline reconstruct)"
-    EXTRA_ARGS=""
+    # 'given' = the checkpoint shipped with the repo (unknown training details);
+    # 'mine'  = one trained here via run_train_baseline.sh, so the comparison
+    # isolates "did I reproduce their model?" from every downstream result.
+    if [ "$BASE_VARIANT" = "mine" ]; then
+        CK="./pretrained_weights/conditional_ckpt_mine.pth"
+        if [ ! -f "$CK" ]; then
+            echo "ERROR: $CK not found -- train it first with: sbatch run_train_baseline.sh"
+            echo "       then copy the trained ckpt.pth there (see run_train_baseline.sh header)."
+            exit 1
+        fi
+        echo "Running baseline reconstruct with MY trained weights  [ckpt $CK]"
+        EXTRA_ARGS="--ckpt_path $CK --baseline_tag mine"
+    else
+        echo "Running WITHOUT posterior sampling (baseline reconstruct, PROVIDED weights)"
+        EXTRA_ARGS=""
+    fi
 fi
 
 python main.py \

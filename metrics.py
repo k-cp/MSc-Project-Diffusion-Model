@@ -75,6 +75,9 @@ PALETTE = ["red", "green", "darkorange", "teal", "purple", "saddlebrown",
 # Shorthand string -> canonical spec. Anything else must be a dict spec.
 _SHORTHAND = {
     "baseline":   {"method": "baseline"},
+    # Same architecture/config as "baseline", but the weights we trained ourselves
+    # instead of the ones shipped with the repo -- the reproduction check.
+    "baseline_mine": {"method": "baseline", "variant": "mine"},
     "dps":        {"method": "dps"},
     "si":         {"method": "si"},
     "si_blind":   {"method": "si", "variant": "blind"},
@@ -130,8 +133,13 @@ def spec_to_folder(spec):
     m = spec["method"]
     if m == "baseline":
         name = base
+        # self-trained weights land in a _mine folder (main.py --baseline_tag)
+        if spec["variant"] == "mine":
+            name += "_mine"
     elif m == "dps":
         name = f"dps_{base}_z{spec['value']}"
+        if spec["variant"] == "mine":
+            name += "_mine"
     elif m == "si":
         name = f"si_{base}"
         if spec["physics"] == "linear":
@@ -152,9 +160,12 @@ def spec_to_label(spec):
         return spec["label"]
     m = spec["method"]
     if m == "baseline":
-        return "Baseline (physics-guided)"
+        if spec["variant"] == "mine":
+            return "Baseline (retrained here)"
+        return "Baseline (provided weights)"
     if m == "dps":
-        return f"DPS (zeta={spec['value']})"
+        lbl = f"DPS (zeta={spec['value']})"
+        return lbl + " · retrained" if spec["variant"] == "mine" else lbl
     parts = ["SI"]
     if spec["variant"] == "blind":
         parts.append("blind")

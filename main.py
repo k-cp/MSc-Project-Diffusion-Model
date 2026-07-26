@@ -55,12 +55,26 @@ def parse_args_and_config(): # Set default arguements
                         help="Robustness eval: build x0 from a CHOSEN degradation of the ground "
                              "truth instead of the fixed u3232. Format 'family:param', e.g. "
                              "sensor:512, downsample:8, lowpass:4. Empty = use real u3232.")
+    parser.add_argument("--ckpt_path", type=str, default="",
+                        help="Override the diffusion checkpoint in the config (model.ckpt_path). "
+                             "Lets you run the SAME config against a different set of weights -- "
+                             "e.g. the provided conditional_ckpt.pth vs one you trained yourself.")
+    parser.add_argument("--baseline_tag", type=str, default="",
+                        help="Extra suffix on the baseline/DPS output folder (e.g. 'mine') so a "
+                             "self-trained checkpoint's output lands in its own folder instead of "
+                             "overwriting the run made with the provided weights. Mirrors --si_tag.")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
     with open(os.path.join('configs', args.config), 'r') as f: # Opens YAML file (set by args.config) in read mode
         config = yaml.safe_load(f) # Parse YAML file into python dict
     config = dict2namespace(config) # Convert dict to namesapce
+
+    # Point the same config at different weights (provided vs self-trained) without
+    # editing the YAML. Done before log_dir is written so the saved config.yml
+    # records which checkpoint actually produced that folder.
+    if getattr(args, 'ckpt_path', ''):
+        config.model.ckpt_path = args.ckpt_path
 
     os.makedirs(config.log_dir, exist_ok=True) # Create folder named "log_dir"  (specified in YAML file) unless it exists
     if config.model.type == 'conditional': # Create direcotry name based on configurations
@@ -106,6 +120,13 @@ def parse_args_and_config(): # Set default arguements
         # -> _eval_sensor512), so each held-out test gets its own folder.
         if getattr(args, 'si_eval_degradation', ''):
             dir_name += '_eval_' + args.si_eval_degradation.replace(':', '')
+
+    # Which DIFFUSION checkpoint produced this run (baseline and DPS both use it).
+    # SI has its own --si_tag, so this only tags the diffusion-driven modes: an
+    # empty tag reproduces the original folder names, so runs made with the
+    # provided weights stay exactly where they were.
+    if getattr(args, 'baseline_tag', '') and getattr(args, 'run_si', 0) != 1:
+        dir_name += '_' + args.baseline_tag
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

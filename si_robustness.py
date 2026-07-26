@@ -49,7 +49,13 @@ def read_metrics(folder):
         txt = marker + txt.rsplit(marker, 1)[1]
     l2 = re.findall(r"Mean L2 loss:\s*([0-9.eE+-]+)", txt)
     res = re.findall(r"Residual final:\s*([0-9.eE+-]+)", txt)
-    mean_l2 = float(l2[-1]) if l2 else None
+    # The "Mean L2 loss" summary is printed only when a run finishes. Its absence
+    # means the run is still in progress (or was cut off), so the residuals cover
+    # only a partial, unrepresentative slice of the test set -- skip it entirely
+    # rather than report a biased half-run average.
+    if not l2:
+        return None, None
+    mean_l2 = float(l2[-1])
     mean_res = float(np.mean([float(x) for x in res])) if res else None
     return mean_l2, mean_res
 
