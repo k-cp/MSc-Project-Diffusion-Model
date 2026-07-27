@@ -132,6 +132,8 @@ def normalize(entry):
     spec.setdefault("dps_phys", "none")    # DPS physics FORCE
     spec.setdefault("dps_lambda", 1.0)
     spec.setdefault("mn", 0.0)             # inference-time sensor noise
+    # which experiment folder to read from -- cross-Re runs write to their own
+    spec.setdefault("exp", EXPERIMENT_FOLDER)
     if "value" not in spec:
         if spec["method"] == "dps":
             spec["value"] = ZETA
@@ -184,7 +186,7 @@ def spec_to_folder(spec):
     # sensor noise is tagged last for EVERY method, matching main.py
     if spec["mn"]:
         name += "_mn{}".format(spec["mn"])
-    return os.path.join("experiments", EXPERIMENT_FOLDER, name)
+    return os.path.join("experiments", spec["exp"], name)
 
 
 def spec_to_label(spec):

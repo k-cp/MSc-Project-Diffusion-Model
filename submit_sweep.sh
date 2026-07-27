@@ -144,6 +144,23 @@ if want family; then
     done
 fi
 
+# --- 8. cross-Reynolds: zero-shot on a DIFFERENT flow regime -----------------
+# The strongest generalisation probe available. Every other result is at
+# Re=1000; these run the SAME checkpoints, untouched, on Re=500/1000/2000/10000.
+# CAVEAT: the kf_vort_* family is not the simulations the models trained on
+# (std 4.16 vs 4.85 at the same nominal Re=1000 -- different forcing amplitude),
+# so absolute scores are NOT comparable with the published numbers. Read each
+# method against its own cross_re1000 score; that holds the generator fixed so
+# the only variable is the Reynolds number.
+if want crossre; then
+    echo "cross-Reynolds zero-shot (no retraining; compare to each method's own Re=1000):"
+    for RE in 500 1000 2000 10000; do
+        sub 00:45:00 "baseline @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S baseline
+        sub 01:00:00 "SI       @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S si
+        sub 01:30:00 "DPS      @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S dps 3.0
+    done
+fi
+
 echo
 if [ "$DRY" = "1" ]; then
     echo "DRY RUN -- nothing submitted. Re-run without DRY=1 to submit."

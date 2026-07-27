@@ -1,0 +1,63 @@
+# CROSS-REYNOLDS EVALUATION -- Re=10000
+#
+# Zero-shot test of checkpoints trained at Re=1000 on a DIFFERENT Reynolds
+# number. Nothing is trained here; the last 4 trajectories are the test set
+# and the first 4 only supply the scaler (load_recons_data derives mean/std
+# from ref_data[:-4], so each Re is standardised by its OWN statistics --
+# otherwise a scale shift would masquerade as a physics result).
+#
+# WARNING: these simulations are NOT the ones the models were trained on
+# (the kf_vort_* family has std 4.16 at Re=1000 vs 4.85 for
+# kf_2d_re1000_256_40seed.npy -- a different forcing amplitude). Absolute
+# scores here are therefore NOT comparable with the published numbers.
+# Compare each method against its own cross_re1000 score: that holds the
+# generator fixed so the only variable is the Reynolds number.
+#
+# Its own log_dir keeps these outputs away from the main results, whose
+# folder names would otherwise be identical.
+
+log_dir: "./experiments/cross_re10000"
+
+data:
+    dataset: "kmflow"
+    category: "kmflow"
+    image_size: 256
+    channels: 3
+    num_workers: 4
+    data_dir: "./data/cross_re/kf_re10000_test.npy" # High resolution data (ground truth for the super-resolution task)
+    stat_path: "./data/cross_re/km256_stats_re10000.npz"
+    sample_data_dir: "./data/cross_re/kf_re10000_sampled.npz" # Low resolution data measured from random grid locations (input data for the super-resolution task)
+    data_kw: 'u3232'
+    smoothing: False
+    smoothing_scale: 7
+    blur_method: "nearest"
+    blur_scale: 8
+
+model:
+    type: "conditional"
+    in_channels: 3
+    out_ch: 3
+    ch: 64
+    ch_mult: [ 1, 1, 1, 2 ]
+    num_res_blocks: 1
+    attn_resolutions: [ 16, ]
+    dropout: 0.0
+    var_type: fixedlarge
+    ema_rate: 0.9999
+    ema: True
+    resamp_with_conv: True
+    ckpt_path: "./pretrained_weights/conditional_ckpt.pth"
+
+diffusion:
+    beta_schedule: linear
+    beta_start: 0.0001
+    beta_end: 0.02
+    num_diffusion_timesteps: 1000
+
+sampling:
+    batch_size: 20
+    last_only: True
+    guidance_weight: 0.0
+    dump_arr: 'True'
+    log_loss: 'True'
+

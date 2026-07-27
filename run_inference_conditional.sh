@@ -78,6 +78,11 @@ R_ARG="${R:-20}"            # reverse steps (integration resolution; SI uses 100
 # the only way to test robustness to real instrument error:
 #   MN=0.02 sbatch run_inference_conditional.sh si     -> ..._mn0.02
 MN_ARG="${MN:-0.0}"
+# Which config to run. Default is the main Re=1000 setup; the cross_re*.yml
+# variants point the SAME checkpoints at a different Reynolds number and write
+# to their own log_dir, e.g.
+#   CONFIG=cross_re2000.yml sbatch run_inference_conditional.sh si
+CONFIG_ARG="${CONFIG:-kmflow_re1000_rs256_conditional.yml}"
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -141,6 +146,7 @@ if [ "$MODE" = "baseline" ]; then
     esac
 fi
 
+echo "Config: $CONFIG_ARG"
 echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps), sensor noise=$MN_ARG"
 
 module load cray-python/3.11.7
@@ -227,7 +233,7 @@ else
 fi
 
 python main.py \
-    --config kmflow_re1000_rs256_conditional.yml \
+    --config "$CONFIG_ARG" \
     --seed 1234 \
     --t "$T_ARG" \
     --r "$R_ARG" \
