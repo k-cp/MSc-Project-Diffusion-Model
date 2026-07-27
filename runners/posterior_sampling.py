@@ -100,7 +100,8 @@ class PosteriorRunner:
         skip = max(1, total_noise_levels // num_reverse_steps)
         return list(range(0, total_noise_levels, skip))
 
-    def dps_sample(self, low_res_measurement, init_field, sensor_idx=None, zeta=1.0):
+    def dps_sample(self, low_res_measurement, init_field, sensor_idx=None, zeta=1.0,
+                   scaler=None, phys_mode="none", phys_lambda=0.0, use_cond=False):
         """Reconstruct a high-res flow field guided by the low-res measurement y.
 
         Follows Diffusion Posterior Sampling (Chung et al., 2023, Alg. 1) using
@@ -127,9 +128,16 @@ class PosteriorRunner:
         x = torch.sqrt(abar_top) * init_field.to(self.device) + \
             torch.sqrt(1.0 - abar_top) * torch.randn_like(init_field, device=self.device)
 
+        if (phys_mode != "none" or use_cond) and scaler is None:
+            raise ValueError("dps_physics/dps_cond require a scaler "
+                             "(voriticity_residual needs unscaled fields)")
+        first_step = True   # so the gradient-scale line is logged once, not 20x
+
         self.log(
             f"Starting DPS reverse sampling: {len(seq)} steps, "
             f"scale_factor={self.args.scale_factor}, zeta={zeta}"
+            + (", physics-conditioned network" if use_cond else "")
+            + (f", physics force={phys_mode} (lambda={phys_lambda})" if phys_mode != "none" else "")
         )
 
         for i, j in tqdm(list(zip(reversed(seq), reversed(seq_next))),
@@ -142,7 +150,17 @@ class PosteriorRunner:
             beta_t = 1.0 - at / atm1      # effective beta over the (i -> j) jump
 
             if self.config.model.type == "conditional":
-                noise_pred = self.model(x, t, dx=None)
+                # JCP's LEARNED ENCODING: the checkpoint was trained with the PDE
+                # residual gradient as a conditioning input, but plain DPS discards
+                # it (dx=None). Switching it on is free -- no extra force, no
+                # strength to tune -- it just changes the noise prediction.
+                # Evaluated on the noisy x, exactly as the baseline does, so the
+                # only remaining difference from the baseline is the guidance term.
+                dx_cond = None
+                if use_cond:
+                    dx_cond = voriticity_residual(
+                        scaler.inverse(x.detach()))[0] / scaler.scale()
+                noise_pred = self.model(x, t, dx=dx_cond)
             else:
                 noise_pred = self.model(x, t)
 
@@ -155,11 +173,40 @@ class PosteriorRunner:
             # Summing per-sample norms keeps each sample's gradient independent,
             # so grad[b] = d||y_b - A(x0_hat)_b|| / dx (no cross-sample coupling).
             per_sample_norm = torch.linalg.norm((y - y_hat).reshape(batch_size, -1), dim=1)
-            guidance_grad = torch.autograd.grad(outputs=per_sample_norm.sum(), inputs=x)[0]
+            # 'x0hat' physics needs a SECOND backward over the same graph, so the
+            # first pass must not free it.
+            guidance_grad = torch.autograd.grad(outputs=per_sample_norm.sum(), inputs=x,
+                                                retain_graph=(phys_mode == "x0hat"))[0]
 
             # NaN guard.
             if torch.isnan(guidance_grad).any():
                 guidance_grad = torch.nan_to_num(guidance_grad, nan=0.0)
+
+            # ---- optional Navier-Stokes term (the DPS+physics hybrid) ----------
+            # Plain DPS pins the 1024 measured points and leaves the other 98.4%
+            # of the field unconstrained, which is why its residual explodes.
+            # This adds the physics the baseline has and DPS lacks.
+            phys_grad = None
+            if phys_mode == "xt":
+                # JCP-style: residual of the NOISY field, differentiated w.r.t.
+                # itself inside voriticity_residual. Cheap -- no network graph.
+                phys_grad = voriticity_residual(
+                    scaler.inverse(x.detach()))[0] / scaler.scale()
+            elif phys_mode == "x0hat":
+                # DPS-style: evaluate the residual on the CLEAN estimate, then
+                # chain back to x through the network -- the same reasoning that
+                # makes DPS use p(y|x0_hat) instead of p(y|x_t).
+                res_loss = voriticity_residual(scaler.inverse(x0_hat), calc_grad=False)
+                phys_grad = torch.autograd.grad(outputs=res_loss, inputs=x)[0]
+            if phys_grad is not None and torch.isnan(phys_grad).any():
+                phys_grad = torch.nan_to_num(phys_grad, nan=0.0)
+
+            if first_step and phys_grad is not None:
+                # Their scales differ a lot; print both so phys_lambda is tunable.
+                self.log(f"  |measurement grad|={guidance_grad.norm().item():.4g}  "
+                         f"|physics grad|={phys_grad.norm().item():.4g}  "
+                         f"(mode={phys_mode}, lambda={phys_lambda})")
+                first_step = False
 
             with torch.no_grad():
                 # Ancestral DDPM prior step between the two scheduled timesteps.
@@ -177,7 +224,10 @@ class PosteriorRunner:
                 # Normalized DPS update (Alg. 1): zeta_i = zeta / ||residual||,
                 # applied per sample so the step is independent of batch size.
                 step = (zeta / (per_sample_norm.detach() + 1e-8)).view(batch_size, 1, 1, 1)
-                x = (x_prior - step * guidance_grad).detach()
+                x = x_prior - step * guidance_grad
+                if phys_grad is not None:
+                    x = x - phys_lambda * phys_grad
+                x = x.detach()
 
         return x
 
@@ -267,7 +317,11 @@ class PosteriorRunner:
             for repeat in range(self.args.repeat_run):
                 self.log(f"Run {repeat + 1}/{self.args.repeat_run}")
                 sample = self.dps_sample(
-                    y, init_field=blur_scaled, sensor_idx=sensor_idx, zeta=self.args.zeta
+                    y, init_field=blur_scaled, sensor_idx=sensor_idx, zeta=self.args.zeta,
+                    scaler=scaler,
+                    phys_mode=getattr(self.args, "dps_physics", "none"),
+                    phys_lambda=getattr(self.args, "dps_lambda", 0.0),
+                    use_cond=(getattr(self.args, "dps_cond", 0) == 1),
                 )
                 sample = scaler.inverse(sample)
 

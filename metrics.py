@@ -78,6 +78,10 @@ _SHORTHAND = {
     # Same architecture/config as "baseline", but the weights we trained ourselves
     # instead of the ones shipped with the repo -- the reproduction check.
     "baseline_mine": {"method": "baseline", "variant": "mine"},
+    # Physics ablation: which half of Shu et al.'s guidance does the work.
+    "baseline_cond":   {"method": "baseline", "phys": "cond"},
+    "baseline_linear": {"method": "baseline", "phys": "linear"},
+    "baseline_nophys": {"method": "baseline", "phys": "none"},
     "dps":        {"method": "dps"},
     "si":         {"method": "si"},
     "si_blind":   {"method": "si", "variant": "blind"},
@@ -115,6 +119,14 @@ def normalize(entry):
     spec.setdefault("physics", "none")
     spec.setdefault("variant", "plain")
     spec.setdefault("eval", None)
+    spec.setdefault("phys", "both")        # baseline physics ablation
+    # Sampler-resolution knobs, so a t- or r-sweep can be compared on one plot:
+    #   {"method":"baseline", "r":100}   or   {"method":"baseline", "t":300}
+    spec.setdefault("t", T)
+    spec.setdefault("r", R)
+    spec.setdefault("dps_cond", False)     # DPS physics CONDITIONING
+    spec.setdefault("dps_phys", "none")    # DPS physics FORCE
+    spec.setdefault("dps_lambda", 1.0)
     if "value" not in spec:
         if spec["method"] == "dps":
             spec["value"] = ZETA
@@ -129,15 +141,23 @@ def normalize(entry):
 
 def spec_to_folder(spec):
     """Build the experiment folder for a spec -- MUST match main.py's naming."""
-    base = f"guided_recons_{DATA_KW}_t{T}_r{R}_w{W}"
+    base = f"guided_recons_{DATA_KW}_t{spec['t']}_r{spec['r']}_w{W}"
     m = spec["method"]
     if m == "baseline":
         name = base
+        # physics ablation tag (main.py --baseline_physics); 'both' stays untagged
+        if spec["phys"] != "both":
+            name += "_phys" + spec["phys"]
         # self-trained weights land in a _mine folder (main.py --baseline_tag)
         if spec["variant"] == "mine":
             name += "_mine"
     elif m == "dps":
         name = f"dps_{base}_z{spec['value']}"
+        # DPS+physics hybrid (main.py --dps_cond/--dps_physics/--dps_lambda)
+        if spec["dps_cond"]:
+            name += "_cond"
+        if spec["dps_phys"] != "none":
+            name += "_phys{}_lam{}".format(spec["dps_phys"], spec["dps_lambda"])
         if spec["variant"] == "mine":
             name += "_mine"
     elif m == "si":
@@ -160,11 +180,24 @@ def spec_to_label(spec):
         return spec["label"]
     m = spec["method"]
     if m == "baseline":
+        phys = {"both": "", "cond": " · cond only", "linear": " · linear only",
+                "none": " · no physics"}[spec["phys"]]
+        # only mention t/r when they differ from the defaults, so ordinary
+        # baseline labels stay short
+        res = ""
+        if spec["t"] != T:
+            res += f" · t={spec['t']}"
+        if spec["r"] != R:
+            res += f" · r={spec['r']}"
         if spec["variant"] == "mine":
-            return "Baseline (retrained here)"
-        return "Baseline (provided weights)"
+            return "Baseline (retrained here)" + phys + res
+        return "Baseline (provided weights)" + phys + res
     if m == "dps":
         lbl = f"DPS (zeta={spec['value']})"
+        if spec["dps_cond"]:
+            lbl += " + cond"
+        if spec["dps_phys"] != "none":
+            lbl += f" + force[{spec['dps_phys']}] λ={spec['dps_lambda']}"
         return lbl + " · retrained" if spec["variant"] == "mine" else lbl
     parts = ["SI"]
     if spec["variant"] == "blind":
@@ -386,7 +419,26 @@ if __name__ == "__main__":
     #   ("dps", 3.0) / ("si_linear", 0.01)                                    (shorthand + value)
     #   {"method": "si", "eval": "sensor:512"}
     #   {"method":"si", "variant":"blind", "eval":"sensor:512", ...}          (full control)
-    METHODS_TO_PLOT = ["baseline", "si","si_blind" , {"method":"si", "variant":"blind", "eval":"sensor:512"}]
+    #
+    # PHYSICS ABLATION -- which half of Shu et al.'s guidance actually does the work.
+    # "baseline" is conditioning + direct descent (the repo default, both mechanisms);
+    # "baseline_cond" keeps the conditioning but drops the '- dx' subtraction --
+    # that pair is the CLEAN comparison, since both use the well-trained conditional
+    # branch and differ only in the sampler.
+    # "baseline_nophys"/"baseline_linear" fall back to the UNCONDITIONAL branch, which
+    # saw only p=0.1 of training samples, so read those two as indicative, not decisive.
+    METHODS_TO_PLOT = [
+        "baseline",         # conditioning + direct gradient descent (default)
+        "baseline_cond",    # conditioning ONLY   -- clean vs "baseline"
+        "baseline_nophys",  # no physics          -- caveat: p=0.1 unconditional branch
+        ("dps", 3.0),
+        "si",
+    ]
+
+    # Other sets worth swapping in:
+    #   full ablation      ["baseline","baseline_cond","baseline_linear","baseline_nophys"]
+    #   provided vs mine   ["baseline", "baseline_mine"]
+    #   SI robustness      ["si","si_blind",{"method":"si","variant":"blind","eval":"sensor:512"}]
 
     # --- which outputs to produce (selectable) ---
     SHOW_SPECTRUM_DISTRIBUTION = True   # (a) E(k) log-log + (b) p(w) -- the paper's plots

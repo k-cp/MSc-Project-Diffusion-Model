@@ -335,6 +335,13 @@ class Diffusion(object):
         scaler = StdScaler(data_mean, data_std)
         # minmax_scaler = MinMaxScaler(ref_data.min(), ref_data.max())
 
+        _bp = getattr(self.args, 'baseline_physics', 'both')
+        self.log("Physics mechanism: {} ({})".format(_bp, {
+            'both':   'learned encoding + direct gradient descent (repo default)',
+            'cond':   'learned encoding ONLY -- dx conditions the net, not subtracted',
+            'linear': 'direct gradient descent ONLY -- dx subtracted, unconditional net',
+            'none':   'no physics guidance at all',
+        }[_bp]))
         self.log("Start sampling")
 
         # pack data loader
@@ -441,16 +448,23 @@ class Diffusion(object):
                     # Executing sampling
 
 
-                    if self.config.model.type == 'conditional': # conditional generation process
-                        xs, _ = guided_ddim_steps(x, seq, model, betas, 
+                    # Physics ablation. Shu et al. give two mechanisms: LEARNED
+                    # ENCODING (dx into the network) and DIRECT GRADIENT DESCENT
+                    # (dx subtracted from the update). 'both' is this repo's
+                    # historical default and reproduces the earlier results
+                    # exactly; the others isolate each half.
+                    bp = getattr(self.args, 'baseline_physics', 'both')
+                    if self.config.model.type == 'conditional' and bp in ('both', 'cond'):
+                        xs, _ = guided_ddim_steps(x, seq, model, betas,
                                                   w=self.config.sampling.guidance_weight,
-                                                  dx_func=physical_gradient_func, cache=False, logger=logger)
-                        
+                                                  dx_func=physical_gradient_func,
+                                                  subtract_dx=(bp == 'both'),
+                                                  cache=False, logger=logger)
 
-                    elif self.config.sampling.lambda_ > 0: # physics-guided generation using the lambda weighted physics gradient map
-                        xs, _ = ddim_steps(x, seq, model, betas, 
+                    elif bp == 'linear':  # direct gradient descent only (unconditional net)
+                        xs, _ = ddim_steps(x, seq, model, betas,
                                            dx_func=physical_gradient_func, cache=False, logger=logger)
-                    else: # Run sampling without physics guidance
+                    else:  # bp == 'none': no physics anywhere
                         xs, _ = ddim_steps(x, seq, model, betas, cache=False, logger=logger)
 
                     x = xs[-1] # Obtain final fully-denoised image

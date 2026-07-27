@@ -171,6 +171,11 @@ def guided_ddim_steps(x, seq, model, b, **kwargs):
     clamp_func = kwargs.get('clamp_func', None)
     cache = kwargs.get('cache', False)
     w = kwargs.get('w', 3.0)
+    # Shu et al. propose the physics condition two ways: LEARNED ENCODING (feed dx
+    # to the network) and DIRECT GRADIENT DESCENT (subtract dx from the update).
+    # This repo applies both at once; set subtract_dx=False to isolate the
+    # conditioning half. Default True keeps the historical behaviour.
+    subtract_dx = kwargs.get('subtract_dx', True)
     logger = kwargs.get('logger', None)
     if logger is not None:
         logger.update(x=xs[-1])
@@ -195,7 +200,9 @@ def guided_ddim_steps(x, seq, model, b, **kwargs):
             c2 = (1 - at_next).sqrt()
 
         with torch.no_grad():
-            xt_next = at_next.sqrt() * x0_t + c2 * et - dx
+            xt_next = at_next.sqrt() * x0_t + c2 * et
+            if subtract_dx:
+                xt_next = xt_next - dx
             if clamp_func is not None:
                 xt_next = clamp_func(xt_next)
             xs.append(xt_next.to('cpu'))

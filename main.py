@@ -63,6 +63,36 @@ def parse_args_and_config(): # Set default arguements
                         help="Extra suffix on the baseline/DPS output folder (e.g. 'mine') so a "
                              "self-trained checkpoint's output lands in its own folder instead of "
                              "overwriting the run made with the provided weights. Mirrors --si_tag.")
+    parser.add_argument("--dps_cond", type=int, default=0,
+                        help="Feed the physics-informed condition into the NETWORK during DPS "
+                             "(JCP's 'learned encoding'). DPS normally calls the conditional "
+                             "checkpoint with dx=None, leaving the physics branch it was trained "
+                             "with unused. Costs nothing and has no tunable strength -- unlike "
+                             "--dps_physics, which adds a separate weighted force to the update.")
+    parser.add_argument("--dps_physics", type=str, default="none",
+                        choices=["none", "xt", "x0hat"],
+                        help="Add a Navier-Stokes term to the DPS update. DPS enforces "
+                             "MEASUREMENT consistency but no physics; the baseline does the "
+                             "opposite. This fills that gap. 'xt' evaluates the residual on the "
+                             "noisy field (what JCP does); 'x0hat' evaluates it on the Tweedie "
+                             "clean estimate and chains the gradient back through the network "
+                             "(DPS's own trick, applied to physics -- costs a 2nd backward pass).")
+    parser.add_argument("--dps_lambda", type=float, default=1.0,
+                        help="Strength of the DPS physics term (see --dps_physics). The log "
+                             "prints both gradient norms on the first step so you can scale this.")
+    parser.add_argument("--baseline_physics", type=str, default="both",
+                        choices=["both", "cond", "linear", "none"],
+                        help="Which physics mechanism the BASELINE uses. Shu et al. propose two "
+                             "and this repo applies both by default. 'both'=learned encoding + "
+                             "direct gradient descent (historical default); 'cond'=conditioning "
+                             "only (dx fed to the net, not subtracted); 'linear'=direct gradient "
+                             "descent only (dx subtracted, unconditional net); 'none'=no physics. "
+                             "Ablates which half of the physics guidance actually does the work.")
+    parser.add_argument("--guidance_weight", type=float, default=None,
+                        help="Override sampling.guidance_weight from the config. This is the "
+                             "classifier-free strength w in (w+1)*cond - w*uncond; the config "
+                             "ships w=0, which disables the extrapolation. Overriding here beats "
+                             "editing the YAML because that file is shared with the DPS/SI runs.")
     args = parser.parse_args() # Tell Python to check for rules set inside parser
 
     # parse config file
@@ -75,6 +105,12 @@ def parse_args_and_config(): # Set default arguements
     # records which checkpoint actually produced that folder.
     if getattr(args, 'ckpt_path', ''):
         config.model.ckpt_path = args.ckpt_path
+
+    # Same idea for the classifier-free guidance strength. Applied before the
+    # folder name is built, so a w-sweep automatically lands in _w<value>
+    # folders instead of overwriting each other.
+    if getattr(args, 'guidance_weight', None) is not None:
+        config.sampling.guidance_weight = args.guidance_weight
 
     os.makedirs(config.log_dir, exist_ok=True) # Create folder named "log_dir"  (specified in YAML file) unless it exists
     if config.model.type == 'conditional': # Create direcotry name based on configurations
@@ -102,6 +138,12 @@ def parse_args_and_config(): # Set default arguements
     # other's sample_batch dirs (DPS clears each dir before writing).
     if getattr(args, 'run_dps', 0) == 1:
         dir_name = 'dps_' + dir_name + '_z{}'.format(args.zeta)
+        # DPS + physics hybrid: tag by where the residual is evaluated and how
+        # strongly it is applied, so a lambda sweep never overwrites itself.
+        if getattr(args, 'dps_cond', 0) == 1:
+            dir_name += '_cond'
+        if getattr(args, 'dps_physics', 'none') != 'none':
+            dir_name += '_phys{}_lam{}'.format(args.dps_physics, args.dps_lambda)
 
     # Stochastic Interpolant runs get their own si_ folder, tagged with the
     # physics-guidance mode and its strength so sweeps don't clobber each other.
@@ -120,6 +162,18 @@ def parse_args_and_config(): # Set default arguements
         # -> _eval_sensor512), so each held-out test gets its own folder.
         if getattr(args, 'si_eval_degradation', ''):
             dir_name += '_eval_' + args.si_eval_degradation.replace(':', '')
+
+    # Which physics mechanism the baseline used. 'both' is the historical default,
+    # so it stays untagged and existing folder names are unchanged.
+    _bp = getattr(args, 'baseline_physics', 'both')
+    if _bp != 'both' and getattr(args, 'run_si', 0) != 1 and getattr(args, 'run_dps', 0) != 1:
+        dir_name += '_phys' + _bp
+
+    # JCP's iterative-refinement rounds. It is NOT otherwise in the folder name,
+    # so without this a --sample_step 3 run silently overwrites the 1-round
+    # results. Only tagged when != 1, so existing folder names are unchanged.
+    if getattr(args, 'sample_step', 1) != 1 and getattr(args, 'run_si', 0) != 1:
+        dir_name += '_ss{}'.format(args.sample_step)
 
     # Which DIFFUSION checkpoint produced this run (baseline and DPS both use it).
     # SI has its own --si_tag, so this only tags the diffusion-driven modes: an

@@ -35,8 +35,14 @@
 #                  mine  -> ./pretrained_weights/conditional_ckpt_mine.pth  (train it yourself:
 #                           sbatch run_train_baseline.sh)
 #                           folder: guided_recons_u3232_t400_r20_w0.0_mine
+#                  arg3 = sample_step  (JCP iterative-refinement rounds, default 1)
+#                  arg4 = guidance_weight (classifier-free w, default = config's 0.0)
 #   sbatch run_inference_conditional.sh baseline given   # reference run (provided weights)
 #   sbatch run_inference_conditional.sh baseline mine    # your reproduction
+#   FAIRER BASELINE -- turns on the two JCP mechanisms the config disables:
+#   sbatch run_inference_conditional.sh baseline given 3        # -> ..._w0.0_ss3
+#   sbatch run_inference_conditional.sh baseline given 1 3.0    # -> ..._w3.0
+#   sbatch run_inference_conditional.sh baseline given 3 3.0    # -> ..._w3.0_ss3  (both)
 
 
 
@@ -53,6 +59,20 @@ SI_STRENGTH="${3:-0.0}"   # for MODE=si: lambda (linear) or w (learned)
 SI_VARIANT="${4:-plain}"  # for MODE=si: plain | blind (which trained checkpoint)
 SI_EVAL="${5:-}"          # for MODE=si: robustness eval degradation, e.g. sensor:512
 BASE_VARIANT="${2:-given}"  # for MODE=baseline: given | mine (whose trained weights)
+BASE_SS="${3:-1}"           # for MODE=baseline: JCP iterative-refinement rounds (paper uses >1)
+BASE_W="${4:-}"             # for MODE=baseline: classifier-free w; empty = config value (0.0)
+BASE_PHYS="${5:-both}"      # for MODE=baseline: both | cond | linear | none
+DPS_PHYS="${3:-none}"       # for MODE=dps: none | xt | x0hat (the physics hybrid)
+DPS_LAM="${4:-1.0}"         # for MODE=dps: strength of that physics term
+DPS_COND="${5:-nocond}"     # for MODE=dps: cond | nocond -- feed physics to the NETWORK
+
+# Sampler-resolution knobs. These apply to EVERY mode, so they are environment
+# variables rather than yet another positional. Both already appear in the output
+# folder name (..._t<T>_r<R>_...), so sweeps never overwrite each other:
+#   R=100 sbatch run_inference_conditional.sh baseline        -> ..._t400_r100_w0.0
+#   T=300 sbatch run_inference_conditional.sh baseline        -> ..._t300_r20_w0.0
+T_ARG="${T:-400}"           # forward noise level (how much of the input is destroyed)
+R_ARG="${R:-20}"            # reverse steps (integration resolution; SI uses 100)
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -85,7 +105,27 @@ fi
 
 # Reject a typo'd baseline variant rather than silently reproducing the provided
 # run -- otherwise a mistyped 'mine' overwrites the reference output.
+if [ "$MODE" = "dps" ]; then
+    case "$DPS_PHYS" in
+        none|xt|x0hat) ;;
+        *) echo "ERROR: for MODE=dps the third argument must be 'none', 'xt' or 'x0hat' (got '$DPS_PHYS')."
+           echo "  e.g. sbatch run_inference_conditional.sh dps 3.0 x0hat 1.0"
+           exit 1 ;;
+    esac
+    if [ "$DPS_COND" != "cond" ] && [ "$DPS_COND" != "nocond" ]; then
+        echo "ERROR: for MODE=dps the fifth argument must be 'cond' or 'nocond' (got '$DPS_COND')."
+        echo "  e.g. sbatch run_inference_conditional.sh dps 3.0 none 0 cond"
+        exit 1
+    fi
+fi
+
 if [ "$MODE" = "baseline" ]; then
+    case "$BASE_PHYS" in
+        both|cond|linear|none) ;;
+        *) echo "ERROR: for MODE=baseline the fifth argument must be 'both', 'cond', 'linear' or 'none' (got '$BASE_PHYS')."
+           echo "  e.g. sbatch run_inference_conditional.sh baseline given 1 '' none"
+           exit 1 ;;
+    esac
     if [ "$BASE_VARIANT" != "given" ] && [ "$BASE_VARIANT" != "mine" ]; then
         echo "ERROR: for MODE=baseline the second argument must be 'given' or 'mine' (got '$BASE_VARIANT')."
         echo "  provided weights: sbatch run_inference_conditional.sh baseline given"
@@ -93,6 +133,8 @@ if [ "$MODE" = "baseline" ]; then
         exit 1
     fi
 fi
+
+echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps)"
 
 module load cray-python/3.11.7
 source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
@@ -104,6 +146,14 @@ export USE_MKLDNN=0
 if [ "$MODE" = "dps" ]; then
     echo "Running WITH posterior sampling (DPS), zeta=$ZETA"
     EXTRA_ARGS="--run_dps 1 --operator sparse --zeta $ZETA"
+    if [ "$DPS_COND" = "cond" ]; then
+        echo "  + physics CONDITIONING (network sees dx; free, no strength to tune)"
+        EXTRA_ARGS="$EXTRA_ARGS --dps_cond 1"
+    fi
+    if [ "$DPS_PHYS" != "none" ]; then
+        echo "  + physics FORCE: $DPS_PHYS, lambda=$DPS_LAM"
+        EXTRA_ARGS="$EXTRA_ARGS --dps_physics $DPS_PHYS --dps_lambda $DPS_LAM"
+    fi
 elif [ "$MODE" = "si" ]; then
     # Pick the checkpoint that matches the requested variant. 'learned' and
     # 'blind' are each trained separately, so the folder name (via --si_tag) and
@@ -148,13 +198,31 @@ else
         echo "Running WITHOUT posterior sampling (baseline reconstruct, PROVIDED weights)"
         EXTRA_ARGS=""
     fi
+
+    # The repo defaults (sample_step=1, guidance_weight=0.0) switch OFF two of
+    # JCP's own mechanisms -- iterative refinement and classifier-free guidance.
+    # These let us run the paper's stronger configuration for a fair comparison.
+    # Both are reflected in the output folder (_ss<n> / _w<value>), so a sweep
+    # never overwrites the default run.
+    if [ "$BASE_SS" != "1" ]; then
+        echo "  JCP iterative refinement: $BASE_SS rounds (noise level decays 0.7^it)"
+        EXTRA_ARGS="$EXTRA_ARGS --sample_step $BASE_SS"
+    fi
+    if [ -n "$BASE_W" ]; then
+        echo "  classifier-free guidance: w=$BASE_W (config default is 0.0 = extrapolation off)"
+        EXTRA_ARGS="$EXTRA_ARGS --guidance_weight $BASE_W"
+    fi
+    if [ "$BASE_PHYS" != "both" ]; then
+        echo "  physics ablation: $BASE_PHYS  (default 'both' = conditioning + direct descent)"
+        EXTRA_ARGS="$EXTRA_ARGS --baseline_physics $BASE_PHYS"
+    fi
 fi
 
 python main.py \
     --config kmflow_re1000_rs256_conditional.yml \
     --seed 1234 \
-    --t 400 \
-    --r 20 \
+    --t "$T_ARG" \
+    --r "$R_ARG" \
     $EXTRA_ARGS
 STATUS=$?
 

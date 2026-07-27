@@ -627,7 +627,14 @@ evaluates on **temporally decorrelated snapshots** and never claims temporal coh
 
 ---
 
-## 10. Deviations from the paper
+## 10. Deviations from the source papers
+
+Three papers are reproduced here, and **each implementation deviates from its source**.
+All three tables belong in any writeup that compares the methods against each other —
+§10.2 in particular, because the baseline runs with two of its own paper's mechanisms
+switched off, which flatters every method compared against it.
+
+### 10.1 Stochastic interpolants — Schiødt, Mücke & Velte (Sci. Rep. 2026)
 
 | Schiødt et al. (2026) | This implementation |
 |---|---|
@@ -643,6 +650,34 @@ evaluates on **temporally decorrelated snapshots** and never claims temporal coh
 
 The last two are the paper's own physics-fidelity and scalability mechanisms. If SI's
 **physical** metrics need improvement, those are the first things to add — not more epochs.
+
+### 10.2 Baseline diffusion — Shu, Li & Barati Farimani (JCP 2023)
+
+**This is the comparison baseline, so its deviations matter most.** Two of the paper's
+mechanisms are disabled by the shipped config, and both exist to sharpen output — which
+is precisely where the baseline loses to SI.
+
+| Shu et al. (2023) | This implementation |
+|---|---|
+| two physics methods presented as **alternatives**: learned encoding **or** direct gradient descent | **both applied at once** — `dx` is fed into the network *and* subtracted from the update (`- dx`, coefficient 1.0) |
+| classifier-free guidance with `w > 0` | **`guidance_weight: 0.0`** → extrapolation disabled; `(w+1)·cond − w·uncond` degenerates to a plain conditional evaluation (and still computes the unconditional pass, then multiplies it by zero — ~half the sampling compute wasted) |
+| **iterative sampling**, noise level decaying as `t·0.7^it` | **`sample_step: 1`** → the cascade never engages; one round only |
+| PDE residual `r_t` evaluated at the noisy `x_t` | same — faithful |
+
+Run the paper's stronger configuration with
+`sbatch run_inference_conditional.sh baseline given 3 3.0` (→ `..._w3.0_ss3`).
+
+### 10.3 Diffusion posterior sampling — Chung et al. (ICLR 2023)
+
+| Chung et al. (2023) | This implementation |
+|---|---|
+| `x_T ~ N(0, I)` — generation starts from **pure noise** | **warm start from the measurement**: `x = √ᾱ·x0 + √(1−ᾱ)·ε`, i.e. JCP's SDEdit initialisation. The measurement therefore enters **twice** (init *and* gradient) |
+| designed for **noisy** inverse problems (its central claim) | this benchmark's measurements are **exact** — `u3232` equals ground truth at the sensors to 0.0. DPS is being evaluated outside the regime it was built for, which is part of why its physics residual is poor |
+| an unconditional score model | uses the **physics-conditioned** checkpoint but calls it with `dx=None`, so the physics conditioning the network was trained with goes unused |
+| normalised step `ζ_i = ζ/‖y − A(x̂₀)‖` | same — faithful (Alg. 1) |
+
+The warm start is defensible: it holds initialisation fixed against the baseline so the
+comparison isolates the guidance term. But it is a deviation and should be stated.
 
 ---
 
