@@ -591,6 +591,71 @@ An **under-trained** model produces a recognisable but **blurry, wavy** field �
 100 epochs looks like, and it is normal. (An earlier version of this document quoted
 RMSE ≈ 0.72 from a 5-batch subset; the full-test-set numbers above supersede it.)
 
+### 7.6 Did we give the diffusion baselines a fair fight? (19 configurations)
+
+The comparison above uses each method as shipped. To check that SI is not simply
+beating an under-tuned baseline, every sampler and physics knob on the diffusion
+side was swept. **No configuration closes the gap.**
+
+| what was varied | best MSE reached | best NS residual reached |
+|---|---|---|
+| baseline: physics mechanisms (both / cond / linear / none) | 3.539 | 62.8 |
+| baseline: reverse steps r = 20 / 50 / 100 | 3.627 | **8.85** |
+| baseline: iterative refinement ss = 1 / 3 / 5 | 3.642 | 40.2 |
+| baseline: guidance weight w = 0 / 3.0 | 3.639 | 62.8 |
+| baseline: noise level t = 400 / 300 / 200 | 3.642 | 62.8 |
+| DPS: + physics conditioning / force, λ = 0.01…1.0 | **3.431** | 2536 |
+| **SI (unchanged)** | **1.449** | **8.28** |
+
+Three findings worth stating explicitly:
+
+**The physics conditioning is inert.** Runs pair off exactly by whether the `- dx`
+*subtraction* is applied; feeding the PDE-residual gradient into the network changes
+results by 0.03%, even amplified to `w = 3.0`. Shu et al.'s "learned encoding" has no
+measurable effect here. The subtraction, by contrast, costs ~3% MSE and 3 pp of variance
+but buys a **6.7× lower residual** — a genuine accuracy↔physics trade, not dead weight.
+
+**SI's physics advantage is partly a sampler artifact.** The baseline as shipped takes
+20 reverse steps against SI's 100. At `r = 100` its residual falls 62.8 → **8.85**, level
+with SI's 8.28 (both below the ground truth's own 12.5). Field accuracy does *not* improve
+(3.64 → 3.76). So the **2.5× accuracy advantage survives a fair sampler; the physics
+advantage does not**, and the honest headline is the former.
+
+**DPS's residual is structural.** Adding a Navier–Stokes force to the DPS update helps
+only marginally (3179 → 2536 at λ = 0.05, against a target of 12.5) and overshoots at
+λ = 1.0. Measurement guidance backpropagates through the network and injects high-wavenumber
+content every step; a physics nudge afterwards cannot remove it.
+
+### 7.7 Robustness to sensor noise — and why it settles the argument
+
+Every number above assumes **perfect** sensors: `u3232` equals the ground truth to `0.0`
+at the 1024 measurement points. Real instruments are not like that, and SI is the only
+method that ingests the measurement directly — so this is where it should be most exposed.
+Inference-time Gaussian noise (`--meas_noise`, standardised units) was added to what each
+method consumes:
+
+| | σ = 0 | σ = 0.02 | σ = 0.05 | noise reaching the output |
+|---|---|---|---|---|
+| baseline | 3.642 | 3.642 | 3.643 | **2.4 %** |
+| DPS | 3.589 | 3.589 | 3.590 | **2.9 %** |
+| **SI** | **1.449** | 1.460 | **1.517** | **116 %** |
+
+The mechanism is exactly as expected: the baseline and DPS destroy 80% of the input at
+`t = 400`, and the sensor error is destroyed with it. SI preserves the measurement, so the
+error passes through essentially 1:1.
+
+**But the practical conclusion inverts.** SI at 5% sensor error is still **2.4× more accurate
+than the baseline with perfect sensors**. The crossover at which SI's noise penalty would
+cancel its accuracy advantage is **σ ≈ 0.31 — 31% measurement error**, against 1–5% for real
+instruments.
+
+> Destroying the measurement buys noise immunity **and** costs accuracy — one mechanism,
+> two consequences. SI makes the opposite trade, and at any realistic noise level that trade
+> wins decisively.
+
+This also closes the deployment caveat in §9: SI was trained with `--si_aug_noise 0`, i.e.
+never on imperfect observations, yet needs no noise augmentation to stay far ahead.
+
 ---
 
 ## 8. Troubleshooting

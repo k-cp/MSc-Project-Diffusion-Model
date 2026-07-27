@@ -188,8 +188,17 @@ def spec_to_folder(spec):
 
 
 def spec_to_label(spec):
+    """Human-readable curve name. Sensor noise is appended for EVERY method --
+    without it a noise sweep produces several identically-labelled curves."""
     if spec.get("label"):
         return spec["label"]
+    lbl = _base_label(spec)
+    if spec.get("mn"):
+        lbl += f"  [sensor noise {spec['mn']}]"
+    return lbl
+
+
+def _base_label(spec):
     m = spec["method"]
     if m == "baseline":
         phys = {"both": "", "cond": " · cond only", "linear": " · linear only",
@@ -473,15 +482,21 @@ if __name__ == "__main__":
     # (SI: 8.28), so quoting only the r=20 baseline overstates SI's PHYSICS
     # advantage. Its FIELD-ACCURACY advantage (1.45 vs ~3.6) survives either way.
     METHODS_TO_PLOT = [
-    "baseline",
-    ("dps", 3.0),
-    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":1.0},
-    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":0.05},
-    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":0.01},
-    "si",
+        "baseline",                                  # exact sensors (as published)
+        {"method": "baseline", "mn": 0.05},          # 5% sensor error
+        ("dps", 3.0),
+        {"method": "dps", "value": 3.0, "mn": 0.05},
+        "si",
+        {"method": "si", "mn": 0.05},
     ]
 
+    # For the full 3x3 grid with degradation ratios, use the dedicated script:
+    #     python noise_robustness.py
+    #
     # Other sets worth swapping in (ALL of these now exist locally):
+    #   noise robustness  ["baseline",{"method":"baseline","mn":0.02},{"method":"baseline","mn":0.05}]
+    #   headline          ["baseline",{"method":"baseline","r":100},"baseline_nophys",
+    #                      ("dps",3.0),{"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":1.0},"si"]
     #   physics ablation  ["baseline","baseline_cond","baseline_linear","baseline_nophys"]
     #     -> rows pair off by the '- dx' SUBTRACTION; the CONDITIONING is inert (0.03%).
     #        subtraction costs ~3% MSE and 3pp variance, buys a 6.7x lower residual.

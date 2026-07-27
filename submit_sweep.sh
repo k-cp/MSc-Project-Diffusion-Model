@@ -125,6 +125,25 @@ if want noise; then
     done
 fi
 
+# --- 7. degradation FAMILY shift (not just severity) -------------------------
+# The sensor:N sweep varied how MUCH degradation, all within one family. Both
+# checkpoints only ever saw random sensors (run_train_si.sh passes
+# --si_aug_families sensor), so these two are off-distribution for BOTH models
+# -- the question is which one copes with a different KIND of corruption.
+#   downsample:8 -- blocky, sharp, exact on a 32x32 grid; ALIASED (it adds
+#                   spurious high-k energy: 5.7% above k=10 vs the truth's 1.9%)
+#   lowpass:4    -- smooth, band-limited, exact NOWHERE, zero energy above k=4.
+#                   The harder shift: both models lean on having some pixels
+#                   exactly right, and lowpass gives them none. Also the
+#                   degradation the SI paper itself uses.
+if want family; then
+    echo "degradation-family shift (both models trained on 'sensor' only):"
+    for D in downsample:8 lowpass:4; do
+        sub 01:00:00 "specialist @ $D" $S si none 0 plain "$D"
+        sub 01:00:00 "blind      @ $D" $S si none 0 blind "$D"
+    done
+fi
+
 echo
 if [ "$DRY" = "1" ]; then
     echo "DRY RUN -- nothing submitted. Re-run without DRY=1 to submit."

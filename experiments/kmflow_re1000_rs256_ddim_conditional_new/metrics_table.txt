@@ -1,7 +1,7 @@
 reference std=4.7632
 Baseline (provided weights)       3.6419   1.9084   0.9196    4.008      84.1
+Baseline (provided weights)  [sensor noise 0.05]    3.6433   1.9087   0.9195    4.008      84.1
 DPS (zeta=3.0)                    3.5885   1.8943   0.9177    4.463      93.7
-DPS (zeta=3.0) + force[x0hat] λ=0.01    3.5829   1.8928   0.9178    4.461      93.7
-DPS (zeta=3.0) + force[x0hat] λ=0.05    3.5628   1.8875   0.9183    4.455      93.5
-DPS (zeta=3.0) + force[x0hat] λ=1.0    3.4306   1.8522   0.9213    4.410      92.6
+DPS (zeta=3.0)  [sensor noise 0.05]    3.5902   1.8948   0.9177    4.463      93.7
 Stochastic interpolant            1.4489   1.2037   0.9678    4.724      99.2
+Stochastic interpolant  [sensor noise 0.05]    1.5172   1.2318   0.9663    4.724      99.2
