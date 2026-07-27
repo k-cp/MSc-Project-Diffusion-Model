@@ -22,7 +22,7 @@ from tensorboardX import SummaryWriter
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from datasets.utils import KMFlowTensorDataset
+from datasets.utils import KMFlowTensorDataset, XTranslateDataset
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -403,6 +403,12 @@ class ConditionalDiffusion(object):
             train_data = KMFlowTensorDataset(config.data.data_dir, )
             train_data.save_data_stats(config.data.stat_path)
         x_offset, x_scale = train_data.stat['mean'], train_data.stat['scale']
+        # Physics-valid free augmentation. Read the stats BEFORE wrapping: the
+        # wrapper only forwards __len__/__getitem__, and a row-roll leaves the
+        # mean/scale unchanged anyway (it permutes pixels, it does not rescale).
+        if getattr(args, 'x_translate', 0):
+            train_data = XTranslateDataset(train_data)
+            print("x-translation augmentation ON (roll along rows, forcing-invariant axis)")
         train_loader = torch.utils.data.DataLoader(train_data,
                                                    batch_size=config.training.batch_size,
                                                    shuffle=True,

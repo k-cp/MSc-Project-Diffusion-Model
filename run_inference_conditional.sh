@@ -126,12 +126,14 @@ if [ "$MODE" = "baseline" ]; then
            echo "  e.g. sbatch run_inference_conditional.sh baseline given 1 '' none"
            exit 1 ;;
     esac
-    if [ "$BASE_VARIANT" != "given" ] && [ "$BASE_VARIANT" != "mine" ]; then
-        echo "ERROR: for MODE=baseline the second argument must be 'given' or 'mine' (got '$BASE_VARIANT')."
-        echo "  provided weights: sbatch run_inference_conditional.sh baseline given"
-        echo "  your own weights: sbatch run_inference_conditional.sh baseline mine"
-        exit 1
-    fi
+    case "$BASE_VARIANT" in
+        given|mine|mine_xshift) ;;
+        *) echo "ERROR: for MODE=baseline the second argument must be 'given', 'mine' or 'mine_xshift' (got '$BASE_VARIANT')."
+           echo "  provided weights : sbatch run_inference_conditional.sh baseline given"
+           echo "  your own weights : sbatch run_inference_conditional.sh baseline mine"
+           echo "  + x-translation  : sbatch run_inference_conditional.sh baseline mine_xshift"
+           exit 1 ;;
+    esac
 fi
 
 echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps)"
@@ -185,15 +187,16 @@ else
     # 'given' = the checkpoint shipped with the repo (unknown training details);
     # 'mine'  = one trained here via run_train_baseline.sh, so the comparison
     # isolates "did I reproduce their model?" from every downstream result.
-    if [ "$BASE_VARIANT" = "mine" ]; then
-        CK="./pretrained_weights/conditional_ckpt_mine.pth"
+    if [ "$BASE_VARIANT" != "given" ]; then
+        # mine -> conditional_ckpt_mine.pth ; mine_xshift -> ..._mine_xshift.pth
+        CK="./pretrained_weights/conditional_ckpt_${BASE_VARIANT}.pth"
         if [ ! -f "$CK" ]; then
             echo "ERROR: $CK not found -- train it first with: sbatch run_train_baseline.sh"
             echo "       then copy the trained ckpt.pth there (see run_train_baseline.sh header)."
             exit 1
         fi
         echo "Running baseline reconstruct with MY trained weights  [ckpt $CK]"
-        EXTRA_ARGS="--ckpt_path $CK --baseline_tag mine"
+        EXTRA_ARGS="--ckpt_path $CK --baseline_tag $BASE_VARIANT"
     else
         echo "Running WITHOUT posterior sampling (baseline reconstruct, PROVIDED weights)"
         EXTRA_ARGS=""

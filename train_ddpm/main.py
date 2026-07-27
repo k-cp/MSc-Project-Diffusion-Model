@@ -64,6 +64,15 @@ def parse_args_and_config():
         action="store_true",
         help="No interaction. Suitable for Slurm Job launcher",
     )
+    parser.add_argument(
+        "--x_translate", type=int, default=0,
+        help="1 = augment training with random x-translation (roll along rows, the "
+             "forcing-invariant axis). The Kolmogorov forcing -4cos(4y) varies only "
+             "with y on a periodic domain, so a row-shifted field is another exact "
+             "solution -- free, physics-valid data. Rotations/flips are NOT valid "
+             "here. Default 0 keeps the original recipe, so a plain reproduction "
+             "run is unaffected. Mirrors --si_xshift in train_si.py.",
+    )
     parser.add_argument("--use_pretrained", action="store_true")
     parser.add_argument(
         "--sample_type",

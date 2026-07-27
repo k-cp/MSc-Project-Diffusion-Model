@@ -78,6 +78,8 @@ _SHORTHAND = {
     # Same architecture/config as "baseline", but the weights we trained ourselves
     # instead of the ones shipped with the repo -- the reproduction check.
     "baseline_mine": {"method": "baseline", "variant": "mine"},
+    # same, but trained WITH physics-valid x-translation augmentation
+    "baseline_mine_xshift": {"method": "baseline", "variant": "mine_xshift"},
     # Physics ablation: which half of Shu et al.'s guidance does the work.
     "baseline_cond":   {"method": "baseline", "phys": "cond"},
     "baseline_linear": {"method": "baseline", "phys": "linear"},
@@ -124,6 +126,8 @@ def normalize(entry):
     #   {"method":"baseline", "r":100}   or   {"method":"baseline", "t":300}
     spec.setdefault("t", T)
     spec.setdefault("r", R)
+    spec.setdefault("w", W)                # classifier-free guidance weight
+    spec.setdefault("ss", 1)               # JCP iterative-refinement rounds
     spec.setdefault("dps_cond", False)     # DPS physics CONDITIONING
     spec.setdefault("dps_phys", "none")    # DPS physics FORCE
     spec.setdefault("dps_lambda", 1.0)
@@ -141,16 +145,20 @@ def normalize(entry):
 
 def spec_to_folder(spec):
     """Build the experiment folder for a spec -- MUST match main.py's naming."""
-    base = f"guided_recons_{DATA_KW}_t{spec['t']}_r{spec['r']}_w{W}"
+    base = f"guided_recons_{DATA_KW}_t{spec['t']}_r{spec['r']}_w{spec['w']}"
     m = spec["method"]
     if m == "baseline":
         name = base
         # physics ablation tag (main.py --baseline_physics); 'both' stays untagged
         if spec["phys"] != "both":
             name += "_phys" + spec["phys"]
-        # self-trained weights land in a _mine folder (main.py --baseline_tag)
-        if spec["variant"] == "mine":
-            name += "_mine"
+        # iterative-refinement rounds (main.py --sample_step); 1 stays untagged.
+        # ORDER MATTERS: must match main.py, which appends _phys then _ss then _tag.
+        if spec["ss"] != 1:
+            name += "_ss{}".format(spec["ss"])
+        # self-trained weights land in a _mine / _mine_xshift folder (--baseline_tag)
+        if spec["variant"] in ("mine", "mine_xshift"):
+            name += "_" + spec["variant"]
     elif m == "dps":
         name = f"dps_{base}_z{spec['value']}"
         # DPS+physics hybrid (main.py --dps_cond/--dps_physics/--dps_lambda)
@@ -189,8 +197,14 @@ def spec_to_label(spec):
             res += f" · t={spec['t']}"
         if spec["r"] != R:
             res += f" · r={spec['r']}"
+        if spec["w"] != W:
+            res += f" · w={spec['w']}"
+        if spec["ss"] != 1:
+            res += f" · ss={spec['ss']}"
         if spec["variant"] == "mine":
             return "Baseline (retrained here)" + phys + res
+        if spec["variant"] == "mine_xshift":
+            return "Baseline (retrained + x-shift)" + phys + res
         return "Baseline (provided weights)" + phys + res
     if m == "dps":
         lbl = f"DPS (zeta={spec['value']})"
@@ -251,7 +265,7 @@ def plot_fluid_statistics(methods_to_plot):
             print(f"Warning: folder not found, skipping: {d}")
             continue
         color = spec.get("color") or PALETTE[idx % len(PALETTE)]
-        curves.append((spec_to_label(spec), d, 'sample_arr_run_0_it0.npy', color, "-"))
+        curves.append((spec_to_label(spec), d, spec_to_sample_file(spec), color, "-"))
         if reference_dir is None:
             reference_dir = d
 
@@ -313,6 +327,16 @@ def plot_fluid_statistics(methods_to_plot):
     plt.show()
 
 
+def spec_to_sample_file(spec):
+    """Which sample array holds the FINAL reconstruction for this run.
+
+    A --sample_step N run writes one array per refinement round: it0 .. it{N-1}.
+    it0 is the FIRST pass, NOT the answer -- reading it would compare the
+    un-refined output and make JCP's iterative refinement look like a no-op.
+    """
+    return "sample_arr_run_0_it{}.npy".format(int(spec.get("ss", 1)) - 1)
+
+
 def _load_full(folder, file_name):
     """Load ALL frames of a run (not just the last per batch)."""
     files = sorted(glob.glob(os.path.join(folder, "sample_batch*", file_name)))
@@ -322,7 +346,11 @@ def _load_full(folder, file_name):
 
 
 def _resolve(methods_to_plot):
-    """methods_to_plot -> list of (label, folder, color); reference from the first."""
+    """methods_to_plot -> [(label, folder, color, sample_file)]; reference from the first.
+
+    sample_file is per-run because a sample_step>1 run stores its final result
+    in it{N-1}, not it0 (see spec_to_sample_file).
+    """
     out, ref_dir = [], None
     for idx, entry in enumerate(methods_to_plot):
         try:
@@ -334,7 +362,8 @@ def _resolve(methods_to_plot):
         if not os.path.isdir(d):
             print(f"Warning: folder not found, skipping: {d}")
             continue
-        out.append((spec_to_label(spec), d, spec.get("color") or PALETTE[idx % len(PALETTE)]))
+        out.append((spec_to_label(spec), d, spec.get("color") or PALETTE[idx % len(PALETTE)],
+                    spec_to_sample_file(spec)))
         if ref_dir is None:
             ref_dir = d
     return out, ref_dir
@@ -355,8 +384,8 @@ def metrics_table(methods_to_plot):
     print("-" * 76)
     print(f"{'reference (ground truth)':30s} {'--':>9s} {'--':>8s} {'--':>8s} {rstd:8.3f} {'100.0':>9s}")
     lines = [f"reference std={rstd:.4f}"]
-    for label, d, _ in runs:
-        x = _load_full(d, "sample_arr_run_0_it0.npy")
+    for label, d, _, sample_file in runs:
+        x = _load_full(d, sample_file)
         if x is None:
             continue
         mse = float(((x - ref) ** 2).mean())
@@ -392,8 +421,8 @@ def plot_spectrum_ratio(methods_to_plot):
 
     k, e_ref = mean_ek(ref_dir, "reference_arr.npy")
     fig, ax = plt.subplots(figsize=(9, 5))
-    for label, d, color in runs:
-        _, e = mean_ek(d, "sample_arr_run_0_it0.npy")
+    for label, d, color, sample_file in runs:
+        _, e = mean_ek(d, sample_file)
         ax.semilogx(k, e / e_ref, color=color, linewidth=2, label=label)
     ax.axhline(1.0, color=REFERENCE_STYLE['color'], linestyle='--', linewidth=1.5,
                label="Reference (=1)")
@@ -427,18 +456,42 @@ if __name__ == "__main__":
     # branch and differ only in the sampler.
     # "baseline_nophys"/"baseline_linear" fall back to the UNCONDITIONAL branch, which
     # saw only p=0.1 of training samples, so read those two as indicative, not decisive.
+    # REPRODUCTION CHECK: the checkpoint shipped with the repo vs one trained here
+    # from scratch. Same architecture, same config, same 36-trajectory train split,
+    # same sampler -- so any gap is down to the provided checkpoint's unknown
+    # training. If the two agree, every result resting on "baseline" is sound; if
+    # they diverge, the retrained one is the honest reference to quote.
+    # KEEP "baseline" FIRST: the reference arrays are read from the first resolved
+    # folder, and that is the one guaranteed to be present locally.
+    # HEADLINE COMPARISON -- the best of everything that has actually been run.
+    # r=100 is included because the default baseline gets only 20 reverse steps
+    # against SI's 100; at matched resolution its NS residual drops 62.8 -> 8.85
+    # (SI: 8.28), so quoting only the r=20 baseline overstates SI's PHYSICS
+    # advantage. Its FIELD-ACCURACY advantage (1.45 vs ~3.6) survives either way.
     METHODS_TO_PLOT = [
-        "baseline",         # conditioning + direct gradient descent (default)
-        "baseline_cond",    # conditioning ONLY   -- clean vs "baseline"
-        "baseline_nophys",  # no physics          -- caveat: p=0.1 unconditional branch
-        ("dps", 3.0),
-        "si",
+    "baseline",
+    ("dps", 3.0),
+    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":1.0},
+    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":0.05},
+    {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":0.01},
+    "si",
     ]
 
-    # Other sets worth swapping in:
-    #   full ablation      ["baseline","baseline_cond","baseline_linear","baseline_nophys"]
-    #   provided vs mine   ["baseline", "baseline_mine"]
-    #   SI robustness      ["si","si_blind",{"method":"si","variant":"blind","eval":"sensor:512"}]
+    # Other sets worth swapping in (ALL of these now exist locally):
+    #   physics ablation  ["baseline","baseline_cond","baseline_linear","baseline_nophys"]
+    #     -> rows pair off by the '- dx' SUBTRACTION; the CONDITIONING is inert (0.03%).
+    #        subtraction costs ~3% MSE and 3pp variance, buys a 6.7x lower residual.
+    #   reproduction      ["baseline","baseline_mine"]   (needs the training job to finish)
+    #   reverse steps     ["baseline",{"method":"baseline","r":50},{"method":"baseline","r":100}]
+    #   JCP iterations    ["baseline",{"method":"baseline","ss":3},{"method":"baseline","ss":5}]
+    #   guidance weight   ["baseline",{"method":"baseline","w":3.0},{"method":"baseline","w":3.0,"ss":3}]
+    #   noise level       ["baseline",{"method":"baseline","t":300},{"method":"baseline","t":200}]
+    #   DPS + physics     ["baseline",("dps",3.0),
+    #                      {"method":"dps","value":3.0,"dps_cond":True},
+    #                      {"method":"dps","value":3.0,"dps_phys":"x0hat","dps_lambda":1.0},
+    #                      {"method":"dps","value":3.0,"dps_cond":True,"dps_phys":"x0hat","dps_lambda":1.0}]
+    #   method headline   ["baseline",("dps",3.0),"si"]
+    #   SI robustness     ["si","si_blind",{"method":"si","variant":"blind","eval":"sensor:512"}]
 
     # --- which outputs to produce (selectable) ---
     SHOW_SPECTRUM_DISTRIBUTION = True   # (a) E(k) log-log + (b) p(w) -- the paper's plots

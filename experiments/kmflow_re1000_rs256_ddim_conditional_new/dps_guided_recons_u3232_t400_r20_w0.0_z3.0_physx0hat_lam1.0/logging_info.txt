@@ -1,0 +1,453 @@
+2026-07-27 11:22:28,394 - LOG - INFO - Loading reconstruction data for DPS
+2026-07-27 11:22:35,620 - LOG - INFO - DPS outputs -> ./experiments/kmflow_re1000_rs256_ddim_conditional_new/dps_guided_recons_u3232_t400_r20_w0.0_z3.0_physx0hat_lam1.0  (sample_batch<i> folders)
+2026-07-27 11:22:39,095 - LOG - INFO - Sparse operator: 1024 sensors per field
+2026-07-27 11:22:39,135 - LOG - INFO - Batch 1/64
+2026-07-27 11:22:40,244 - LOG - INFO - L2 loss init: 1.9673895835876465
+2026-07-27 11:22:40,244 - LOG - INFO - Run 1/1
+2026-07-27 11:22:40,249 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:22:57,950 - LOG - INFO -   |measurement grad|=1.199  |physics grad|=14.9  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:02,176 - LOG - INFO - L2 loss final: 1.3021602630615234
+2026-07-27 11:23:02,176 - LOG - INFO - Residual final: 876.0814819335938
+2026-07-27 11:23:02,744 - LOG - INFO - Batch 2/64
+2026-07-27 11:23:03,778 - LOG - INFO - L2 loss init: 2.471971273422241
+2026-07-27 11:23:03,778 - LOG - INFO - Run 1/1
+2026-07-27 11:23:03,779 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:04,000 - LOG - INFO -   |measurement grad|=1.355  |physics grad|=21.31  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:08,223 - LOG - INFO - L2 loss final: 1.7000454664230347
+2026-07-27 11:23:08,223 - LOG - INFO - Residual final: 2535.15966796875
+2026-07-27 11:23:08,791 - LOG - INFO - Batch 3/64
+2026-07-27 11:23:09,838 - LOG - INFO - L2 loss init: 2.8902246952056885
+2026-07-27 11:23:09,838 - LOG - INFO - Run 1/1
+2026-07-27 11:23:09,838 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:10,060 - LOG - INFO -   |measurement grad|=1.352  |physics grad|=24.59  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:14,285 - LOG - INFO - L2 loss final: 2.1752841472625732
+2026-07-27 11:23:14,285 - LOG - INFO - Residual final: 3058.610107421875
+2026-07-27 11:23:14,856 - LOG - INFO - Batch 4/64
+2026-07-27 11:23:16,507 - LOG - INFO - L2 loss init: 3.0648622512817383
+2026-07-27 11:23:16,507 - LOG - INFO - Run 1/1
+2026-07-27 11:23:16,507 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:16,729 - LOG - INFO -   |measurement grad|=1.36  |physics grad|=23.08  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:20,952 - LOG - INFO - L2 loss final: 2.425267219543457
+2026-07-27 11:23:20,953 - LOG - INFO - Residual final: 3804.931396484375
+2026-07-27 11:23:21,517 - LOG - INFO - Batch 5/64
+2026-07-27 11:23:22,543 - LOG - INFO - L2 loss init: 3.1027965545654297
+2026-07-27 11:23:22,543 - LOG - INFO - Run 1/1
+2026-07-27 11:23:22,544 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:22,765 - LOG - INFO -   |measurement grad|=1.348  |physics grad|=23.54  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:26,993 - LOG - INFO - L2 loss final: 2.4960832595825195
+2026-07-27 11:23:26,994 - LOG - INFO - Residual final: 4709.73681640625
+2026-07-27 11:23:27,555 - LOG - INFO - Batch 6/64
+2026-07-27 11:23:28,585 - LOG - INFO - L2 loss init: 2.9071550369262695
+2026-07-27 11:23:28,585 - LOG - INFO - Run 1/1
+2026-07-27 11:23:28,585 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:28,806 - LOG - INFO -   |measurement grad|=1.393  |physics grad|=24.23  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:33,033 - LOG - INFO - L2 loss final: 2.300856113433838
+2026-07-27 11:23:33,033 - LOG - INFO - Residual final: 16551.123046875
+2026-07-27 11:23:33,595 - LOG - INFO - Batch 7/64
+2026-07-27 11:23:34,626 - LOG - INFO - L2 loss init: 2.775669574737549
+2026-07-27 11:23:34,626 - LOG - INFO - Run 1/1
+2026-07-27 11:23:34,627 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:34,848 - LOG - INFO -   |measurement grad|=1.277  |physics grad|=21.25  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:39,077 - LOG - INFO - L2 loss final: 2.246793270111084
+2026-07-27 11:23:39,077 - LOG - INFO - Residual final: 4967.6796875
+2026-07-27 11:23:39,636 - LOG - INFO - Batch 8/64
+2026-07-27 11:23:40,667 - LOG - INFO - L2 loss init: 2.552703380584717
+2026-07-27 11:23:40,667 - LOG - INFO - Run 1/1
+2026-07-27 11:23:40,667 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:40,889 - LOG - INFO -   |measurement grad|=1.311  |physics grad|=19.29  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:45,116 - LOG - INFO - L2 loss final: 2.062985420227051
+2026-07-27 11:23:45,117 - LOG - INFO - Residual final: 5341.0166015625
+2026-07-27 11:23:45,678 - LOG - INFO - Batch 9/64
+2026-07-27 11:23:46,710 - LOG - INFO - L2 loss init: 2.2542827129364014
+2026-07-27 11:23:46,710 - LOG - INFO - Run 1/1
+2026-07-27 11:23:46,710 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:46,932 - LOG - INFO -   |measurement grad|=1.294  |physics grad|=17.66  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:51,159 - LOG - INFO - L2 loss final: 1.7714463472366333
+2026-07-27 11:23:51,159 - LOG - INFO - Residual final: 6713.54541015625
+2026-07-27 11:23:51,719 - LOG - INFO - Batch 10/64
+2026-07-27 11:23:52,754 - LOG - INFO - L2 loss init: 2.2205734252929688
+2026-07-27 11:23:52,754 - LOG - INFO - Run 1/1
+2026-07-27 11:23:52,754 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:52,975 - LOG - INFO -   |measurement grad|=1.27  |physics grad|=16.98  (mode=x0hat, lambda=1.0)
+2026-07-27 11:23:57,205 - LOG - INFO - L2 loss final: 1.701701283454895
+2026-07-27 11:23:57,205 - LOG - INFO - Residual final: 5132.2060546875
+2026-07-27 11:23:57,766 - LOG - INFO - Batch 11/64
+2026-07-27 11:23:58,802 - LOG - INFO - L2 loss init: 2.269026756286621
+2026-07-27 11:23:58,802 - LOG - INFO - Run 1/1
+2026-07-27 11:23:58,802 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:23:59,024 - LOG - INFO -   |measurement grad|=1.277  |physics grad|=17.47  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:03,250 - LOG - INFO - L2 loss final: 1.7498923540115356
+2026-07-27 11:24:03,251 - LOG - INFO - Residual final: 11587.3974609375
+2026-07-27 11:24:03,812 - LOG - INFO - Batch 12/64
+2026-07-27 11:24:04,847 - LOG - INFO - L2 loss init: 2.358168125152588
+2026-07-27 11:24:04,847 - LOG - INFO - Run 1/1
+2026-07-27 11:24:04,847 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:05,069 - LOG - INFO -   |measurement grad|=1.291  |physics grad|=15.82  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:09,298 - LOG - INFO - L2 loss final: 1.870482087135315
+2026-07-27 11:24:09,298 - LOG - INFO - Residual final: 1952.8797607421875
+2026-07-27 11:24:09,857 - LOG - INFO - Batch 13/64
+2026-07-27 11:24:10,891 - LOG - INFO - L2 loss init: 2.318079948425293
+2026-07-27 11:24:10,891 - LOG - INFO - Run 1/1
+2026-07-27 11:24:10,891 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:11,113 - LOG - INFO -   |measurement grad|=1.293  |physics grad|=14.62  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:15,341 - LOG - INFO - L2 loss final: 1.851780652999878
+2026-07-27 11:24:15,341 - LOG - INFO - Residual final: 2582.778564453125
+2026-07-27 11:24:15,900 - LOG - INFO - Batch 14/64
+2026-07-27 11:24:16,937 - LOG - INFO - L2 loss init: 2.2335824966430664
+2026-07-27 11:24:16,938 - LOG - INFO - Run 1/1
+2026-07-27 11:24:16,938 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:17,159 - LOG - INFO -   |measurement grad|=1.252  |physics grad|=13.84  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:21,388 - LOG - INFO - L2 loss final: 1.7987138032913208
+2026-07-27 11:24:21,388 - LOG - INFO - Residual final: 4851.02099609375
+2026-07-27 11:24:21,952 - LOG - INFO - Batch 15/64
+2026-07-27 11:24:22,982 - LOG - INFO - L2 loss init: 2.2217535972595215
+2026-07-27 11:24:22,982 - LOG - INFO - Run 1/1
+2026-07-27 11:24:22,983 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:23,205 - LOG - INFO -   |measurement grad|=1.265  |physics grad|=15  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:27,433 - LOG - INFO - L2 loss final: 1.7732651233673096
+2026-07-27 11:24:27,433 - LOG - INFO - Residual final: 5706.033203125
+2026-07-27 11:24:27,995 - LOG - INFO - Batch 16/64
+2026-07-27 11:24:29,025 - LOG - INFO - L2 loss init: 2.23649263381958
+2026-07-27 11:24:29,025 - LOG - INFO - Run 1/1
+2026-07-27 11:24:29,025 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:29,247 - LOG - INFO -   |measurement grad|=1.278  |physics grad|=15.4  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:33,474 - LOG - INFO - L2 loss final: 1.736344575881958
+2026-07-27 11:24:33,474 - LOG - INFO - Residual final: 6427.60888671875
+2026-07-27 11:24:34,073 - LOG - INFO - Batch 17/64
+2026-07-27 11:24:35,108 - LOG - INFO - L2 loss init: 2.131826877593994
+2026-07-27 11:24:35,108 - LOG - INFO - Run 1/1
+2026-07-27 11:24:35,108 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:35,329 - LOG - INFO -   |measurement grad|=1.261  |physics grad|=13.57  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:39,561 - LOG - INFO - L2 loss final: 1.5114518404006958
+2026-07-27 11:24:39,561 - LOG - INFO - Residual final: 949.5189819335938
+2026-07-27 11:24:40,122 - LOG - INFO - Batch 18/64
+2026-07-27 11:24:41,164 - LOG - INFO - L2 loss init: 2.506688117980957
+2026-07-27 11:24:41,164 - LOG - INFO - Run 1/1
+2026-07-27 11:24:41,164 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:41,386 - LOG - INFO -   |measurement grad|=1.352  |physics grad|=15.58  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:45,615 - LOG - INFO - L2 loss final: 1.9003283977508545
+2026-07-27 11:24:45,616 - LOG - INFO - Residual final: 1106.5313720703125
+2026-07-27 11:24:46,179 - LOG - INFO - Batch 19/64
+2026-07-27 11:24:47,207 - LOG - INFO - L2 loss init: 2.5891215801239014
+2026-07-27 11:24:47,208 - LOG - INFO - Run 1/1
+2026-07-27 11:24:47,208 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:47,429 - LOG - INFO -   |measurement grad|=1.399  |physics grad|=16.23  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:51,658 - LOG - INFO - L2 loss final: 2.035365581512451
+2026-07-27 11:24:51,658 - LOG - INFO - Residual final: 1406.0928955078125
+2026-07-27 11:24:52,232 - LOG - INFO - Batch 20/64
+2026-07-27 11:24:53,265 - LOG - INFO - L2 loss init: 2.5779969692230225
+2026-07-27 11:24:53,265 - LOG - INFO - Run 1/1
+2026-07-27 11:24:53,265 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:53,486 - LOG - INFO -   |measurement grad|=1.298  |physics grad|=16.04  (mode=x0hat, lambda=1.0)
+2026-07-27 11:24:57,717 - LOG - INFO - L2 loss final: 2.060858726501465
+2026-07-27 11:24:57,717 - LOG - INFO - Residual final: 1504.005859375
+2026-07-27 11:24:58,278 - LOG - INFO - Batch 21/64
+2026-07-27 11:24:59,310 - LOG - INFO - L2 loss init: 2.455000877380371
+2026-07-27 11:24:59,310 - LOG - INFO - Run 1/1
+2026-07-27 11:24:59,310 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:24:59,532 - LOG - INFO -   |measurement grad|=1.321  |physics grad|=15.2  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:03,760 - LOG - INFO - L2 loss final: 1.9804767370224
+2026-07-27 11:25:03,761 - LOG - INFO - Residual final: 2304.9208984375
+2026-07-27 11:25:04,321 - LOG - INFO - Batch 22/64
+2026-07-27 11:25:05,356 - LOG - INFO - L2 loss init: 2.4399402141571045
+2026-07-27 11:25:05,356 - LOG - INFO - Run 1/1
+2026-07-27 11:25:05,356 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:05,578 - LOG - INFO -   |measurement grad|=1.311  |physics grad|=13.64  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:09,806 - LOG - INFO - L2 loss final: 1.9826017618179321
+2026-07-27 11:25:09,806 - LOG - INFO - Residual final: 1479.1571044921875
+2026-07-27 11:25:10,369 - LOG - INFO - Batch 23/64
+2026-07-27 11:25:11,403 - LOG - INFO - L2 loss init: 2.2977895736694336
+2026-07-27 11:25:11,403 - LOG - INFO - Run 1/1
+2026-07-27 11:25:11,403 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:11,625 - LOG - INFO -   |measurement grad|=1.259  |physics grad|=12.79  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:15,852 - LOG - INFO - L2 loss final: 1.86020827293396
+2026-07-27 11:25:15,852 - LOG - INFO - Residual final: 1222.6907958984375
+2026-07-27 11:25:16,415 - LOG - INFO - Batch 24/64
+2026-07-27 11:25:17,445 - LOG - INFO - L2 loss init: 2.2409276962280273
+2026-07-27 11:25:17,445 - LOG - INFO - Run 1/1
+2026-07-27 11:25:17,446 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:17,667 - LOG - INFO -   |measurement grad|=1.274  |physics grad|=12.23  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:21,898 - LOG - INFO - L2 loss final: 1.8257577419281006
+2026-07-27 11:25:21,899 - LOG - INFO - Residual final: 1701.9267578125
+2026-07-27 11:25:22,463 - LOG - INFO - Batch 25/64
+2026-07-27 11:25:24,095 - LOG - INFO - L2 loss init: 2.1884419918060303
+2026-07-27 11:25:24,095 - LOG - INFO - Run 1/1
+2026-07-27 11:25:24,096 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:24,317 - LOG - INFO -   |measurement grad|=1.28  |physics grad|=11.85  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:28,542 - LOG - INFO - L2 loss final: 1.7486321926116943
+2026-07-27 11:25:28,542 - LOG - INFO - Residual final: 2014.983642578125
+2026-07-27 11:25:29,128 - LOG - INFO - Batch 26/64
+2026-07-27 11:25:30,167 - LOG - INFO - L2 loss init: 2.0916786193847656
+2026-07-27 11:25:30,167 - LOG - INFO - Run 1/1
+2026-07-27 11:25:30,167 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:30,389 - LOG - INFO -   |measurement grad|=1.303  |physics grad|=12.7  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:34,616 - LOG - INFO - L2 loss final: 1.6211116313934326
+2026-07-27 11:25:34,616 - LOG - INFO - Residual final: 2273.279052734375
+2026-07-27 11:25:35,185 - LOG - INFO - Batch 27/64
+2026-07-27 11:25:36,227 - LOG - INFO - L2 loss init: 2.236253499984741
+2026-07-27 11:25:36,227 - LOG - INFO - Run 1/1
+2026-07-27 11:25:36,227 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:36,449 - LOG - INFO -   |measurement grad|=1.313  |physics grad|=14.35  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:40,678 - LOG - INFO - L2 loss final: 1.738765001296997
+2026-07-27 11:25:40,679 - LOG - INFO - Residual final: 3660.897705078125
+2026-07-27 11:25:41,242 - LOG - INFO - Batch 28/64
+2026-07-27 11:25:42,275 - LOG - INFO - L2 loss init: 2.325181245803833
+2026-07-27 11:25:42,275 - LOG - INFO - Run 1/1
+2026-07-27 11:25:42,276 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:42,497 - LOG - INFO -   |measurement grad|=1.295  |physics grad|=16.06  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:46,726 - LOG - INFO - L2 loss final: 1.8181266784667969
+2026-07-27 11:25:46,726 - LOG - INFO - Residual final: 3461.367919921875
+2026-07-27 11:25:47,291 - LOG - INFO - Batch 29/64
+2026-07-27 11:25:48,325 - LOG - INFO - L2 loss init: 2.502277135848999
+2026-07-27 11:25:48,325 - LOG - INFO - Run 1/1
+2026-07-27 11:25:48,325 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:48,547 - LOG - INFO -   |measurement grad|=1.28  |physics grad|=17.89  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:52,776 - LOG - INFO - L2 loss final: 2.018399477005005
+2026-07-27 11:25:52,776 - LOG - INFO - Residual final: 8552.6630859375
+2026-07-27 11:25:53,338 - LOG - INFO - Batch 30/64
+2026-07-27 11:25:55,132 - LOG - INFO - L2 loss init: 2.6053237915039062
+2026-07-27 11:25:55,132 - LOG - INFO - Run 1/1
+2026-07-27 11:25:55,132 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:25:55,353 - LOG - INFO -   |measurement grad|=1.309  |physics grad|=19.52  (mode=x0hat, lambda=1.0)
+2026-07-27 11:25:59,581 - LOG - INFO - L2 loss final: 2.088954448699951
+2026-07-27 11:25:59,581 - LOG - INFO - Residual final: 9000.1484375
+2026-07-27 11:26:00,141 - LOG - INFO - Batch 31/64
+2026-07-27 11:26:01,184 - LOG - INFO - L2 loss init: 2.6890311241149902
+2026-07-27 11:26:01,184 - LOG - INFO - Run 1/1
+2026-07-27 11:26:01,185 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:01,406 - LOG - INFO -   |measurement grad|=1.339  |physics grad|=21.03  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:05,635 - LOG - INFO - L2 loss final: 2.1595163345336914
+2026-07-27 11:26:05,635 - LOG - INFO - Residual final: 4160.45263671875
+2026-07-27 11:26:06,200 - LOG - INFO - Batch 32/64
+2026-07-27 11:26:07,231 - LOG - INFO - L2 loss init: 2.5012784004211426
+2026-07-27 11:26:07,231 - LOG - INFO - Run 1/1
+2026-07-27 11:26:07,231 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:07,453 - LOG - INFO -   |measurement grad|=1.287  |physics grad|=18  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:11,681 - LOG - INFO - L2 loss final: 1.9681379795074463
+2026-07-27 11:26:11,681 - LOG - INFO - Residual final: 2888.35302734375
+2026-07-27 11:26:12,246 - LOG - INFO - Batch 33/64
+2026-07-27 11:26:13,276 - LOG - INFO - L2 loss init: 1.9301425218582153
+2026-07-27 11:26:13,276 - LOG - INFO - Run 1/1
+2026-07-27 11:26:13,277 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:13,498 - LOG - INFO -   |measurement grad|=1.31  |physics grad|=12.27  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:17,727 - LOG - INFO - L2 loss final: 1.2977244853973389
+2026-07-27 11:26:17,727 - LOG - INFO - Residual final: 1089.84130859375
+2026-07-27 11:26:18,291 - LOG - INFO - Batch 34/64
+2026-07-27 11:26:19,326 - LOG - INFO - L2 loss init: 2.3707985877990723
+2026-07-27 11:26:19,326 - LOG - INFO - Run 1/1
+2026-07-27 11:26:19,327 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:19,548 - LOG - INFO -   |measurement grad|=1.341  |physics grad|=16.3  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:23,777 - LOG - INFO - L2 loss final: 1.6865181922912598
+2026-07-27 11:26:23,777 - LOG - INFO - Residual final: 1345.428466796875
+2026-07-27 11:26:24,367 - LOG - INFO - Batch 35/64
+2026-07-27 11:26:25,418 - LOG - INFO - L2 loss init: 2.6586477756500244
+2026-07-27 11:26:25,418 - LOG - INFO - Run 1/1
+2026-07-27 11:26:25,419 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:25,640 - LOG - INFO -   |measurement grad|=1.402  |physics grad|=16.56  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:29,869 - LOG - INFO - L2 loss final: 2.044684648513794
+2026-07-27 11:26:29,869 - LOG - INFO - Residual final: 3162.0302734375
+2026-07-27 11:26:30,436 - LOG - INFO - Batch 36/64
+2026-07-27 11:26:31,475 - LOG - INFO - L2 loss init: 2.724421501159668
+2026-07-27 11:26:31,475 - LOG - INFO - Run 1/1
+2026-07-27 11:26:31,475 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:31,697 - LOG - INFO -   |measurement grad|=1.367  |physics grad|=15.07  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:35,928 - LOG - INFO - L2 loss final: 2.2074925899505615
+2026-07-27 11:26:35,928 - LOG - INFO - Residual final: 3123.725341796875
+2026-07-27 11:26:36,493 - LOG - INFO - Batch 37/64
+2026-07-27 11:26:37,523 - LOG - INFO - L2 loss init: 2.5683529376983643
+2026-07-27 11:26:37,524 - LOG - INFO - Run 1/1
+2026-07-27 11:26:37,524 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:37,745 - LOG - INFO -   |measurement grad|=1.355  |physics grad|=13.99  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:41,976 - LOG - INFO - L2 loss final: 2.1191084384918213
+2026-07-27 11:26:41,977 - LOG - INFO - Residual final: 2119.677978515625
+2026-07-27 11:26:42,543 - LOG - INFO - Batch 38/64
+2026-07-27 11:26:43,579 - LOG - INFO - L2 loss init: 2.2999680042266846
+2026-07-27 11:26:43,579 - LOG - INFO - Run 1/1
+2026-07-27 11:26:43,579 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:43,800 - LOG - INFO -   |measurement grad|=1.323  |physics grad|=15.89  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:48,030 - LOG - INFO - L2 loss final: 1.8294248580932617
+2026-07-27 11:26:48,031 - LOG - INFO - Residual final: 7831.06005859375
+2026-07-27 11:26:48,595 - LOG - INFO - Batch 39/64
+2026-07-27 11:26:49,633 - LOG - INFO - L2 loss init: 2.2169699668884277
+2026-07-27 11:26:49,633 - LOG - INFO - Run 1/1
+2026-07-27 11:26:49,633 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:49,854 - LOG - INFO -   |measurement grad|=1.277  |physics grad|=15.93  (mode=x0hat, lambda=1.0)
+2026-07-27 11:26:54,085 - LOG - INFO - L2 loss final: 1.7153849601745605
+2026-07-27 11:26:54,085 - LOG - INFO - Residual final: 6275.91162109375
+2026-07-27 11:26:54,646 - LOG - INFO - Batch 40/64
+2026-07-27 11:26:55,681 - LOG - INFO - L2 loss init: 2.130150556564331
+2026-07-27 11:26:55,681 - LOG - INFO - Run 1/1
+2026-07-27 11:26:55,681 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:26:55,903 - LOG - INFO -   |measurement grad|=1.279  |physics grad|=14.37  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:00,133 - LOG - INFO - L2 loss final: 1.628821849822998
+2026-07-27 11:27:00,134 - LOG - INFO - Residual final: 6144.9384765625
+2026-07-27 11:27:00,695 - LOG - INFO - Batch 41/64
+2026-07-27 11:27:01,728 - LOG - INFO - L2 loss init: 2.2264785766601562
+2026-07-27 11:27:01,728 - LOG - INFO - Run 1/1
+2026-07-27 11:27:01,728 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:01,950 - LOG - INFO -   |measurement grad|=1.317  |physics grad|=15.49  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:06,178 - LOG - INFO - L2 loss final: 1.6892118453979492
+2026-07-27 11:27:06,178 - LOG - INFO - Residual final: 2634.86328125
+2026-07-27 11:27:06,738 - LOG - INFO - Batch 42/64
+2026-07-27 11:27:07,775 - LOG - INFO - L2 loss init: 2.434323787689209
+2026-07-27 11:27:07,775 - LOG - INFO - Run 1/1
+2026-07-27 11:27:07,775 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:07,997 - LOG - INFO -   |measurement grad|=1.384  |physics grad|=17.87  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:12,226 - LOG - INFO - L2 loss final: 1.867200255393982
+2026-07-27 11:27:12,226 - LOG - INFO - Residual final: 4375.8330078125
+2026-07-27 11:27:12,789 - LOG - INFO - Batch 43/64
+2026-07-27 11:27:13,826 - LOG - INFO - L2 loss init: 2.4527506828308105
+2026-07-27 11:27:13,826 - LOG - INFO - Run 1/1
+2026-07-27 11:27:13,826 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:14,048 - LOG - INFO -   |measurement grad|=1.257  |physics grad|=21.53  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:18,277 - LOG - INFO - L2 loss final: 1.8615906238555908
+2026-07-27 11:27:18,277 - LOG - INFO - Residual final: 9582.4658203125
+2026-07-27 11:27:18,864 - LOG - INFO - Batch 44/64
+2026-07-27 11:27:19,905 - LOG - INFO - L2 loss init: 2.46327805519104
+2026-07-27 11:27:19,905 - LOG - INFO - Run 1/1
+2026-07-27 11:27:19,906 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:20,127 - LOG - INFO -   |measurement grad|=1.274  |physics grad|=20.86  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:24,359 - LOG - INFO - L2 loss final: 1.8795030117034912
+2026-07-27 11:27:24,359 - LOG - INFO - Residual final: 10334.9189453125
+2026-07-27 11:27:24,925 - LOG - INFO - Batch 45/64
+2026-07-27 11:27:25,962 - LOG - INFO - L2 loss init: 2.524503707885742
+2026-07-27 11:27:25,962 - LOG - INFO - Run 1/1
+2026-07-27 11:27:25,963 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:26,184 - LOG - INFO -   |measurement grad|=1.32  |physics grad|=20.63  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:30,417 - LOG - INFO - L2 loss final: 1.952749490737915
+2026-07-27 11:27:30,417 - LOG - INFO - Residual final: 10452.421875
+2026-07-27 11:27:30,980 - LOG - INFO - Batch 46/64
+2026-07-27 11:27:32,014 - LOG - INFO - L2 loss init: 2.5373737812042236
+2026-07-27 11:27:32,014 - LOG - INFO - Run 1/1
+2026-07-27 11:27:32,014 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:32,235 - LOG - INFO -   |measurement grad|=1.294  |physics grad|=21.06  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:36,467 - LOG - INFO - L2 loss final: 1.9664671421051025
+2026-07-27 11:27:36,467 - LOG - INFO - Residual final: 2880.18115234375
+2026-07-27 11:27:37,033 - LOG - INFO - Batch 47/64
+2026-07-27 11:27:38,074 - LOG - INFO - L2 loss init: 2.4782798290252686
+2026-07-27 11:27:38,074 - LOG - INFO - Run 1/1
+2026-07-27 11:27:38,074 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:38,295 - LOG - INFO -   |measurement grad|=1.29  |physics grad|=18.69  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:42,525 - LOG - INFO - L2 loss final: 1.954318642616272
+2026-07-27 11:27:42,526 - LOG - INFO - Residual final: 12333.2666015625
+2026-07-27 11:27:43,088 - LOG - INFO - Batch 48/64
+2026-07-27 11:27:44,123 - LOG - INFO - L2 loss init: 2.240605592727661
+2026-07-27 11:27:44,123 - LOG - INFO - Run 1/1
+2026-07-27 11:27:44,123 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:44,345 - LOG - INFO -   |measurement grad|=1.272  |physics grad|=16.79  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:48,577 - LOG - INFO - L2 loss final: 1.6845576763153076
+2026-07-27 11:27:48,577 - LOG - INFO - Residual final: 12076.7431640625
+2026-07-27 11:27:49,136 - LOG - INFO - Batch 49/64
+2026-07-27 11:27:50,167 - LOG - INFO - L2 loss init: 2.114382743835449
+2026-07-27 11:27:50,167 - LOG - INFO - Run 1/1
+2026-07-27 11:27:50,168 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:50,389 - LOG - INFO -   |measurement grad|=1.31  |physics grad|=13.72  (mode=x0hat, lambda=1.0)
+2026-07-27 11:27:54,617 - LOG - INFO - L2 loss final: 1.4661829471588135
+2026-07-27 11:27:54,617 - LOG - INFO - Residual final: 789.9908447265625
+2026-07-27 11:27:55,179 - LOG - INFO - Batch 50/64
+2026-07-27 11:27:56,211 - LOG - INFO - L2 loss init: 2.54883074760437
+2026-07-27 11:27:56,212 - LOG - INFO - Run 1/1
+2026-07-27 11:27:56,212 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:27:56,433 - LOG - INFO -   |measurement grad|=1.335  |physics grad|=15.9  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:00,661 - LOG - INFO - L2 loss final: 1.9450803995132446
+2026-07-27 11:28:00,661 - LOG - INFO - Residual final: 1083.8134765625
+2026-07-27 11:28:01,221 - LOG - INFO - Batch 51/64
+2026-07-27 11:28:02,256 - LOG - INFO - L2 loss init: 2.6680426597595215
+2026-07-27 11:28:02,257 - LOG - INFO - Run 1/1
+2026-07-27 11:28:02,257 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:02,478 - LOG - INFO -   |measurement grad|=1.363  |physics grad|=14.72  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:06,709 - LOG - INFO - L2 loss final: 2.088620901107788
+2026-07-27 11:28:06,709 - LOG - INFO - Residual final: 1044.9188232421875
+2026-07-27 11:28:07,268 - LOG - INFO - Batch 52/64
+2026-07-27 11:28:08,302 - LOG - INFO - L2 loss init: 2.435088872909546
+2026-07-27 11:28:08,302 - LOG - INFO - Run 1/1
+2026-07-27 11:28:08,302 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:08,524 - LOG - INFO -   |measurement grad|=1.315  |physics grad|=13.51  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:12,751 - LOG - INFO - L2 loss final: 1.9336291551589966
+2026-07-27 11:28:12,752 - LOG - INFO - Residual final: 827.6476440429688
+2026-07-27 11:28:13,338 - LOG - INFO - Batch 53/64
+2026-07-27 11:28:14,379 - LOG - INFO - L2 loss init: 2.293536901473999
+2026-07-27 11:28:14,379 - LOG - INFO - Run 1/1
+2026-07-27 11:28:14,379 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:14,601 - LOG - INFO -   |measurement grad|=1.296  |physics grad|=11.61  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:18,831 - LOG - INFO - L2 loss final: 1.845291256904602
+2026-07-27 11:28:18,831 - LOG - INFO - Residual final: 629.157470703125
+2026-07-27 11:28:19,396 - LOG - INFO - Batch 54/64
+2026-07-27 11:28:20,438 - LOG - INFO - L2 loss init: 2.2288339138031006
+2026-07-27 11:28:20,438 - LOG - INFO - Run 1/1
+2026-07-27 11:28:20,438 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:20,660 - LOG - INFO -   |measurement grad|=1.309  |physics grad|=12.9  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:24,892 - LOG - INFO - L2 loss final: 1.779250979423523
+2026-07-27 11:28:24,892 - LOG - INFO - Residual final: 707.6240234375
+2026-07-27 11:28:25,460 - LOG - INFO - Batch 55/64
+2026-07-27 11:28:26,501 - LOG - INFO - L2 loss init: 2.0811877250671387
+2026-07-27 11:28:26,501 - LOG - INFO - Run 1/1
+2026-07-27 11:28:26,501 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:26,723 - LOG - INFO -   |measurement grad|=1.228  |physics grad|=10.13  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:30,954 - LOG - INFO - L2 loss final: 1.6872068643569946
+2026-07-27 11:28:30,954 - LOG - INFO - Residual final: 805.4954833984375
+2026-07-27 11:28:31,519 - LOG - INFO - Batch 56/64
+2026-07-27 11:28:32,556 - LOG - INFO - L2 loss init: 2.067589521408081
+2026-07-27 11:28:32,556 - LOG - INFO - Run 1/1
+2026-07-27 11:28:32,556 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:32,778 - LOG - INFO -   |measurement grad|=1.244  |physics grad|=11.71  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:37,008 - LOG - INFO - L2 loss final: 1.60406494140625
+2026-07-27 11:28:37,008 - LOG - INFO - Residual final: 920.3386840820312
+2026-07-27 11:28:37,578 - LOG - INFO - Batch 57/64
+2026-07-27 11:28:38,616 - LOG - INFO - L2 loss init: 2.0428049564361572
+2026-07-27 11:28:38,616 - LOG - INFO - Run 1/1
+2026-07-27 11:28:38,617 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:38,838 - LOG - INFO -   |measurement grad|=1.251  |physics grad|=11.73  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:43,067 - LOG - INFO - L2 loss final: 1.5703588724136353
+2026-07-27 11:28:43,067 - LOG - INFO - Residual final: 995.2640991210938
+2026-07-27 11:28:43,633 - LOG - INFO - Batch 58/64
+2026-07-27 11:28:44,691 - LOG - INFO - L2 loss init: 2.058016061782837
+2026-07-27 11:28:44,692 - LOG - INFO - Run 1/1
+2026-07-27 11:28:44,692 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:44,913 - LOG - INFO -   |measurement grad|=1.244  |physics grad|=11.44  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:49,144 - LOG - INFO - L2 loss final: 1.5677151679992676
+2026-07-27 11:28:49,144 - LOG - INFO - Residual final: 727.1726684570312
+2026-07-27 11:28:49,708 - LOG - INFO - Batch 59/64
+2026-07-27 11:28:50,741 - LOG - INFO - L2 loss init: 2.183102607727051
+2026-07-27 11:28:50,742 - LOG - INFO - Run 1/1
+2026-07-27 11:28:50,742 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:50,963 - LOG - INFO -   |measurement grad|=1.254  |physics grad|=11.15  (mode=x0hat, lambda=1.0)
+2026-07-27 11:28:55,195 - LOG - INFO - L2 loss final: 1.7258093357086182
+2026-07-27 11:28:55,195 - LOG - INFO - Residual final: 703.3370971679688
+2026-07-27 11:28:55,757 - LOG - INFO - Batch 60/64
+2026-07-27 11:28:56,790 - LOG - INFO - L2 loss init: 2.087273359298706
+2026-07-27 11:28:56,790 - LOG - INFO - Run 1/1
+2026-07-27 11:28:56,791 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:28:57,012 - LOG - INFO -   |measurement grad|=1.259  |physics grad|=11.78  (mode=x0hat, lambda=1.0)
+2026-07-27 11:29:01,242 - LOG - INFO - L2 loss final: 1.612691879272461
+2026-07-27 11:29:01,242 - LOG - INFO - Residual final: 920.4566650390625
+2026-07-27 11:29:01,805 - LOG - INFO - Batch 61/64
+2026-07-27 11:29:02,845 - LOG - INFO - L2 loss init: 2.0964505672454834
+2026-07-27 11:29:02,845 - LOG - INFO - Run 1/1
+2026-07-27 11:29:02,846 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:29:03,067 - LOG - INFO -   |measurement grad|=1.233  |physics grad|=9.944  (mode=x0hat, lambda=1.0)
+2026-07-27 11:29:07,296 - LOG - INFO - L2 loss final: 1.6911919116973877
+2026-07-27 11:29:07,297 - LOG - INFO - Residual final: 1026.772216796875
+2026-07-27 11:29:07,885 - LOG - INFO - Batch 62/64
+2026-07-27 11:29:08,923 - LOG - INFO - L2 loss init: 2.0566964149475098
+2026-07-27 11:29:08,923 - LOG - INFO - Run 1/1
+2026-07-27 11:29:08,923 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:29:09,144 - LOG - INFO -   |measurement grad|=1.288  |physics grad|=10.84  (mode=x0hat, lambda=1.0)
+2026-07-27 11:29:13,375 - LOG - INFO - L2 loss final: 1.6210256814956665
+2026-07-27 11:29:13,376 - LOG - INFO - Residual final: 1426.302734375
+2026-07-27 11:29:13,942 - LOG - INFO - Batch 63/64
+2026-07-27 11:29:14,982 - LOG - INFO - L2 loss init: 2.0165047645568848
+2026-07-27 11:29:14,982 - LOG - INFO - Run 1/1
+2026-07-27 11:29:14,983 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:29:15,204 - LOG - INFO -   |measurement grad|=1.291  |physics grad|=13.56  (mode=x0hat, lambda=1.0)
+2026-07-27 11:29:19,436 - LOG - INFO - L2 loss final: 1.5234910249710083
+2026-07-27 11:29:19,436 - LOG - INFO - Residual final: 2445.531005859375
+2026-07-27 11:29:20,001 - LOG - INFO - Batch 64/64
+2026-07-27 11:29:20,340 - LOG - INFO - L2 loss init: 2.1664364337921143
+2026-07-27 11:29:20,341 - LOG - INFO - Run 1/1
+2026-07-27 11:29:20,341 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0, physics force=x0hat (lambda=1.0)
+2026-07-27 11:29:37,282 - LOG - INFO -   |measurement grad|=0.9976  |physics grad|=19.2  (mode=x0hat, lambda=1.0)
+2026-07-27 11:29:39,989 - LOG - INFO - L2 loss final: 1.6313393115997314
+2026-07-27 11:29:39,990 - LOG - INFO - Residual final: 26809.64453125
+2026-07-27 11:29:40,301 - LOG - INFO - Finished DPS sampling
+2026-07-27 11:29:40,301 - LOG - INFO - Mean L2 loss: 1.8279076863384847

@@ -451,3 +451,33 @@ class KMFlowTensorDataset(Dataset):
 
 
 
+
+
+class XTranslateDataset(Dataset):
+    """Random x-translation augmentation for the Kolmogorov-flow datasets.
+
+    The Kolmogorov forcing f = -4 cos(4 y) depends only on the column axis, and
+    the domain is periodic. So rolling a field along ROWS maps a solution to
+    another exact solution of the same equations -- free, physics-valid data.
+    Rotations, y-flips and column-shifts are NOT valid here: they would move the
+    forcing bands and produce fields that cannot physically exist.
+
+    This mirrors XTranslateDataset in runners/stochastic_interpolant.py, but the
+    diffusion datasets yield a single (C, H, W) stack rather than an (x0, x1)
+    pair. Wrapping the dataset (rather than editing it) keeps the base class's
+    LRU cache storing UNrolled frames, so a fresh shift is drawn every epoch
+    instead of being frozen into the cache on first access.
+    """
+
+    FREE_AXIS = -2   # rows; the forcing varies along the column axis (-1)
+
+    def __init__(self, base):
+        self.base = base
+
+    def __len__(self):
+        return len(self.base)
+
+    def __getitem__(self, i):
+        frame = self.base[i]
+        shift = int(np.random.randint(frame.shape[self.FREE_AXIS]))
+        return np.roll(frame, shift, axis=self.FREE_AXIS)

@@ -35,8 +35,14 @@ sub() {   # sub <walltime> <description> <sbatch args...>
         printf '  %-10s %-40s (--time=%s)\n' "$jid" "$desc" "$t"
         submitted=$((submitted + 1))
     else
-        printf '  FAILED     %-40s\n' "$desc"
+        # NOTE: "Socket timed out on send/recv operation" means sbatch never got
+        # the controller's REPLY -- the job is usually created anyway. Check with
+        # `squeue --me` before resubmitting, or you end up with two identical jobs
+        # writing to the same output folder and clobbering each other.
+        printf '  FAILED     %-40s  <- check squeue before resubmitting!\n' "$desc"
     fi
+    # Rapid-fire submissions are what provoke those controller timeouts.
+    sleep 2
 }
 
 want() { [ "$ONLY" = "all" ] || [ "$ONLY" = "$1" ]; }
