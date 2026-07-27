@@ -109,6 +109,22 @@ if want dps; then
     sub 02:00:00 "cond + force     -> _cond_physx0hat"     $S dps 3.0 x0hat 1.0 cond
 fi
 
+# --- 6. sensor-noise robustness: the one thing the benchmark cannot test ------
+# u3232 equals ground truth EXACTLY at the sensors, so nothing here has ever
+# tested robustness to real instrument error -- which is precisely the regime
+# DPS was designed for. sigma is in standardized units (0.02 = 2% of spread).
+# Predicted ordering: baseline most robust (it destroys the input anyway),
+# DPS should cope (built for noisy inverse problems), SI most brittle (x0 is fed
+# to the network at every one of its 200 calls and it never trained on noise).
+if want noise; then
+    echo "sensor-noise robustness (sigma=0 already exists for all three):"
+    for MN in 0.02 0.05; do
+        sub 00:45:00 "baseline mn=$MN" --export=ALL,MN=$MN $S baseline
+        sub 01:30:00 "DPS      mn=$MN" --export=ALL,MN=$MN $S dps 3.0
+        sub 01:00:00 "SI       mn=$MN" --export=ALL,MN=$MN $S si
+    done
+fi
+
 echo
 if [ "$DRY" = "1" ]; then
     echo "DRY RUN -- nothing submitted. Re-run without DRY=1 to submit."

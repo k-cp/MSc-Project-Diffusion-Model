@@ -39,6 +39,7 @@ import logging
 
 from models.diffusion_new import ConditionalModel, Model
 from runners.rs256_guided_diffusion import (
+    add_measurement_noise,
     StdScaler,
     ensure_dir,
     l2_loss,
@@ -572,6 +573,11 @@ class SIRunner:
             else:
                 blur = blur_batch.to(self.device)   # the real u3232 sensor field
             x0 = scaler(blur)  # base sample = standardized low-res field
+            # Simulated sensor noise. SI feeds x0 to the network at EVERY step,
+            # and was never trained on noisy inputs -- so this is where SI is
+            # most exposed.
+            x0 = add_measurement_noise(x0, getattr(self.args, 'meas_noise', 0.0),
+                                       self.args.seed, batch_index)
 
             batch_dir = os.path.join(self.log_dir, f"sample_batch{batch_index}")
             if os.path.exists(batch_dir):

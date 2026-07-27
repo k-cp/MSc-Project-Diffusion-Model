@@ -16,6 +16,7 @@ import logging
 
 from models.diffusion_new import ConditionalModel, Model
 from runners.rs256_guided_diffusion import (
+    add_measurement_noise,
     StdScaler,
     ensure_dir,
     get_beta_schedule,
@@ -292,6 +293,13 @@ class PosteriorRunner:
             # (Guiding toward A(blur) would double-degrade and make gt
             # unreachable.) The coarse observed field seeds the warm start.
             y = self.apply_forward(gt_scaled, sensor_idx=sensor_idx)
+            # Simulated sensor noise on the MEASUREMENT itself -- the regime DPS
+            # was designed for (Chung et al. target noisy inverse problems).
+            # Applied to y (what the guidance term matches) and to the warm-start
+            # field, so the whole pipeline sees the same corrupted observation.
+            _mn = getattr(self.args, "meas_noise", 0.0)
+            y = add_measurement_noise(y, _mn, self.args.seed, batch_index)
+            blur_scaled = add_measurement_noise(blur_scaled, _mn, self.args.seed, batch_index)
 
             # One folder per batch, 0-indexed, directly under log_dir -- matching
             # reconstruct() and what animate_results.py / generate_metrics expect.

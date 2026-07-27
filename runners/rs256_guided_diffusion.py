@@ -187,6 +187,23 @@ def ensure_dir(path):
         os.makedirs(path)
 
 
+def add_measurement_noise(x, sigma, seed, batch_index):
+    """Corrupt a measurement with Gaussian sensor noise, in STANDARDIZED units.
+
+    Shared by the baseline, DPS and SI runners so all three are degraded the
+    same way. Seeded per (seed, batch_index) so a run is reproducible and the
+    SAME noise realisation is used across methods for a fair comparison.
+
+    sigma is relative to the standardized field (std 1), so 0.02 == 2% of the
+    field's spread. Returns x unchanged when sigma == 0.
+    """
+    if not sigma:
+        return x
+    g = torch.Generator(device="cpu").manual_seed(int(seed) * 100003 + int(batch_index))
+    noise = torch.randn(x.shape, generator=g, dtype=torch.float32).to(x.device)
+    return x + sigma * noise
+
+
 def slice2sequence(data): # Remove overlapping 
     data = rearrange(data[:, 1:2], 't f h w -> (t f) h w')
     return data
@@ -405,6 +422,10 @@ class Diffusion(object):
             self.log('Residual reference: {}'.format(gt_residual))
 
             x0 = scaler(x0) # Scale values
+            # Simulated sensor noise (inference-time). Added AFTER scaling so
+            # --meas_noise is in standardized units, matching --si_aug_noise.
+            x0 = add_measurement_noise(x0, getattr(self.args, 'meas_noise', 0.0),
+                                       self.args.seed, batch_index)
             xinit = x0.clone()
             
             # prepare loss function

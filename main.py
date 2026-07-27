@@ -63,6 +63,13 @@ def parse_args_and_config(): # Set default arguements
                         help="Extra suffix on the baseline/DPS output folder (e.g. 'mine') so a "
                              "self-trained checkpoint's output lands in its own folder instead of "
                              "overwriting the run made with the provided weights. Mirrors --si_tag.")
+    parser.add_argument("--meas_noise", type=float, default=0.0,
+                        help="INFERENCE-TIME sensor noise: std of Gaussian noise added to the "
+                             "measurement each method consumes, in STANDARDIZED units (0.02 = 2%% "
+                             "of the field's spread). This benchmark's sensors are exact "
+                             "(u3232 == ground truth at sensor points), so nothing here ever "
+                             "tests robustness to real instrument error -- which is precisely "
+                             "the regime DPS was designed for. Applies to baseline, DPS and SI.")
     parser.add_argument("--dps_cond", type=int, default=0,
                         help="Feed the physics-informed condition into the NETWORK during DPS "
                              "(JCP's 'learned encoding'). DPS normally calls the conditional "
@@ -181,6 +188,11 @@ def parse_args_and_config(): # Set default arguements
     # provided weights stay exactly where they were.
     if getattr(args, 'baseline_tag', '') and getattr(args, 'run_si', 0) != 1:
         dir_name += '_' + args.baseline_tag
+
+    # Inference-time sensor noise applies to EVERY method, so it is tagged last
+    # and outside the per-method blocks. 0.0 leaves all existing names untouched.
+    if getattr(args, 'meas_noise', 0.0):
+        dir_name += '_mn{}'.format(args.meas_noise)
 
     log_dir = os.path.join(config.log_dir, dir_name) # Combine paths: config.log_dir/dir_name
     os.makedirs(log_dir, exist_ok=True)

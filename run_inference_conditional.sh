@@ -73,6 +73,11 @@ DPS_COND="${5:-nocond}"     # for MODE=dps: cond | nocond -- feed physics to the
 #   T=300 sbatch run_inference_conditional.sh baseline        -> ..._t300_r20_w0.0
 T_ARG="${T:-400}"           # forward noise level (how much of the input is destroyed)
 R_ARG="${R:-20}"            # reverse steps (integration resolution; SI uses 100)
+# Simulated sensor noise at INFERENCE, in standardized units. Applies to every
+# mode, so it is an env var too. The benchmark's sensors are exact, so this is
+# the only way to test robustness to real instrument error:
+#   MN=0.02 sbatch run_inference_conditional.sh si     -> ..._mn0.02
+MN_ARG="${MN:-0.0}"
 
 # Fail loudly on a bad mode instead of silently running the baseline.
 # (Common mistake: `sbatch run_inference_conditional.sh 0.1` -- the first arg
@@ -136,7 +141,7 @@ if [ "$MODE" = "baseline" ]; then
     esac
 fi
 
-echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps)"
+echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps), sensor noise=$MN_ARG"
 
 module load cray-python/3.11.7
 source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
@@ -226,6 +231,7 @@ python main.py \
     --seed 1234 \
     --t "$T_ARG" \
     --r "$R_ARG" \
+    --meas_noise "$MN_ARG" \
     $EXTRA_ARGS
 STATUS=$?
 
