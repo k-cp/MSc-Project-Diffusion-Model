@@ -154,10 +154,15 @@ fi
 # the only variable is the Reynolds number.
 if want crossre; then
     echo "cross-Reynolds zero-shot (no retraining; compare to each method's own Re=1000):"
+    # Walltimes are ~3x the measured Re=1000 runtimes, NOT 2x: the cross-Re files
+    # hold 8 trajectories (the loader reads the whole array before slicing to the
+    # 4-trajectory test split), and the first attempt at 45 min left the baseline
+    # runs with only ~6 minutes to spare. A job that overruns is KILLED mid-batch
+    # and has to be redone, so the headroom is worth more than the queue priority.
     for RE in 500 1000 2000 10000; do
-        sub 00:45:00 "baseline @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S baseline
-        sub 01:00:00 "SI       @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S si
-        sub 01:30:00 "DPS      @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S dps 3.0
+        sub 02:00:00 "baseline @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S baseline
+        sub 02:00:00 "SI       @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S si
+        sub 03:00:00 "DPS      @ Re=$RE" --export=ALL,CONFIG=cross_re$RE.yml $S dps 3.0
     done
 fi
 

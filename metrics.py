@@ -457,6 +457,76 @@ def plot_spectrum_ratio(methods_to_plot):
     plt.show()
 
 
+def _mean_ek(folder, fn):
+    """Mean energy spectrum over the per-batch representative fields (the same
+    64-field sample the spectrum plots use -- one field per sample_batch dir)."""
+    fields = collect_and_average_data(os.path.join(folder, "sample_batch*"), fn)
+    total, k = None, None
+    for field in fields:
+        k, ek = compute_ke_spectrum(field)
+        total = ek if total is None else total + ek
+    return k, total / len(fields)
+
+
+# Inertial-range band for the spectral-slope fit: the forcing sits at k=4 and the
+# dissipation tail dominates above ~k=80, so fit the log-log slope between them.
+SPECTRAL_FIT_BAND = (10, 60)
+
+
+def deployability_metrics(methods_to_plot):
+    """Standardised spectral scalars + derived quantities (Ren et al., Front. Mech.
+    Eng. 2026 -- the 'deployability' checklist).
+
+      e_spec  = sum|E_hat(k) - E_ref(k)| / sum E_ref(k)   integrated relative
+                spectral error over the full resolved band (one scalar instead of
+                our ad-hoc k-band percentages; lower = better).
+      Delta_s = |s_hat - s_ref|, the log-log spectral-slope deviation fitted over
+                SPECTRAL_FIT_BAND. The slope IS the cascade physics: a method can
+                have plausible energy but the wrong kind of turbulence.
+      KE%     = total kinetic energy vs reference (sum of the spectrum).
+      Z%      = enstrophy <w^2> vs reference, computed on ALL 1272 frames. In 2D,
+                energy dissipation = nu*<w^2>, so this is also the dissipation-
+                rate ratio. Enstrophy weights exactly the high-k content where the
+                methods differ most (DPS injects it, the baseline smooths it away).
+
+    Spectra use the same 64-field per-batch sample as the spectrum plots;
+    enstrophy uses the full test set (cheap, exact).
+    """
+    runs, ref_dir = _resolve(methods_to_plot)
+    if not runs:
+        print("No valid folders -- nothing to compute.")
+        return
+    k, e_ref = _mean_ek(ref_dir, "reference_arr.npy")
+    band = (k >= SPECTRAL_FIT_BAND[0]) & (k <= SPECTRAL_FIT_BAND[1])
+    logk = np.log(k[band])
+    s_ref = float(np.polyfit(logk, np.log(e_ref[band]), 1)[0])
+    ref_full = _load_full(ref_dir, "reference_arr.npy")
+    z_ref = float((ref_full ** 2).mean())
+    ke_ref = float(e_ref.sum())
+
+    print(f"\nDeployability metrics (Ren et al. 2026): slope fit over k="
+          f"[{SPECTRAL_FIT_BAND[0]},{SPECTRAL_FIT_BAND[1]}], ref slope s={s_ref:.2f}")
+    print(f"{'method':30s} {'e_spec':>8s} {'slope':>7s} {'Δs':>6s} {'KE%':>7s} {'Z%':>7s}")
+    print("-" * 70)
+    print(f"{'reference (ground truth)':30s} {'0.000':>8s} {s_ref:7.2f} {'0.00':>6s} "
+          f"{'100.0':>7s} {'100.0':>7s}")
+    for label, d, _, sample_file in runs:
+        try:
+            _, e = _mean_ek(d, sample_file)
+        except FileNotFoundError:
+            continue
+        e_spec = float(np.abs(e - e_ref).sum() / e_ref.sum())
+        s_hat = float(np.polyfit(logk, np.log(np.maximum(e[band], 1e-30)), 1)[0])
+        x = _load_full(d, sample_file)
+        z = float((x ** 2).mean()) if x is not None else float("nan")
+        print(f"{label:30s} {e_spec:8.3f} {s_hat:7.2f} {abs(s_hat - s_ref):6.2f} "
+              f"{100 * e.sum() / ke_ref:7.1f} {100 * z / z_ref:7.1f}")
+    print("\n(e_spec: integrated relative spectral error, lower better. Δs: cascade-"
+          "slope deviation,\n 0 = right kind of turbulence. KE/Z: energy and "
+          "enstrophy vs reference, 100 = perfect;\n Z<100 = smoothed, Z>100 = "
+          "spurious high-k content. Dissipation ratio == Z ratio in 2D.)")
+
+
 if __name__ == "__main__":
     # Reference is ALWAYS included. Every entry is one of:
     #   "baseline" / "dps" / "si" / "si_blind" / "si_linear" / "si_learned"   (shorthands)
@@ -518,6 +588,7 @@ if __name__ == "__main__":
     SHOW_SPECTRUM_DISTRIBUTION = True   # (a) E(k) log-log + (b) p(w) -- the paper's plots
     SHOW_SPECTRUM_RATIO        = True   # E(k)/E_ref, linear axis -- EXPOSES hidden high-k differences
     PRINT_METRICS_TABLE        = True   # numeric RMSE / corr / std -- exposes pointwise differences
+    PRINT_DEPLOYABILITY        = True   # e_spec / slope deviation / KE / enstrophy (Ren et al. 2026)
 
     if SHOW_SPECTRUM_DISTRIBUTION:
         plot_fluid_statistics(METHODS_TO_PLOT)
@@ -525,3 +596,5 @@ if __name__ == "__main__":
         metrics_table(METHODS_TO_PLOT)
     if SHOW_SPECTRUM_RATIO:
         plot_spectrum_ratio(METHODS_TO_PLOT)
+    if PRINT_DEPLOYABILITY:
+        deployability_metrics(METHODS_TO_PLOT)
