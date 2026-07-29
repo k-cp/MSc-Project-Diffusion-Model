@@ -87,6 +87,9 @@ _SHORTHAND = {
     "dps":        {"method": "dps"},
     "si":         {"method": "si"},
     "si_blind":   {"method": "si", "variant": "blind"},
+    # The SI paper's own PAIRED diffusion baseline (Appendix A): noise->data
+    # bridge, x0 as conditioning. Separates transport choice from pairing.
+    "si_dm":      {"method": "si", "variant": "dm"},
     "si_linear":  {"method": "si", "physics": "linear"},
     "si_learned": {"method": "si", "physics": "learned"},
 }
@@ -132,6 +135,7 @@ def normalize(entry):
     spec.setdefault("dps_phys", "none")    # DPS physics FORCE
     spec.setdefault("dps_lambda", 1.0)
     spec.setdefault("mn", 0.0)             # inference-time sensor noise
+    spec.setdefault("sm", 0)               # Shu et al. input pre-smoothing scale
     # which experiment folder to read from -- cross-Re runs write to their own
     spec.setdefault("exp", EXPERIMENT_FOLDER)
     if "value" not in spec:
@@ -177,13 +181,15 @@ def spec_to_folder(spec):
             name += f"_linear_lam{spec['value']}"
         elif spec["physics"] == "learned":
             name += f"_learned_w{spec['value']}"
-        if spec["variant"] == "blind":
-            name += "_blind"
+        if spec["variant"] in ("blind", "dm"):
+            name += "_" + spec["variant"]
         if spec["eval"]:
             name += "_eval_" + str(spec["eval"]).replace(":", "")
     else:
         raise ValueError(f"unknown method {m!r}")
     # sensor noise is tagged last for EVERY method, matching main.py
+    if spec["sm"]:
+        name += "_sm{}".format(spec["sm"])
     if spec["mn"]:
         name += "_mn{}".format(spec["mn"])
     return os.path.join("experiments", spec["exp"], name)
@@ -231,6 +237,8 @@ def _base_label(spec):
     parts = ["SI"]
     if spec["variant"] == "blind":
         parts.append("blind")
+    if spec["variant"] == "dm":
+        parts.append("DM bridge (paired, from noise)")
     if spec["physics"] == "linear":
         parts.append(f"linear λ={spec['value']}")
     elif spec["physics"] == "learned":

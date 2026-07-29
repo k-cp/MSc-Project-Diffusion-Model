@@ -24,7 +24,7 @@
 # fresh : not resuming 
 # none : physicsi conditioning
 #
-# Positionals: EPOCHS  FRAME_STRIDE  (resume|fresh)  (none|learned)  (fixed|blind)
+# Positionals: EPOCHS  FRAME_STRIDE  (resume|fresh)  (none|learned)  (fixed|blind)  (si|dm)
 #
 # NOTE: 'linear' physics guidance needs NO special training -- train normally and
 #       enable it at inference: sbatch run_inference_conditional.sh si linear 0.01
@@ -37,6 +37,7 @@ FRAME_STRIDE="${2:-4}"
 RESUME_ARG="${3:-}"
 SI_PHYSICS="${4:-none}"      # none | learned
 AUG_ARG="${5:-fixed}"        # fixed | blind
+BRIDGE_ARG="${6:-si}"        # si | dm  (dm = the SI paper's own diffusion baseline)
 
 if [ "$RESUME_ARG" = "resume" ]; then
     RESUME=1
@@ -57,11 +58,23 @@ if [ "$AUG_ARG" != "fixed" ] && [ "$AUG_ARG" != "blind" ]; then
 fi
 if [ "$AUG_ARG" = "blind" ]; then AUGMENT=1; else AUGMENT=0; fi
 
+if [ "$BRIDGE_ARG" != "si" ] && [ "$BRIDGE_ARG" != "dm" ]; then
+    echo "ERROR: sixth argument must be 'si' or 'dm' (got '$BRIDGE_ARG')."
+    echo "  e.g. sbatch run_train_si.sh 2000 4 fresh none fixed dm"
+    exit 1
+fi
+# 'dm' trains the PAIRED noise-to-data diffusion from the SI paper's Appendix A
+# (same net, same pairs; only the bridge differs) -- the contrast that separates
+# 'SI's transport is better' from 'paired training is better'.
+BRIDGE=si
+[ "$BRIDGE_ARG" = "dm" ] && BRIDGE=noise
+
 # Each variant produces a differently-behaved (or differently-shaped) network,
 # so keep it in its own checkpoint -- never confuse them at inference.
 CKPT=./pretrained_weights/si_ckpt
 [ "$SI_PHYSICS" = "learned" ] && CKPT="${CKPT}_learned"
 [ "$AUG_ARG" = "blind" ]      && CKPT="${CKPT}_blind"
+[ "$BRIDGE_ARG" = "dm" ]      && CKPT="${CKPT}_dm"
 CKPT="${CKPT}.pth"
 
 module load cray-python/3.11.7
@@ -86,4 +99,5 @@ python train_si.py \
     --si_aug_nmax 4000 \
     --si_xshift 1 \
     --si_ema 1 \
+    --si_bridge "$BRIDGE" \
     --si_ckpt "$CKPT"

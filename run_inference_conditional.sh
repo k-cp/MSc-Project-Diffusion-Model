@@ -78,6 +78,10 @@ R_ARG="${R:-20}"            # reverse steps (integration resolution; SI uses 100
 # the only way to test robustness to real instrument error:
 #   MN=0.02 sbatch run_inference_conditional.sh si     -> ..._mn0.02
 MN_ARG="${MN:-0.0}"
+# Shu et al.'s input Gaussian pre-filter (their Table 2). Off in our config;
+# SM=1 enables it and tags the folder _sm<scale>:
+#   SM=1 sbatch run_inference_conditional.sh baseline    -> ..._sm7
+SM_ARG="${SM:--1}"
 # Which config to run. Default is the main Re=1000 setup; the cross_re*.yml
 # variants point the SAME checkpoints at a different Reynolds number and write
 # to their own log_dir, e.g.
@@ -106,8 +110,8 @@ if [ "$MODE" = "si" ]; then
         echo "  e.g. sbatch run_inference_conditional.sh si linear 0.01"
         exit 1
     fi
-    if [ "$SI_VARIANT" != "plain" ] && [ "$SI_VARIANT" != "blind" ]; then
-        echo "ERROR: for MODE=si the fourth argument must be 'plain' or 'blind' (got '$SI_VARIANT')."
+    if [ "$SI_VARIANT" != "plain" ] && [ "$SI_VARIANT" != "blind" ] && [ "$SI_VARIANT" != "dm" ]; then
+        echo "ERROR: for MODE=si the fourth argument must be 'plain', 'blind' or 'dm' (got '$SI_VARIANT')."
         echo "  e.g. sbatch run_inference_conditional.sh si none 0 blind"
         exit 1
     fi
@@ -175,10 +179,12 @@ elif [ "$MODE" = "si" ]; then
     CK=si_ckpt
     [ "$SI_PHYSICS" = "learned" ] && CK="${CK}_learned"
     [ "$SI_VARIANT" = "blind" ]   && CK="${CK}_blind"
+    [ "$SI_VARIANT" = "dm" ]      && CK="${CK}_dm"
     CK="./pretrained_weights/${CK}.pth"
 
     SI_ARGS="--run_si 1 --si_ckpt $CK --si_steps 100"
     [ "$SI_VARIANT" = "blind" ] && SI_ARGS="$SI_ARGS --si_tag blind"
+    [ "$SI_VARIANT" = "dm" ]    && SI_ARGS="$SI_ARGS --si_tag dm"
     if [ -n "$SI_EVAL" ]; then
         echo "  robustness eval: feeding the model a '$SI_EVAL' degradation of the ground truth"
         SI_ARGS="$SI_ARGS --si_eval_degradation $SI_EVAL"
@@ -238,6 +244,7 @@ python main.py \
     --t "$T_ARG" \
     --r "$R_ARG" \
     --meas_noise "$MN_ARG" \
+    --smoothing "$SM_ARG" \
     $EXTRA_ARGS
 STATUS=$?
 

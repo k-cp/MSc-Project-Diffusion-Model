@@ -88,6 +88,11 @@ def parse_args():
                         "usually slightly better). 0 = save raw final weights.")
     p.add_argument("--si_ema_rate", type=float, default=0.9999,
                    help="EMA decay rate")
+    p.add_argument("--si_bridge", type=str, default="si", choices=["si", "noise"],
+                   help="'si' = stochastic interpolant (starts AT the measurement). "
+                        "'noise' = the SI paper's own DM comparison baseline (Appendix A): "
+                        "bridge from N(0,1) to x1 with x0 as conditioning only. Trains the "
+                        "PAIRED diffusion contrast our JCP/DPS comparison lacks.")
     p.add_argument("--log_every", type=int, default=1)
     p.add_argument("--save_every", type=int, default=100)
     return p.parse_args()
@@ -161,7 +166,7 @@ def main():
         persistent_workers=(n_workers > 0),
     )
 
-    si = StochasticInterpolant(config, device, logger, physics=args.si_physics)
+    si = StochasticInterpolant(config, device, logger, physics=args.si_physics, bridge=args.si_bridge)
     si.model.train()
     if args.si_physics == "learned":
         logger.info(f"Training WITH learned physics conditioning (p_uncond={args.si_pu}). "
@@ -210,6 +215,7 @@ def main():
                    "optimizer": optimizer.state_dict()}
         if ema is not None:
             payload["model_raw"] = si.model.state_dict()   # needed to resume training
+        payload["bridge"] = args.si_bridge                 # inference must match
         torch.save(payload, args.si_ckpt)
         logger.info(f"Saved checkpoint (epoch {epoch}) -> {args.si_ckpt}")
 

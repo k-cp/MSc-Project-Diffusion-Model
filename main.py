@@ -63,6 +63,14 @@ def parse_args_and_config(): # Set default arguements
                         help="Extra suffix on the baseline/DPS output folder (e.g. 'mine') so a "
                              "self-trained checkpoint's output lands in its own folder instead of "
                              "overwriting the run made with the provided weights. Mirrors --si_tag.")
+    parser.add_argument("--smoothing", type=int, default=-1,
+                        help="Override config.data.smoothing (-1 = use the config). Shu et al. "
+                             "Table 2 apply a Gaussian pre-filter for the 1.5625%% sparsity task "
+                             "and report L2 1.880->1.819 and equation loss 0.543->0.168 at "
+                             "sigma=7. But their Fig 8b notes the filter REMOVES high-frequency "
+                             "energy -- so the gain may be the residual metric rewarding the "
+                             "deletion of the wavenumbers it measures. Run it as an ablation and "
+                             "read e_spec / Delta_s alongside, not the residual alone.")
     parser.add_argument("--meas_noise", type=float, default=0.0,
                         help="INFERENCE-TIME sensor noise: std of Gaussian noise added to the "
                              "measurement each method consumes, in STANDARDIZED units (0.02 = 2%% "
@@ -118,6 +126,9 @@ def parse_args_and_config(): # Set default arguements
     # folders instead of overwriting each other.
     if getattr(args, 'guidance_weight', None) is not None:
         config.sampling.guidance_weight = args.guidance_weight
+
+    if getattr(args, 'smoothing', -1) >= 0:
+        config.data.smoothing = bool(args.smoothing)
 
     os.makedirs(config.log_dir, exist_ok=True) # Create folder named "log_dir"  (specified in YAML file) unless it exists
     if config.model.type == 'conditional': # Create direcotry name based on configurations
@@ -188,6 +199,12 @@ def parse_args_and_config(): # Set default arguements
     # provided weights stay exactly where they were.
     if getattr(args, 'baseline_tag', '') and getattr(args, 'run_si', 0) != 1:
         dir_name += '_' + args.baseline_tag
+
+    # Input pre-smoothing (Shu et al.'s Gaussian filter) also applies to every
+    # method. Tagged with the kernel scale so a smoothed run never overwrites the
+    # unsmoothed one -- the two are a matched ablation pair.
+    if getattr(args, 'smoothing', -1) == 1:
+        dir_name += '_sm{}'.format(config.data.smoothing_scale)
 
     # Inference-time sensor noise applies to EVERY method, so it is tagged last
     # and outside the per-method blocks. 0.0 leaves all existing names untouched.

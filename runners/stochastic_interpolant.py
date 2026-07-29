@@ -78,6 +78,28 @@ class InterpolantCoefficients:
         return -self.sigma_scale * torch.ones_like(tau)
 
 
+class NoiseBridgeCoefficients:
+    """Appendix A of the SI paper: the DM/FM comparison bridge. Interpolates
+    NOISE -> target (x_tau = alpha*eps + beta*x1, their Eq 24), with x0 entering
+    only as network conditioning -- unlike the SI bridge, which starts AT x0.
+    alpha = 1 - tau^2, beta = tau (their Eq 25 target R = -2*tau*eps + x1).
+    sigma_scale matches their DM diffusion coefficient sigma = 0.1(1-tau)."""
+
+    sigma_scale = 0.1
+
+    def alpha(self, tau):
+        return 1.0 - tau ** 2
+
+    def alpha_dot(self, tau):
+        return -2.0 * tau
+
+    def beta(self, tau):
+        return tau
+
+    def beta_dot(self, tau):
+        return torch.ones_like(tau)
+
+
 def load_si_pairs(ref_path, sample_path, data_kw, split="train", frame_stride=1):
     """Load paired (x0=low-res, x1=high-res) 3-frame stacks.
 
@@ -305,12 +327,12 @@ class EMA:
 class StochasticInterpolant:
     """Drift network + interpolant math + SDE sampler."""
 
-    def __init__(self, config, device, logger=None, physics="none"):
+    def __init__(self, config, device, logger=None, physics="none", bridge="si"):
         self.config = config
         self.device = device
         self.logger = logger or logging.getLogger("LOG")
-        self.coeff = InterpolantCoefficients()
         self.physics = physics
+        self.set_bridge(bridge)
 
         # Reuse the conditional UNet as the drift network b_theta.
         if config.model.type == "conditional":
@@ -338,6 +360,16 @@ class StochasticInterpolant:
         # Pseudo-time tau in [0,1] is scaled into the timestep-embedding range
         # (same scale must be used in training and sampling).
         self.time_scale = float(config.diffusion.num_diffusion_timesteps)
+
+    def set_bridge(self, bridge):
+        """'si' = the paper's stochastic interpolant (start AT x0). 'noise' = the
+        paper's own DM comparison baseline (start at N(0,1), x0 conditions only).
+        Swappable post-construction so SIRunner can honour what a checkpoint
+        stores without reordering its load sequence."""
+        if bridge not in ("si", "noise"):
+            raise ValueError(f"unknown bridge {bridge!r}")
+        self.bridge = bridge
+        self.coeff = InterpolantCoefficients() if bridge == "si" else NoiseBridgeCoefficients()
 
     def log(self, msg):
         self.logger.info(msg)
@@ -389,8 +421,13 @@ class StochasticInterpolant:
         w = torch.sqrt(tau) * z                                  # Wiener W_tau ~ N(0, tau)
 
         c = self.coeff
-        interpolant = c.alpha(tau) * x0 + c.beta(tau) * x1 + c.sigma(tau) * w
-        target = c.alpha_dot(tau) * x0 + c.beta_dot(tau) * x1 + c.sigma_dot(tau) * w
+        if self.bridge == "noise":
+            # Appendix-A DM bridge: noise -> x1 (their Eq 24/25); x0 conditions only.
+            interpolant = c.alpha(tau) * z + c.beta(tau) * x1
+            target = c.alpha_dot(tau) * z + c.beta_dot(tau) * x1
+        else:
+            interpolant = c.alpha(tau) * x0 + c.beta(tau) * x1 + c.sigma(tau) * w
+            target = c.alpha_dot(tau) * x0 + c.beta_dot(tau) * x1 + c.sigma_dot(tau) * w
 
         phys_cond = None
         if self.physics == "learned":
@@ -418,6 +455,11 @@ class StochasticInterpolant:
                        strength w_cond (their Algorithm 2, line 8). REQUIRES a
                        checkpoint trained with physics='learned'.
         """
+        if self.bridge == "noise":
+            if self.physics != "none":
+                raise ValueError("physics guidance is not defined for the DM bridge")
+            return self._sample_dm(x0, n_steps)
+
         b = x0.shape[0]
         x = x0.clone()
         taus = torch.linspace(0.0, 1.0, n_steps + 1, device=x0.device)
@@ -457,6 +499,43 @@ class StochasticInterpolant:
         return x
 
 
+    @torch.no_grad()
+    def _sample_dm(self, x0, n_steps=100):
+        """The SI paper's own diffusion baseline (Appendix A): integrate
+        dX = b_tilde dtau + sigma dW from X_0 ~ N(0,1), with
+        b_tilde = b + (sigma/2) * s and the score recovered from the drift,
+        s = (beta*b - beta_dot*X) / (alpha^2*beta_dot - alpha*beta*alpha_dot)
+        (their Eq 26-27; algebra: s = -E[eps|X]/alpha). x0 is conditioning only.
+        As tau->1 the correction stays finite: sigma/denominator -> 0.1/((1+tau)(1+tau^2)).
+        Heun predictor-corrector, same Brownian increment in both stages."""
+        bsz = x0.shape[0]
+        c = self.coeff
+        x = torch.randn_like(x0)
+        taus = torch.linspace(0.0, 1.0, n_steps + 1, device=x0.device)
+
+        def drift_tilde(state, tau_scalar):
+            tvec = torch.full((bsz,), tau_scalar, device=x0.device)
+            bdrift = self.drift(state, tvec, x0)
+            t = torch.tensor(tau_scalar, device=x0.device)
+            al, be = c.alpha(t), c.beta(t)
+            al_d, be_d = c.alpha_dot(t), torch.ones((), device=x0.device)
+            sig = c.sigma_scale * (1.0 - t)
+            denom = al * al * be_d - al * be * al_d
+            corr = 0.5 * sig * (be * bdrift - be_d * state) / (denom + 1e-8)
+            return bdrift + corr, float(sig)
+
+        for i in range(n_steps):
+            tau, tau_next = taus[i].item(), taus[i + 1].item()
+            dtau = tau_next - tau
+            b1, sig = drift_tilde(x, tau)
+            noise = sig * math.sqrt(dtau) * torch.randn_like(x)
+            x_pred = x + b1 * dtau + noise
+            b2, _ = drift_tilde(x_pred, tau_next)
+            x = x + 0.5 * (b1 + b2) * dtau + noise
+        return x
+
+
+
 class SIRunner:
     """Inference: super-resolve the test set with a trained SI drift network.
 
@@ -490,6 +569,11 @@ class SIRunner:
             state_dict = states[-1]                  # [state_dict] legacy format
         else:
             state_dict = states                      # raw state_dict
+        # A checkpoint trained with the Appendix-A DM bridge records it; honour
+        # that, or the SI sampler would silently misuse DM weights.
+        if isinstance(states, dict) and states.get("bridge", "si") != "si":
+            self.si.set_bridge(states["bridge"])
+            self.log(f"Bridge: {states['bridge']} (the SI paper's own DM baseline)")
         self.si.model.load_state_dict(state_dict)
         self.si.model.eval()
         self.log(f"Loaded SI drift network from {ckpt_path}")
