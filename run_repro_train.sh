@@ -21,9 +21,17 @@ cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/paper_repro
 # the cd doesn't break them.
 export PYTHONPATH="$PWD/generate_data:$PWD:$PYTHONPATH"
 
+# Sampler steps. THEIR CODE SHIPS INCONSISTENT: SR_simulation.py:64 sets 150
+# (with 100 commented out on :63) while Analysis/evaluate_sr_model.py:57 sets 100,
+# and both build the filename as 'gpu_sr_ts<N>.pt' -- so the two halves of their
+# own pipeline cannot find each other. Keep this in step with BOTH files.
+TS="${TS:-100}"
+
 # Skip stages whose output already exists, so a failure in a later stage never
-# costs a re-run of the ~2 h training.
-[ -f predictions/gpu_sr_ts150.pt ] || { python train_SR_driver.py && python SR_simulation.py; }
+# costs a re-run of the ~2 h training. NOTE the 'gpu_' prefix: SR_simulation.py
+# writes 'sr_ts<N>.pt' on CPU and 'gpu_sr_ts<N>.pt' on GPU (:92 vs :95), but the
+# evaluation only ever looks for the gpu_ form -- so this must run on a GPU.
+[ -f "predictions/gpu_sr_ts${TS}.pt" ] || { python train_SR_driver.py && python SR_simulation.py; }
 STATUS=$?
 [ "$STATUS" -eq 0 ] && { (cd Analysis && python evaluate_sr_model.py); STATUS=$?; }
 

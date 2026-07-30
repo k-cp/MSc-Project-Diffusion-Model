@@ -78,6 +78,13 @@ R_ARG="${R:-20}"            # reverse steps (integration resolution; SI uses 100
 # the only way to test robustness to real instrument error:
 #   MN=0.02 sbatch run_inference_conditional.sh si     -> ..._mn0.02
 MN_ARG="${MN:-0.0}"
+# Dead-sensor block: side length in px of a square where every sensor has failed.
+# Applies to EVERY method and masks BOTH the input field and (for DPS) the sensor
+# index set, so no method can observe inside the hole.  BLOCK=0 disables it.
+#   BLOCK=64 sbatch run_inference_conditional.sh si
+BLOCK_ARG="${BLOCK:-0}"
+BLOCK_SEED_ARG="${BLOCK_SEED:-0}"
+BLOCK_POS_ARG="${BLOCK_POS:-}"   # "" random | "center" | "y,x"
 # Shu et al.'s input Gaussian pre-filter (their Table 2). Off in our config;
 # SM=1 enables it and tags the folder _sm<scale>:
 #   SM=1 sbatch run_inference_conditional.sh baseline    -> ..._sm7
@@ -151,6 +158,7 @@ if [ "$MODE" = "baseline" ]; then
 fi
 
 echo "Config: $CONFIG_ARG"
+[ "$BLOCK_ARG" != "0" ] && echo "DEAD BLOCK: ${BLOCK_ARG}x${BLOCK_ARG} px (seed $BLOCK_SEED_ARG)"
 echo "Sampler resolution: t=$T_ARG (noise level), r=$R_ARG (reverse steps), sensor noise=$MN_ARG"
 
 module load cray-python/3.11.7
@@ -244,6 +252,9 @@ python main.py \
     --t "$T_ARG" \
     --r "$R_ARG" \
     --meas_noise "$MN_ARG" \
+    --block_size "$BLOCK_ARG" \
+    --block_seed "$BLOCK_SEED_ARG" \
+    --block_pos "$BLOCK_POS_ARG" \
     --smoothing "$SM_ARG" \
     $EXTRA_ARGS
 STATUS=$?

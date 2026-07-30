@@ -46,8 +46,15 @@ explains both the accuracy ranking and the noise ranking. Baseline/DPS noise at 
 This is the section that turns the chapter from a leaderboard into an argument. Everything
 after it is a consequence, not a new fact.
 
-- **[NEEDS FIG]** the pass-through figure from `noise_robustness.py` — fraction of injected
-  sensor noise surviving to output, three methods.
+- **[READY]** `noise_passthrough.png` (from `noise_passthrough_plot.py`) — share of injected
+  sensor-noise variance reaching the output. baseline 2.2/2.4%, DPS 3.0/2.9%, SI 123/119%
+  at σ = 0.02/0.05. The ratio is **stable across both noise levels**, so it is a property of
+  the method, not an artifact of one σ — worth one sentence.
+- Definition to state in the text: pass-through = [MSE(σ) − MSE(0)] / (σ·scale)², with
+  scale = 4.7869, the training-split std the runtime scaler uses
+  (`data_scale = np.std(ref_data[:-4])`). `--meas_noise` is in standardized units.
+- NOTE the number changed: earlier drafts said 116%, computed with scale 4.85 (the raw-data
+  std). 4.7869 is what the code actually uses, giving 119.3%. Quote **119%**, not 116%.
 - Crossover at σ ≈ 0.31 (31% sensor error); real instruments are 1–5%. SI at 5% noise
   (MSE 1.517) still beats the baseline at *zero* noise (3.642).
 - This closes the "SI never trained on noisy sensors" deployment objection without retraining.
@@ -78,13 +85,34 @@ edge (2.5×) survives intact. Claiming both would overstate the result.
 **Claim:** low NS residual is not a proxy for good physics — three independent routes to a low
 residual all turn out to be over-smoothing, and only the spectral metrics reveal it.
 
+**STATE THE MECHANISM HERE, ONCE, AND REFER BACK TO IT** (measured in §5.9, not inferred):
+the residual applies derivative operators, so it weights by ~k². The three baseline
+checkpoints differ *only* above k≈80 — a band holding **0.0000% of the total energy**. At
+k=127 their E(k)/E_ref ratios are 26.2 / 37.1 / 26.4, which **orders their residuals exactly**
+(62.8 / 85.0 / 63.9). So an energetically negligible difference moves the residual 35% while
+MSE, corr, std, e_spec, Δs, KE and Z all stay within 0.2%. Every energy-based metric is blind
+to the band the residual is dominated by. That one fact explains all four residual anomalies:
+  - uncorrelated with e_spec across methods (§5.5)
+  - overstates DPS's harm under dynamics (§5.7)
+  - unstable under training variance alone (§5.9)
+  - drops *below* ground truth's own 12.5 whenever a method over-smooths (below)
+
 - **[READY]** `_sm7` input smoothing: MSE 3.642 → 3.454 and residual 62.6 → 19.5 look like a
   free win, but e_spec 0.306 → 0.318, Δs 0.24 → 0.54, Z% 70.8 → 64.7. Bought by smoothing.
 - **[READY]** baseline r=100: residual → 8.83 but e_spec *worsens* to 0.377 and KE falls to 62%.
 - **[READY]** SI on `lowpass:4`: residual 1.41, far *below* ground truth's own 12.5.
 - Ground truth's own residual is 12.5. Anything meaningfully below it is suspect by construction.
-- **[NEEDS FIG]** worth one small figure: residual vs e_spec scatter across all runs, showing
-  the two are not monotonically related. Cheap and it makes the point instantly.
+- **[READY]** `residual_vs_spectrum.png` (from `residual_vs_spectrum_plot.py`) — all 40 runs
+  as (residual, e_spec), both log. The two axes are close to uncorrelated.
+- **THE STRONGEST SINGLE POINT ON THIS FIGURE, found 2026-07-30:** DPS has the worst residual
+  of anything here (3179, i.e. 50× the baseline's 62.8) and yet a **5× better spectrum**
+  (e_spec 0.059 vs 0.306). Meanwhile the baseline family's residual ranges over 50× —
+  8.85 (r=100) to 420 (no physics) — while its e_spec barely moves (0.18–0.48). So within
+  the diffusion family the residual is almost uninformative about spectral fidelity, and
+  across families it points the wrong way. This is the same conclusion §5.7 reaches from the
+  dynamics (spurious high-k is transient, an energy deficit is permanent) arrived at by a
+  completely independent route — say so explicitly; two independent routes to one conclusion
+  is much stronger than either alone.
 
 ## 5.6 Blind augmentation fails, and the mechanism is informational
 
@@ -120,19 +148,58 @@ and the NS residual *overstates* DPS's harm.
 
 ## 5.8 Does it generalise off the training Reynolds number?
 
-**Claim (provisional):** the Re sensitivity is a property of the shared diffusion prior, not
-of the guidance — baseline and DPS degrade identically — and SI is lower in absolute error at
-every Re tested.
+**Claim:** SI's *accuracy* advantage transfers across Re; its *spectral* advantage does not.
+The two axes fail in different ways, and that asymmetry is the finding.
 
-- **[BLOCKED]** needs `cross_re1000/si_...` and `cross_re2000/dps_..._z3.0`; the first is SI's
-  own denominator, so the relative-trend column can't be completed without it.
-- Numbers so far (mean L2 / residual), read **relative to each method's own Re1000**:
-  Re500 1.508/47.2 · 1.500/1919 · 1.103/2.88 — Re1000 1.686/59.8 · 1.678/2415 · — —
-  Re2000 1.998/67.3 · — · 1.655/2.60 — Re10000 2.406/80.6 · 2.426/2928 · 2.179/3.32
-- Baseline vs DPS relative to Re1000: 0.894/1.185/1.427 vs 0.894/–/1.445. Identical.
+- **[READY]** `cross_re_trend.png` (from `cross_re_plot.py`) — two panels, 10 of 12 runs.
+  The script skips missing runs and marks them ×, so re-running fills gaps in.
+- **Field error, normalised by each Re's own reference std** (see correction below):
+  baseline 0.373 / 0.385 / 0.443 / 0.505 · DPS 0.372 / 0.383 / — / 0.509 ·
+  SI 0.273 / — / 0.367 / 0.458
+- Baseline and DPS are **indistinguishable** at every Re (0.373 vs 0.372, 0.505 vs 0.509) →
+  the Re sensitivity is the shared diffusion prior, NOT the guidance mechanism.
+- SI is lowest at every Re, so the accuracy advantage survives distribution shift — **but its
+  slope is steeper**: SI degrades 1.68× over 500→10000 against baseline's 1.35×, so the edge
+  erodes from 27% better at Re500 to 9% better at Re10000. State this; it bounds the claim.
+- **`e_spec` is FLAT in Re for all three methods** (baseline ~0.34–0.37, SI ~0.245–0.259,
+  DPS ~0.075–0.109). Accuracy degrades, spectral fidelity doesn't — two different failure modes.
+- **THE HONEST LIMITATION, and the most important thing in this section:** on this
+  off-distribution data SI's e_spec is **0.245**, versus **0.008** on the main benchmark — a
+  30× collapse — and **DPS beats it 2.7×** (0.089). SI's spectral dominance is entirely
+  in-distribution. Mechanism: SI is a specialist that reproduces the spectrum it was trained
+  on even when the true one differs; DPS is measurement-guided over a generic prior, so it
+  tracks whatever the data says. This is the SAME specialist-vs-general mechanism as §5.6,
+  now on DISTRIBUTION shift rather than degradation shift — a second independent instance.
+- **NORMALISATION CORRECTION (changes the numbers):** the logs' `mean l2 loss` is per-frame
+  RMSE in absolute vorticity units, and the reference std GROWS with Re — 4.0386 / 4.3797 /
+  4.5100 / 4.7625 (measured over all 64 batches). About a third of the raw degradation was
+  the reference's own variance. Quote the normalised trend, not raw L2.
 - **Caveat that must appear in the text:** the `kf_vort_Re*_N256` family is not the generator
-  the models trained on (std 4.16 vs 4.85, different forcing amplitude). Absolute scores are
-  not comparable to published numbers; only the trend is meaningful.
+  the models trained on — its Re1000 reference std is 4.3797 vs the main experiment's 4.763,
+  a 9.4% gap (earlier notes said ~14%; that was wrong). Absolute scores are not comparable to
+  published numbers; only the within-method trend is meaningful.
+- **[RESOLVED — all 12 runs now in]** The falsifiable test came out on the DISTRIBUTION-shift
+  side. **SI's e_spec at cross_re1000 is 0.226**, against **0.008** on the main benchmark —
+  a 28× collapse at the *same nominal Reynolds number*. So the loss of spectral fidelity is
+  caused by the change of generator (different forcing amplitude), NOT by Reynolds number.
+  That is the cleanest available statement of SI's specialism, and it was a prediction made
+  before the data arrived.
+- Full normalised field error, and the erosion of SI's advantage:
+
+  | Re | baseline | DPS | SI | SI vs baseline | SI rel. own Re1000 |
+  |---|---|---|---|---|---|
+  | 500 | 0.3733 | 0.3715 | 0.2730 | **26.9% better** | 0.893 |
+  | 1000 | 0.3850 | 0.3832 | 0.3056 | 20.6% better | 1.000 |
+  | 2000 | 0.4430 | 0.4427 | 0.3670 | 17.2% better | 1.201 |
+  | 10000 | 0.5053 | 0.5093 | 0.4575 | **9.5% better** | 1.497 |
+
+  SI wins field accuracy at every Re across a 20× range — but the margin erodes monotonically
+  26.9 → 20.6 → 17.2 → 9.5%, and SI's own degradation (1.497×) is steeper than the baseline's
+  (1.312×) or DPS's (1.329×). It also *gains* more at Re500 (0.893 vs 0.970). Steeper in both
+  directions is exactly what a specialist looks like.
+- e_spec by method: baseline 0.336–0.370, SI 0.226–0.259, **DPS 0.075–0.114 — best at every
+  Re**. DPS's measurement guidance tracks whatever spectrum the data has; SI reproduces the one
+  it was trained on. Flat in Re for all three.
 
 ## 5.9 Controls and threats to validity
 
@@ -151,8 +218,42 @@ flattered training setup.
 - Deviations from Schiødt et al., all deliberate: vorticity not velocity, no Helmholtz–Hodge
   projection (it is a velocity-field operation), full-field not patch-based, sensor input not
   lowpass. Cross-reference SI_README §10.1–10.3, §7.6–7.7.
-- **[BLOCKED]** `_mine` / `_mine_xshift` reproduction check.
-- Supplementary: paper reproduction chain vs their Table 1.
+- **[READY]** reproduction check — retraining the baseline from scratch reproduces the provided
+  checkpoint to **within 0.2% on every metric**:
+
+  | | MSE | corr | std/ref% | e_spec | Δs | KE% | Z% |
+  |---|---|---|---|---|---|---|---|
+  | provided weights | 3.6419 | 0.9196 | 84.1 | 0.306 | 0.24 | 69.4 | 70.8 |
+  | retrained here | 3.6485 | 0.9194 | 84.1 | 0.307 | 0.23 | 69.3 | 70.7 |
+  | retrained + x-shift | 3.6341 | 0.9198 | 84.1 | 0.304 | 0.27 | 69.6 | 70.7 |
+
+  So every baseline number in the thesis rests on a reproducible artifact, not on a checkpoint
+  that happened to be handed over. This is the row that makes the comparison trustworthy.
+- **Clean negative result:** x-translation augmentation buys nothing — 3.6341 vs 3.6485 vs
+  3.6419 are all inside run-to-run noise. The symmetry is free to exploit and it does not help.
+  Report it; a negative result on a cheap idea is worth a sentence.
+- **NEW, and it belongs in §5.5 as well:** the NS residual swings **62.56 → 84.59 (+35%)**
+  between two training runs that agree to 0.2% on MSE, corr, std, e_spec, Δs, KE and Z.
+  (x-shift lands at 63.60.) So the residual has poor run-to-run reproducibility while every
+  other metric is stable — a third independent reason not to treat it as *the* physics metric.
+  Cross-reference this from §5.5; it arrives from training variance rather than from sampler
+  or method choice, so it is genuinely independent evidence.
+- **[READY] Supplementary: the paper reproduction succeeded** (their code, their DNS, their
+  ConvNeXt, their metrics, 100-step sampler — job 5834217 + a re-run with the analysis flags on).
+  Artifacts in `paper_repro_plots/`:
+  - **dissipation**: low-res input 0.759 of truth, SI reconstruction **0.996** — recovered to
+    within 0.4%. (Their metric is the mean of per-sample ratios, not the ratio of means —
+    state that, since 10.165/9.735 = 1.044 and someone will check.)
+  - **`spectrum_ensemble_avg.png`**: the input departs from truth at k≈6 and falls orders of
+    magnitude; SI tracks truth across the resolved range with a small excess past k≈40.
+  - **`vorticity_field.png`**: input smooth and blobby, SI recovers the filamentary structure.
+  - **max |∇·u| = 0.0296** — the quantity the Helmholtz–Hodge projection exists to control.
+- **Why this row matters:** it separates two things an examiner would otherwise conflate. The
+  port to the sparse-sensor benchmark deviates in four documented ways (vorticity not velocity,
+  no Helmholtz projection, full-field not patch, sensor input not lowpass). This shows the
+  *method* reproduces on its home ground, so any difference in our results is attributable to
+  the transplant, not to a broken implementation. It also puts a number on the projection we
+  dropped, which was previously the least-quantified of the four deviations.
 
 ## 5.10 Synthesis
 

@@ -71,6 +71,17 @@ def parse_args_and_config(): # Set default arguements
                              "energy -- so the gain may be the residual metric rewarding the "
                              "deletion of the wavenumbers it measures. Run it as an ablation and "
                              "read e_spec / Delta_s alongside, not the residual alone.")
+    parser.add_argument("--block_size", type=int, default=0,
+                        help="Dead-sensor block: side length in pixels of a square region "
+                             "where every sensor has failed. The measurement is rebuilt by "
+                             "nearest-neighbour fill from the SURVIVING sensors, so the hole "
+                             "is extrapolated from its boundary. 0 = disabled.")
+    parser.add_argument("--block_pos", type=str, default="",
+                        help="Where the dead block sits: '' = random per trajectory (seeded), "
+                             "'center', or 'y,x' for an explicit top-left corner.")
+    parser.add_argument("--block_seed", type=int, default=0,
+                        help="Seed for the dead block's position (one fixed block per "
+                             "trajectory, so the hole does not move as the flow evolves).")
     parser.add_argument("--meas_noise", type=float, default=0.0,
                         help="INFERENCE-TIME sensor noise: std of Gaussian noise added to the "
                              "measurement each method consumes, in STANDARDIZED units (0.02 = 2%% "
@@ -208,6 +219,8 @@ def parse_args_and_config(): # Set default arguements
 
     # Inference-time sensor noise applies to EVERY method, so it is tagged last
     # and outside the per-method blocks. 0.0 leaves all existing names untouched.
+    if getattr(args, 'block_size', 0):
+        dir_name += '_blk{}'.format(args.block_size)
     if getattr(args, 'meas_noise', 0.0):
         dir_name += '_mn{}'.format(args.meas_noise)
 

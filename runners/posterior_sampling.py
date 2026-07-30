@@ -11,6 +11,8 @@ if REPO_ROOT not in sys.path:
 import torch
 import torch.nn.functional as F
 import numpy as np
+
+from functions import dead_block
 from tqdm import tqdm
 import logging
 
@@ -245,17 +247,31 @@ class PosteriorRunner:
         scaler = StdScaler(data_mean, data_std)
         self.log(f"DPS outputs -> {self.log_dir}  (sample_batch<i> folders)")
 
+        # Dead-sensor block. BOTH halves must be masked together: the input
+        # field AND the index set the forward operator gathers at. DPS reads the
+        # ground truth directly at sensor_idx, so leaving the dead indices in
+        # place would let it observe inside the hole and void the experiment.
+        _blk_blur, _blk_idx = dead_block.build_from_config(
+            self.args, self.config, ref_data, log=self.log)
+        if _blk_blur is not None:
+            blur_data = _blk_blur
+
         # Per-sample sensor indices for the sparse operator, aligned with the
         # trajectory-major flattening done inside load_recons_data (for each of
         # the last 4 test trajectories, every (frames-2) sub-sample shares that
         # trajectory's 1024 sensor locations).
         if self.args.operator == "sparse":
-            with np.load(self.config.data.sample_data_dir, allow_pickle=True) as f:
-                idx_test = f["idx_lst"][-4:].astype(np.int64)      # (4, n_sensors)
-                n_frames = f[self.config.data.data_kw].shape[1]
-            per_traj = n_frames - 2
-            sensor_idx_all = np.repeat(idx_test, per_traj, axis=0)  # (4*per_traj, n_sensors)
-            sensor_idx_all = torch.from_numpy(sensor_idx_all)
+            if _blk_idx is not None:
+                sensor_idx_all = _blk_idx
+                self.log(f"Sparse operator uses the SURVIVING sensors only: "
+                         f"{sensor_idx_all.shape[1]} per field")
+            else:
+                with np.load(self.config.data.sample_data_dir, allow_pickle=True) as f:
+                    idx_test = f["idx_lst"][-4:].astype(np.int64)      # (4, n_sensors)
+                    n_frames = f[self.config.data.data_kw].shape[1]
+                per_traj = n_frames - 2
+                sensor_idx_all = np.repeat(idx_test, per_traj, axis=0)  # (4*per_traj, n_sensors)
+                sensor_idx_all = torch.from_numpy(sensor_idx_all)
             assert sensor_idx_all.shape[0] == ref_data.shape[0], (
                 f"sensor idx count {sensor_idx_all.shape[0]} != samples {ref_data.shape[0]}"
             )

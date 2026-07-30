@@ -1,5 +1,7 @@
 import os
 import numpy as np
+
+from functions import dead_block
 from tqdm import tqdm
 
 import torch
@@ -348,6 +350,11 @@ class Diffusion(object):
 
         # ref_data (1272, 3, 256, 256)
         # blur_data (1272, 3, 256, 256)
+
+        _blk_blur, _ = dead_block.build_from_config(self.args, self.config,
+                                                    ref_data, log=self.log)
+        if _blk_blur is not None:
+            blur_data = _blk_blur
 
         scaler = StdScaler(data_mean, data_std)
         # minmax_scaler = MinMaxScaler(ref_data.min(), ref_data.max())

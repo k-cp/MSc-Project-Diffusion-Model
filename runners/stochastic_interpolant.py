@@ -34,6 +34,8 @@ if REPO_ROOT not in sys.path:
 import torch
 import torch.nn as nn
 import numpy as np
+
+from functions import dead_block
 from tqdm import tqdm
 import logging
 
@@ -631,6 +633,11 @@ class SIRunner:
             smoothing=self.config.data.smoothing,
             smoothing_scale=self.config.data.smoothing_scale,
         )
+
+        _blk_blur, _ = dead_block.build_from_config(self.args, self.config,
+                                                    ref_data, log=self.log)
+        if _blk_blur is not None:
+            blur_data = _blk_blur
 
         scaler = StdScaler(data_mean, data_std)
         self.log(f"SI outputs -> {self.log_dir}  (sample_batch<i> folders)")
