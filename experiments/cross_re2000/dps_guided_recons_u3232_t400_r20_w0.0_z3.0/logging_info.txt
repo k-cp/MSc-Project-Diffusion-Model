@@ -1,0 +1,3 @@
+2026-07-27 18:05:38,393 - LOG - INFO - Loading reconstruction data for DPS
+2026-07-27 18:05:40,084 - LOG - INFO - DPS outputs -> ./experiments/cross_re2000/dps_guided_recons_u3232_t400_r20_w0.0_z3.0  (sample_batch<i> folders)
+2026-07-27 18:05:40,415 - LOG - INFO - Sparse operator: 1024 sensors per field

@@ -13,10 +13,19 @@ module load cray-python/3.11.7
 source /scratch/u6ki/kayaay.u6ki/diffusion_env/bin/activate
 cd /scratch/u6ki/kayaay.u6ki/MSc-Project-Diffusion-Model/paper_repro
 
-python train_SR_driver.py && \
-python SR_simulation.py && \
-python Analysis/evaluate_sr_model.py
+# Their Analysis/ scripts must run FROM Analysis/ -- the paths inside them are
+# relative to it ('../generate_data/torch_dataset/SR_test_128.pt'). But run that
+# way, sys.path[0] is Analysis/, so `import dataset_utils` (which actually lives
+# in generate_data/) fails. Fix both at once: cd into Analysis so the relative
+# data paths resolve, and put the helper dirs on PYTHONPATH as ABSOLUTE paths so
+# the cd doesn't break them.
+export PYTHONPATH="$PWD/generate_data:$PWD:$PYTHONPATH"
+
+# Skip stages whose output already exists, so a failure in a later stage never
+# costs a re-run of the ~2 h training.
+[ -f predictions/gpu_sr_ts150.pt ] || { python train_SR_driver.py && python SR_simulation.py; }
 STATUS=$?
+[ "$STATUS" -eq 0 ] && { (cd Analysis && python evaluate_sr_model.py); STATUS=$?; }
 
 NTFY_TOPIC="kaya-si-7h3k9x"
 [ "$STATUS" -eq 0 ] && RESULT="OK" || RESULT="FAILED (exit $STATUS)"

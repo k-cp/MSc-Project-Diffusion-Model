@@ -1,0 +1,4 @@
+2026-07-27 18:05:37,974 - LOG - INFO - Loaded SI drift network from ./pretrained_weights/si_ckpt.pth
+2026-07-27 18:05:37,975 - LOG - INFO - Physics guidance: none
+2026-07-27 18:05:37,975 - LOG - INFO - Loading reconstruction data for Stochastic Interpolants
+2026-07-27 18:05:40,574 - LOG - INFO - SI outputs -> ./experiments/cross_re1000/si_guided_recons_u3232_t400_r20_w0.0  (sample_batch<i> folders)
