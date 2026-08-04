@@ -79,6 +79,11 @@ def parse_args_and_config(): # Set default arguements
     parser.add_argument("--block_pos", type=str, default="",
                         help="Where the dead block sits: '' = random per trajectory (seeded), "
                              "'center', or 'y,x' for an explicit top-left corner.")
+    parser.add_argument("--block_fill", type=str, default="extrapolate",
+                        choices=["extrapolate", "zero"],
+                        help="What the model sees inside the dead block: 'extrapolate' = "
+                             "nearest surviving sensor (realistic dead patch); 'zero' = a "
+                             "true void, i.e. classical inpainting.")
     parser.add_argument("--block_seed", type=int, default=0,
                         help="Seed for the dead block's position (one fixed block per "
                              "trajectory, so the hole does not move as the flow evolves).")
@@ -221,6 +226,8 @@ def parse_args_and_config(): # Set default arguements
     # and outside the per-method blocks. 0.0 leaves all existing names untouched.
     if getattr(args, 'block_size', 0):
         dir_name += '_blk{}'.format(args.block_size)
+        if getattr(args, 'block_fill', 'extrapolate') == 'zero':
+            dir_name += 'empty'
     if getattr(args, 'meas_noise', 0.0):
         dir_name += '_mn{}'.format(args.meas_noise)
 

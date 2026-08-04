@@ -85,6 +85,7 @@ MN_ARG="${MN:-0.0}"
 BLOCK_ARG="${BLOCK:-0}"
 BLOCK_SEED_ARG="${BLOCK_SEED:-0}"
 BLOCK_POS_ARG="${BLOCK_POS:-}"   # "" random | "center" | "y,x"
+BLOCK_FILL_ARG="${BLOCK_FILL:-extrapolate}"   # extrapolate | zero (true void = inpainting)
 # Shu et al.'s input Gaussian pre-filter (their Table 2). Off in our config;
 # SM=1 enables it and tags the folder _sm<scale>:
 #   SM=1 sbatch run_inference_conditional.sh baseline    -> ..._sm7
@@ -255,6 +256,7 @@ python main.py \
     --block_size "$BLOCK_ARG" \
     --block_seed "$BLOCK_SEED_ARG" \
     --block_pos "$BLOCK_POS_ARG" \
+    --block_fill "$BLOCK_FILL_ARG" \
     --smoothing "$SM_ARG" \
     $EXTRA_ARGS
 STATUS=$?

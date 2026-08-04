@@ -252,7 +252,7 @@ class PosteriorRunner:
         # ground truth directly at sensor_idx, so leaving the dead indices in
         # place would let it observe inside the hole and void the experiment.
         _blk_blur, _blk_idx = dead_block.build_from_config(
-            self.args, self.config, ref_data, log=self.log)
+            self.args, self.config, blur_data, log=self.log)
         if _blk_blur is not None:
             blur_data = _blk_blur
 

@@ -352,7 +352,7 @@ class Diffusion(object):
         # blur_data (1272, 3, 256, 256)
 
         _blk_blur, _ = dead_block.build_from_config(self.args, self.config,
-                                                    ref_data, log=self.log)
+                                                    blur_data, log=self.log)
         if _blk_blur is not None:
             blur_data = _blk_blur
 

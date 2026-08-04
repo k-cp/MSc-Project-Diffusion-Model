@@ -1,0 +1,396 @@
+2026-07-30 16:15:08,149 - LOG - INFO - Loading reconstruction data for DPS
+2026-07-30 16:15:15,392 - LOG - INFO - DPS outputs -> ./experiments/kmflow_re1000_rs256_ddim_conditional_new/dps_guided_recons_u3232_t400_r20_w0.0_z3.0_blk64  (sample_batch<i> folders)
+2026-07-30 16:15:15,395 - LOG - INFO - DEAD BLOCK: 64x64 unobserved square, position=random (seed 0); rebuilding from surviving sensors
+2026-07-30 16:15:15,707 - LOG - INFO -   trajectory 0: block 64x64 at (y=164, x=122); 52/1024 sensors dead, 972 surviving
+2026-07-30 16:15:15,720 - LOG - INFO -   trajectory 1: block 64x64 at (y=91, x=98); 42/1024 sensors dead, 982 surviving
+2026-07-30 16:15:15,733 - LOG - INFO -   trajectory 2: block 64x64 at (y=161, x=50); 74/1024 sensors dead, 950 surviving
+2026-07-30 16:15:15,749 - LOG - INFO -   trajectory 3: block 64x64 at (y=156, x=16); 46/1024 sensors dead, 978 surviving
+2026-07-30 16:15:15,749 - LOG - INFO -   sensors per trajectory truncated to a common 950 (from [972, 982, 950, 978]) so the index array is rectangular
+2026-07-30 16:15:15,752 - LOG - INFO - Sparse operator uses the SURVIVING sensors only: 950 per field
+2026-07-30 16:15:15,752 - LOG - INFO - Sparse operator: 950 sensors per field
+2026-07-30 16:15:15,799 - LOG - INFO - Batch 1/64
+2026-07-30 16:15:17,020 - LOG - INFO - L2 loss init: 2.421837568283081
+2026-07-30 16:15:17,020 - LOG - INFO - Run 1/1
+2026-07-30 16:15:17,027 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:38,116 - LOG - INFO - L2 loss final: 1.9434618949890137
+2026-07-30 16:15:38,116 - LOG - INFO - Residual final: 2929.353271484375
+2026-07-30 16:15:38,741 - LOG - INFO - Batch 2/64
+2026-07-30 16:15:39,783 - LOG - INFO - L2 loss init: 2.7030818462371826
+2026-07-30 16:15:39,784 - LOG - INFO - Run 1/1
+2026-07-30 16:15:39,784 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:42,397 - LOG - INFO - L2 loss final: 2.069561004638672
+2026-07-30 16:15:42,397 - LOG - INFO - Residual final: 3376.626708984375
+2026-07-30 16:15:42,993 - LOG - INFO - Batch 3/64
+2026-07-30 16:15:44,068 - LOG - INFO - L2 loss init: 3.028019905090332
+2026-07-30 16:15:44,068 - LOG - INFO - Run 1/1
+2026-07-30 16:15:44,069 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:46,687 - LOG - INFO - L2 loss final: 2.385875940322876
+2026-07-30 16:15:46,687 - LOG - INFO - Residual final: 3693.350830078125
+2026-07-30 16:15:47,179 - LOG - INFO - Batch 4/64
+2026-07-30 16:15:48,372 - LOG - INFO - L2 loss init: 3.182797908782959
+2026-07-30 16:15:48,372 - LOG - INFO - Run 1/1
+2026-07-30 16:15:48,372 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:50,989 - LOG - INFO - L2 loss final: 2.5977718830108643
+2026-07-30 16:15:50,990 - LOG - INFO - Residual final: 3861.40478515625
+2026-07-30 16:15:51,480 - LOG - INFO - Batch 5/64
+2026-07-30 16:15:52,676 - LOG - INFO - L2 loss init: 3.312917709350586
+2026-07-30 16:15:52,676 - LOG - INFO - Run 1/1
+2026-07-30 16:15:52,677 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:55,293 - LOG - INFO - L2 loss final: 2.768829584121704
+2026-07-30 16:15:55,294 - LOG - INFO - Residual final: 3746.266357421875
+2026-07-30 16:15:55,770 - LOG - INFO - Batch 6/64
+2026-07-30 16:15:56,981 - LOG - INFO - L2 loss init: 3.0824804306030273
+2026-07-30 16:15:56,981 - LOG - INFO - Run 1/1
+2026-07-30 16:15:56,981 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:15:59,604 - LOG - INFO - L2 loss final: 2.5297343730926514
+2026-07-30 16:15:59,604 - LOG - INFO - Residual final: 3996.11376953125
+2026-07-30 16:16:00,073 - LOG - INFO - Batch 7/64
+2026-07-30 16:16:01,301 - LOG - INFO - L2 loss init: 2.935098886489868
+2026-07-30 16:16:01,301 - LOG - INFO - Run 1/1
+2026-07-30 16:16:01,301 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:03,919 - LOG - INFO - L2 loss final: 2.4483115673065186
+2026-07-30 16:16:03,919 - LOG - INFO - Residual final: 3979.700927734375
+2026-07-30 16:16:04,380 - LOG - INFO - Batch 8/64
+2026-07-30 16:16:05,580 - LOG - INFO - L2 loss init: 2.6495141983032227
+2026-07-30 16:16:05,580 - LOG - INFO - Run 1/1
+2026-07-30 16:16:05,580 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:08,198 - LOG - INFO - L2 loss final: 2.2032623291015625
+2026-07-30 16:16:08,198 - LOG - INFO - Residual final: 3790.362548828125
+2026-07-30 16:16:08,771 - LOG - INFO - Batch 9/64
+2026-07-30 16:16:09,859 - LOG - INFO - L2 loss init: 2.5062167644500732
+2026-07-30 16:16:09,859 - LOG - INFO - Run 1/1
+2026-07-30 16:16:09,859 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:12,477 - LOG - INFO - L2 loss final: 2.087811231613159
+2026-07-30 16:16:12,477 - LOG - INFO - Residual final: 3739.106201171875
+2026-07-30 16:16:12,946 - LOG - INFO - Batch 10/64
+2026-07-30 16:16:14,084 - LOG - INFO - L2 loss init: 2.4742047786712646
+2026-07-30 16:16:14,084 - LOG - INFO - Run 1/1
+2026-07-30 16:16:14,084 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:16,702 - LOG - INFO - L2 loss final: 2.0306577682495117
+2026-07-30 16:16:16,702 - LOG - INFO - Residual final: 3675.359130859375
+2026-07-30 16:16:17,168 - LOG - INFO - Batch 11/64
+2026-07-30 16:16:18,297 - LOG - INFO - L2 loss init: 2.493042230606079
+2026-07-30 16:16:18,297 - LOG - INFO - Run 1/1
+2026-07-30 16:16:18,297 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:20,916 - LOG - INFO - L2 loss final: 2.0413479804992676
+2026-07-30 16:16:20,916 - LOG - INFO - Residual final: 3795.96337890625
+2026-07-30 16:16:21,380 - LOG - INFO - Batch 12/64
+2026-07-30 16:16:22,512 - LOG - INFO - L2 loss init: 2.523747682571411
+2026-07-30 16:16:22,512 - LOG - INFO - Run 1/1
+2026-07-30 16:16:22,512 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:25,129 - LOG - INFO - L2 loss final: 2.0972535610198975
+2026-07-30 16:16:25,130 - LOG - INFO - Residual final: 3324.083984375
+2026-07-30 16:16:25,595 - LOG - INFO - Batch 13/64
+2026-07-30 16:16:26,729 - LOG - INFO - L2 loss init: 2.4383833408355713
+2026-07-30 16:16:26,729 - LOG - INFO - Run 1/1
+2026-07-30 16:16:26,729 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:29,348 - LOG - INFO - L2 loss final: 2.0250282287597656
+2026-07-30 16:16:29,348 - LOG - INFO - Residual final: 3251.635498046875
+2026-07-30 16:16:29,833 - LOG - INFO - Batch 14/64
+2026-07-30 16:16:30,971 - LOG - INFO - L2 loss init: 2.3835108280181885
+2026-07-30 16:16:30,971 - LOG - INFO - Run 1/1
+2026-07-30 16:16:30,972 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:33,592 - LOG - INFO - L2 loss final: 2.0171058177948
+2026-07-30 16:16:33,592 - LOG - INFO - Residual final: 2879.667236328125
+2026-07-30 16:16:34,103 - LOG - INFO - Batch 15/64
+2026-07-30 16:16:35,250 - LOG - INFO - L2 loss init: 2.4828929901123047
+2026-07-30 16:16:35,251 - LOG - INFO - Run 1/1
+2026-07-30 16:16:35,251 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:37,869 - LOG - INFO - L2 loss final: 2.134798288345337
+2026-07-30 16:16:37,869 - LOG - INFO - Residual final: 2954.239501953125
+2026-07-30 16:16:38,366 - LOG - INFO - Batch 16/64
+2026-07-30 16:16:39,546 - LOG - INFO - L2 loss init: 2.449536085128784
+2026-07-30 16:16:39,546 - LOG - INFO - Run 1/1
+2026-07-30 16:16:39,546 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:42,164 - LOG - INFO - L2 loss final: 2.021066427230835
+2026-07-30 16:16:42,164 - LOG - INFO - Residual final: 3131.725830078125
+2026-07-30 16:16:42,658 - LOG - INFO - Batch 17/64
+2026-07-30 16:16:43,848 - LOG - INFO - L2 loss init: 2.5583815574645996
+2026-07-30 16:16:43,848 - LOG - INFO - Run 1/1
+2026-07-30 16:16:43,849 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:46,467 - LOG - INFO - L2 loss final: 2.0759410858154297
+2026-07-30 16:16:46,468 - LOG - INFO - Residual final: 2966.85546875
+2026-07-30 16:16:46,957 - LOG - INFO - Batch 18/64
+2026-07-30 16:16:48,177 - LOG - INFO - L2 loss init: 2.9831626415252686
+2026-07-30 16:16:48,177 - LOG - INFO - Run 1/1
+2026-07-30 16:16:48,177 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:50,796 - LOG - INFO - L2 loss final: 2.512906789779663
+2026-07-30 16:16:50,796 - LOG - INFO - Residual final: 3215.06640625
+2026-07-30 16:16:51,466 - LOG - INFO - Batch 19/64
+2026-07-30 16:16:52,601 - LOG - INFO - L2 loss init: 2.687518358230591
+2026-07-30 16:16:52,602 - LOG - INFO - Run 1/1
+2026-07-30 16:16:52,602 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:55,220 - LOG - INFO - L2 loss final: 2.202448844909668
+2026-07-30 16:16:55,220 - LOG - INFO - Residual final: 3011.693359375
+2026-07-30 16:16:55,711 - LOG - INFO - Batch 20/64
+2026-07-30 16:16:56,926 - LOG - INFO - L2 loss init: 2.707902431488037
+2026-07-30 16:16:56,926 - LOG - INFO - Run 1/1
+2026-07-30 16:16:56,927 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:16:59,544 - LOG - INFO - L2 loss final: 2.2339580059051514
+2026-07-30 16:16:59,545 - LOG - INFO - Residual final: 3267.780029296875
+2026-07-30 16:17:00,006 - LOG - INFO - Batch 21/64
+2026-07-30 16:17:01,208 - LOG - INFO - L2 loss init: 2.670802116394043
+2026-07-30 16:17:01,208 - LOG - INFO - Run 1/1
+2026-07-30 16:17:01,209 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:03,827 - LOG - INFO - L2 loss final: 2.2593836784362793
+2026-07-30 16:17:03,828 - LOG - INFO - Residual final: 3310.35009765625
+2026-07-30 16:17:04,292 - LOG - INFO - Batch 22/64
+2026-07-30 16:17:05,507 - LOG - INFO - L2 loss init: 2.5730504989624023
+2026-07-30 16:17:05,507 - LOG - INFO - Run 1/1
+2026-07-30 16:17:05,508 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:08,127 - LOG - INFO - L2 loss final: 2.175421714782715
+2026-07-30 16:17:08,127 - LOG - INFO - Residual final: 3177.158447265625
+2026-07-30 16:17:08,586 - LOG - INFO - Batch 23/64
+2026-07-30 16:17:09,747 - LOG - INFO - L2 loss init: 2.4583404064178467
+2026-07-30 16:17:09,747 - LOG - INFO - Run 1/1
+2026-07-30 16:17:09,747 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:12,366 - LOG - INFO - L2 loss final: 2.088884115219116
+2026-07-30 16:17:12,366 - LOG - INFO - Residual final: 2925.765869140625
+2026-07-30 16:17:12,831 - LOG - INFO - Batch 24/64
+2026-07-30 16:17:13,957 - LOG - INFO - L2 loss init: 2.4529013633728027
+2026-07-30 16:17:13,957 - LOG - INFO - Run 1/1
+2026-07-30 16:17:13,957 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:16,576 - LOG - INFO - L2 loss final: 2.1157102584838867
+2026-07-30 16:17:16,576 - LOG - INFO - Residual final: 2979.884033203125
+2026-07-30 16:17:17,036 - LOG - INFO - Batch 25/64
+2026-07-30 16:17:18,150 - LOG - INFO - L2 loss init: 2.35154128074646
+2026-07-30 16:17:18,150 - LOG - INFO - Run 1/1
+2026-07-30 16:17:18,151 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:20,770 - LOG - INFO - L2 loss final: 1.9708527326583862
+2026-07-30 16:17:20,770 - LOG - INFO - Residual final: 3109.740966796875
+2026-07-30 16:17:21,227 - LOG - INFO - Batch 26/64
+2026-07-30 16:17:22,342 - LOG - INFO - L2 loss init: 2.293452262878418
+2026-07-30 16:17:22,342 - LOG - INFO - Run 1/1
+2026-07-30 16:17:22,343 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:24,962 - LOG - INFO - L2 loss final: 1.8916339874267578
+2026-07-30 16:17:24,963 - LOG - INFO - Residual final: 3235.620361328125
+2026-07-30 16:17:25,423 - LOG - INFO - Batch 27/64
+2026-07-30 16:17:26,543 - LOG - INFO - L2 loss init: 2.4525091648101807
+2026-07-30 16:17:26,543 - LOG - INFO - Run 1/1
+2026-07-30 16:17:26,543 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:29,162 - LOG - INFO - L2 loss final: 2.03463077545166
+2026-07-30 16:17:29,163 - LOG - INFO - Residual final: 3311.404052734375
+2026-07-30 16:17:29,643 - LOG - INFO - Batch 28/64
+2026-07-30 16:17:30,764 - LOG - INFO - L2 loss init: 2.5700013637542725
+2026-07-30 16:17:30,764 - LOG - INFO - Run 1/1
+2026-07-30 16:17:30,764 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:33,384 - LOG - INFO - L2 loss final: 2.148813009262085
+2026-07-30 16:17:33,384 - LOG - INFO - Residual final: 3607.733642578125
+2026-07-30 16:17:33,999 - LOG - INFO - Batch 29/64
+2026-07-30 16:17:35,053 - LOG - INFO - L2 loss init: 2.841456651687622
+2026-07-30 16:17:35,053 - LOG - INFO - Run 1/1
+2026-07-30 16:17:35,054 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:37,673 - LOG - INFO - L2 loss final: 2.4147026538848877
+2026-07-30 16:17:37,674 - LOG - INFO - Residual final: 3971.826904296875
+2026-07-30 16:17:38,185 - LOG - INFO - Batch 30/64
+2026-07-30 16:17:39,363 - LOG - INFO - L2 loss init: 2.9257915019989014
+2026-07-30 16:17:39,363 - LOG - INFO - Run 1/1
+2026-07-30 16:17:39,364 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:41,984 - LOG - INFO - L2 loss final: 2.4843738079071045
+2026-07-30 16:17:41,984 - LOG - INFO - Residual final: 4237.96240234375
+2026-07-30 16:17:42,469 - LOG - INFO - Batch 31/64
+2026-07-30 16:17:43,663 - LOG - INFO - L2 loss init: 2.8688859939575195
+2026-07-30 16:17:43,663 - LOG - INFO - Run 1/1
+2026-07-30 16:17:43,664 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:46,283 - LOG - INFO - L2 loss final: 2.393319845199585
+2026-07-30 16:17:46,283 - LOG - INFO - Residual final: 4147.11669921875
+2026-07-30 16:17:46,772 - LOG - INFO - Batch 32/64
+2026-07-30 16:17:47,990 - LOG - INFO - L2 loss init: 2.762941837310791
+2026-07-30 16:17:47,990 - LOG - INFO - Run 1/1
+2026-07-30 16:17:47,991 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:50,610 - LOG - INFO - L2 loss final: 2.302520513534546
+2026-07-30 16:17:50,610 - LOG - INFO - Residual final: 3829.160888671875
+2026-07-30 16:17:51,093 - LOG - INFO - Batch 33/64
+2026-07-30 16:17:52,304 - LOG - INFO - L2 loss init: 2.4466562271118164
+2026-07-30 16:17:52,304 - LOG - INFO - Run 1/1
+2026-07-30 16:17:52,304 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:54,923 - LOG - INFO - L2 loss final: 1.98418128490448
+2026-07-30 16:17:54,923 - LOG - INFO - Residual final: 2735.316162109375
+2026-07-30 16:17:55,386 - LOG - INFO - Batch 34/64
+2026-07-30 16:17:56,595 - LOG - INFO - L2 loss init: 3.00930118560791
+2026-07-30 16:17:56,596 - LOG - INFO - Run 1/1
+2026-07-30 16:17:56,596 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:17:59,215 - LOG - INFO - L2 loss final: 2.546069622039795
+2026-07-30 16:17:59,215 - LOG - INFO - Residual final: 2917.218505859375
+2026-07-30 16:17:59,672 - LOG - INFO - Batch 35/64
+2026-07-30 16:18:00,868 - LOG - INFO - L2 loss init: 3.148667573928833
+2026-07-30 16:18:00,868 - LOG - INFO - Run 1/1
+2026-07-30 16:18:00,868 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:03,486 - LOG - INFO - L2 loss final: 2.6792664527893066
+2026-07-30 16:18:03,486 - LOG - INFO - Residual final: 2857.56298828125
+2026-07-30 16:18:03,942 - LOG - INFO - Batch 36/64
+2026-07-30 16:18:05,095 - LOG - INFO - L2 loss init: 2.9221980571746826
+2026-07-30 16:18:05,095 - LOG - INFO - Run 1/1
+2026-07-30 16:18:05,095 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:07,715 - LOG - INFO - L2 loss final: 2.463196277618408
+2026-07-30 16:18:07,716 - LOG - INFO - Residual final: 3049.03173828125
+2026-07-30 16:18:08,171 - LOG - INFO - Batch 37/64
+2026-07-30 16:18:09,306 - LOG - INFO - L2 loss init: 2.6820528507232666
+2026-07-30 16:18:09,306 - LOG - INFO - Run 1/1
+2026-07-30 16:18:09,306 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:11,928 - LOG - INFO - L2 loss final: 2.273340940475464
+2026-07-30 16:18:11,929 - LOG - INFO - Residual final: 2905.253173828125
+2026-07-30 16:18:12,385 - LOG - INFO - Batch 38/64
+2026-07-30 16:18:13,576 - LOG - INFO - L2 loss init: 2.443760395050049
+2026-07-30 16:18:13,577 - LOG - INFO - Run 1/1
+2026-07-30 16:18:13,577 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:16,196 - LOG - INFO - L2 loss final: 2.023404836654663
+2026-07-30 16:18:16,196 - LOG - INFO - Residual final: 3377.464111328125
+2026-07-30 16:18:16,765 - LOG - INFO - Batch 39/64
+2026-07-30 16:18:17,796 - LOG - INFO - L2 loss init: 2.414577007293701
+2026-07-30 16:18:17,796 - LOG - INFO - Run 1/1
+2026-07-30 16:18:17,796 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:20,416 - LOG - INFO - L2 loss final: 1.9675043821334839
+2026-07-30 16:18:20,417 - LOG - INFO - Residual final: 3319.21337890625
+2026-07-30 16:18:20,878 - LOG - INFO - Batch 40/64
+2026-07-30 16:18:21,998 - LOG - INFO - L2 loss init: 2.388415575027466
+2026-07-30 16:18:21,998 - LOG - INFO - Run 1/1
+2026-07-30 16:18:21,998 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:24,617 - LOG - INFO - L2 loss final: 1.967356562614441
+2026-07-30 16:18:24,618 - LOG - INFO - Residual final: 3380.210205078125
+2026-07-30 16:18:25,086 - LOG - INFO - Batch 41/64
+2026-07-30 16:18:26,211 - LOG - INFO - L2 loss init: 2.52634596824646
+2026-07-30 16:18:26,211 - LOG - INFO - Run 1/1
+2026-07-30 16:18:26,211 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:28,828 - LOG - INFO - L2 loss final: 2.101170778274536
+2026-07-30 16:18:28,828 - LOG - INFO - Residual final: 3285.251220703125
+2026-07-30 16:18:29,313 - LOG - INFO - Batch 42/64
+2026-07-30 16:18:30,450 - LOG - INFO - L2 loss init: 2.9328854084014893
+2026-07-30 16:18:30,450 - LOG - INFO - Run 1/1
+2026-07-30 16:18:30,451 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:33,070 - LOG - INFO - L2 loss final: 2.500730276107788
+2026-07-30 16:18:33,071 - LOG - INFO - Residual final: 3510.212646484375
+2026-07-30 16:18:33,556 - LOG - INFO - Batch 43/64
+2026-07-30 16:18:34,710 - LOG - INFO - L2 loss init: 2.9976046085357666
+2026-07-30 16:18:34,710 - LOG - INFO - Run 1/1
+2026-07-30 16:18:34,710 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:37,329 - LOG - INFO - L2 loss final: 2.5016586780548096
+2026-07-30 16:18:37,329 - LOG - INFO - Residual final: 4120.95556640625
+2026-07-30 16:18:37,817 - LOG - INFO - Batch 44/64
+2026-07-30 16:18:39,001 - LOG - INFO - L2 loss init: 2.8460779190063477
+2026-07-30 16:18:39,001 - LOG - INFO - Run 1/1
+2026-07-30 16:18:39,002 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:41,620 - LOG - INFO - L2 loss final: 2.3646979331970215
+2026-07-30 16:18:41,621 - LOG - INFO - Residual final: 3906.354248046875
+2026-07-30 16:18:42,114 - LOG - INFO - Batch 45/64
+2026-07-30 16:18:43,321 - LOG - INFO - L2 loss init: 2.809335470199585
+2026-07-30 16:18:43,321 - LOG - INFO - Run 1/1
+2026-07-30 16:18:43,321 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:45,940 - LOG - INFO - L2 loss final: 2.3377366065979004
+2026-07-30 16:18:45,941 - LOG - INFO - Residual final: 3837.677001953125
+2026-07-30 16:18:46,437 - LOG - INFO - Batch 46/64
+2026-07-30 16:18:47,656 - LOG - INFO - L2 loss init: 2.6616663932800293
+2026-07-30 16:18:47,656 - LOG - INFO - Run 1/1
+2026-07-30 16:18:47,657 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:50,275 - LOG - INFO - L2 loss final: 2.158573627471924
+2026-07-30 16:18:50,275 - LOG - INFO - Residual final: 3518.919677734375
+2026-07-30 16:18:50,750 - LOG - INFO - Batch 47/64
+2026-07-30 16:18:51,957 - LOG - INFO - L2 loss init: 2.594919443130493
+2026-07-30 16:18:51,957 - LOG - INFO - Run 1/1
+2026-07-30 16:18:51,957 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:54,576 - LOG - INFO - L2 loss final: 2.139232635498047
+2026-07-30 16:18:54,576 - LOG - INFO - Residual final: 3670.04541015625
+2026-07-30 16:18:55,030 - LOG - INFO - Batch 48/64
+2026-07-30 16:18:56,216 - LOG - INFO - L2 loss init: 2.4913198947906494
+2026-07-30 16:18:56,217 - LOG - INFO - Run 1/1
+2026-07-30 16:18:56,217 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:18:58,835 - LOG - INFO - L2 loss final: 2.0373611450195312
+2026-07-30 16:18:58,836 - LOG - INFO - Residual final: 3588.358642578125
+2026-07-30 16:18:59,405 - LOG - INFO - Batch 49/64
+2026-07-30 16:19:00,481 - LOG - INFO - L2 loss init: 2.3426122665405273
+2026-07-30 16:19:00,481 - LOG - INFO - Run 1/1
+2026-07-30 16:19:00,481 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:03,100 - LOG - INFO - L2 loss final: 1.847596526145935
+2026-07-30 16:19:03,100 - LOG - INFO - Residual final: 3005.796142578125
+2026-07-30 16:19:03,556 - LOG - INFO - Batch 50/64
+2026-07-30 16:19:04,699 - LOG - INFO - L2 loss init: 2.805504083633423
+2026-07-30 16:19:04,699 - LOG - INFO - Run 1/1
+2026-07-30 16:19:04,699 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:07,317 - LOG - INFO - L2 loss final: 2.298794746398926
+2026-07-30 16:19:07,317 - LOG - INFO - Residual final: 3103.925537109375
+2026-07-30 16:19:07,771 - LOG - INFO - Batch 51/64
+2026-07-30 16:19:08,898 - LOG - INFO - L2 loss init: 2.8535962104797363
+2026-07-30 16:19:08,898 - LOG - INFO - Run 1/1
+2026-07-30 16:19:08,898 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:11,516 - LOG - INFO - L2 loss final: 2.3436081409454346
+2026-07-30 16:19:11,517 - LOG - INFO - Residual final: 2897.96875
+2026-07-30 16:19:11,972 - LOG - INFO - Batch 52/64
+2026-07-30 16:19:13,089 - LOG - INFO - L2 loss init: 2.5597052574157715
+2026-07-30 16:19:13,090 - LOG - INFO - Run 1/1
+2026-07-30 16:19:13,090 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:15,709 - LOG - INFO - L2 loss final: 2.119830846786499
+2026-07-30 16:19:15,709 - LOG - INFO - Residual final: 2616.07421875
+2026-07-30 16:19:16,172 - LOG - INFO - Batch 53/64
+2026-07-30 16:19:17,296 - LOG - INFO - L2 loss init: 2.454908609390259
+2026-07-30 16:19:17,296 - LOG - INFO - Run 1/1
+2026-07-30 16:19:17,297 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:19,917 - LOG - INFO - L2 loss final: 2.077852249145508
+2026-07-30 16:19:19,917 - LOG - INFO - Residual final: 2463.947265625
+2026-07-30 16:19:20,386 - LOG - INFO - Batch 54/64
+2026-07-30 16:19:21,509 - LOG - INFO - L2 loss init: 2.4541852474212646
+2026-07-30 16:19:21,509 - LOG - INFO - Run 1/1
+2026-07-30 16:19:21,509 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:24,128 - LOG - INFO - L2 loss final: 2.082181930541992
+2026-07-30 16:19:24,128 - LOG - INFO - Residual final: 2370.822509765625
+2026-07-30 16:19:24,618 - LOG - INFO - Batch 55/64
+2026-07-30 16:19:25,748 - LOG - INFO - L2 loss init: 2.3492510318756104
+2026-07-30 16:19:25,749 - LOG - INFO - Run 1/1
+2026-07-30 16:19:25,749 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:28,369 - LOG - INFO - L2 loss final: 2.0441677570343018
+2026-07-30 16:19:28,369 - LOG - INFO - Residual final: 2500.473388671875
+2026-07-30 16:19:28,855 - LOG - INFO - Batch 56/64
+2026-07-30 16:19:30,008 - LOG - INFO - L2 loss init: 2.4036526679992676
+2026-07-30 16:19:30,008 - LOG - INFO - Run 1/1
+2026-07-30 16:19:30,008 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:32,627 - LOG - INFO - L2 loss final: 2.06913161277771
+2026-07-30 16:19:32,627 - LOG - INFO - Residual final: 2659.151611328125
+2026-07-30 16:19:33,124 - LOG - INFO - Batch 57/64
+2026-07-30 16:19:34,306 - LOG - INFO - L2 loss init: 2.4553191661834717
+2026-07-30 16:19:34,306 - LOG - INFO - Run 1/1
+2026-07-30 16:19:34,307 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:36,925 - LOG - INFO - L2 loss final: 2.123986005783081
+2026-07-30 16:19:36,925 - LOG - INFO - Residual final: 2639.740234375
+2026-07-30 16:19:37,407 - LOG - INFO - Batch 58/64
+2026-07-30 16:19:38,613 - LOG - INFO - L2 loss init: 2.563382148742676
+2026-07-30 16:19:38,613 - LOG - INFO - Run 1/1
+2026-07-30 16:19:38,614 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:41,232 - LOG - INFO - L2 loss final: 2.2047886848449707
+2026-07-30 16:19:41,233 - LOG - INFO - Residual final: 2609.506591796875
+2026-07-30 16:19:41,853 - LOG - INFO - Batch 59/64
+2026-07-30 16:19:42,985 - LOG - INFO - L2 loss init: 2.397728443145752
+2026-07-30 16:19:42,985 - LOG - INFO - Run 1/1
+2026-07-30 16:19:42,985 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:45,603 - LOG - INFO - L2 loss final: 2.0440707206726074
+2026-07-30 16:19:45,603 - LOG - INFO - Residual final: 2541.713623046875
+2026-07-30 16:19:46,089 - LOG - INFO - Batch 60/64
+2026-07-30 16:19:47,305 - LOG - INFO - L2 loss init: 2.3442952632904053
+2026-07-30 16:19:47,305 - LOG - INFO - Run 1/1
+2026-07-30 16:19:47,305 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:49,926 - LOG - INFO - L2 loss final: 1.9791051149368286
+2026-07-30 16:19:49,926 - LOG - INFO - Residual final: 2515.60400390625
+2026-07-30 16:19:50,385 - LOG - INFO - Batch 61/64
+2026-07-30 16:19:51,600 - LOG - INFO - L2 loss init: 2.2693519592285156
+2026-07-30 16:19:51,600 - LOG - INFO - Run 1/1
+2026-07-30 16:19:51,600 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:54,219 - LOG - INFO - L2 loss final: 1.9294190406799316
+2026-07-30 16:19:54,220 - LOG - INFO - Residual final: 2447.62109375
+2026-07-30 16:19:54,676 - LOG - INFO - Batch 62/64
+2026-07-30 16:19:55,870 - LOG - INFO - L2 loss init: 2.2975032329559326
+2026-07-30 16:19:55,871 - LOG - INFO - Run 1/1
+2026-07-30 16:19:55,871 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:19:58,490 - LOG - INFO - L2 loss final: 1.9183266162872314
+2026-07-30 16:19:58,490 - LOG - INFO - Residual final: 2887.388427734375
+2026-07-30 16:19:58,948 - LOG - INFO - Batch 63/64
+2026-07-30 16:20:00,097 - LOG - INFO - L2 loss init: 2.1501643657684326
+2026-07-30 16:20:00,097 - LOG - INFO - Run 1/1
+2026-07-30 16:20:00,097 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:20:02,715 - LOG - INFO - L2 loss final: 1.7280162572860718
+2026-07-30 16:20:02,715 - LOG - INFO - Residual final: 3051.130615234375
+2026-07-30 16:20:03,173 - LOG - INFO - Batch 64/64
+2026-07-30 16:20:03,627 - LOG - INFO - L2 loss init: 2.3428797721862793
+2026-07-30 16:20:03,627 - LOG - INFO - Run 1/1
+2026-07-30 16:20:03,628 - LOG - INFO - Starting DPS reverse sampling: 20 steps, scale_factor=4, zeta=3.0
+2026-07-30 16:20:22,133 - LOG - INFO - L2 loss final: 1.8663359880447388
+2026-07-30 16:20:22,134 - LOG - INFO - Residual final: 3213.9375
+2026-07-30 16:20:22,324 - LOG - INFO - Finished DPS sampling
+2026-07-30 16:20:22,325 - LOG - INFO - Mean L2 loss: 2.1618216487596618

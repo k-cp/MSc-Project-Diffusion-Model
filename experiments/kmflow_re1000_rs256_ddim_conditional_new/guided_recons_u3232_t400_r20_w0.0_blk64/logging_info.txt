@@ -1,0 +1,721 @@
+2026-07-30 16:15:07,766 - LOG - INFO - Doing sparse reconstruction task
+2026-07-30 16:15:07,767 - LOG - INFO - Loading model
+2026-07-30 16:15:08,080 - LOG - INFO - Model loaded
+2026-07-30 16:15:08,081 - LOG - INFO - Preparing data
+2026-07-30 16:15:15,085 - LOG - INFO - DEAD BLOCK: 64x64 unobserved square, position=random (seed 0); rebuilding from surviving sensors
+2026-07-30 16:15:15,507 - LOG - INFO -   trajectory 0: block 64x64 at (y=164, x=122); 52/1024 sensors dead, 972 surviving
+2026-07-30 16:15:15,521 - LOG - INFO -   trajectory 1: block 64x64 at (y=91, x=98); 42/1024 sensors dead, 982 surviving
+2026-07-30 16:15:15,534 - LOG - INFO -   trajectory 2: block 64x64 at (y=161, x=50); 74/1024 sensors dead, 950 surviving
+2026-07-30 16:15:15,549 - LOG - INFO -   trajectory 3: block 64x64 at (y=156, x=16); 46/1024 sensors dead, 978 surviving
+2026-07-30 16:15:15,549 - LOG - INFO -   sensors per trajectory truncated to a common 950 (from [972, 982, 950, 978]) so the index array is rectangular
+2026-07-30 16:15:15,551 - LOG - INFO - Physics mechanism: both (learned encoding + direct gradient descent (repo default))
+2026-07-30 16:15:15,551 - LOG - INFO - Start sampling
+2026-07-30 16:15:15,605 - LOG - INFO - Batch: 0 / Total batch 64
+2026-07-30 16:15:15,610 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:15,610 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:16,802 - LOG - INFO - L2 loss init: 2.421837568283081
+2026-07-30 16:15:17,022 - LOG - INFO - Residual init: 8847.3876953125
+2026-07-30 16:15:17,023 - LOG - INFO - Residual reference: 0.2325914204120636
+2026-07-30 16:15:17,023 - LOG - INFO - Run No.0:
+2026-07-30 16:15:32,239 - LOG - INFO - L2 loss it0: 1.971594214439392
+2026-07-30 16:15:32,291 - LOG - INFO - Residual it0: 49.722267150878906
+2026-07-30 16:15:32,889 - LOG - INFO - Finished batch 0
+2026-07-30 16:15:32,889 - LOG - INFO - ========================================================
+2026-07-30 16:15:32,890 - LOG - INFO - Batch: 1 / Total batch 64
+2026-07-30 16:15:32,891 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:32,891 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:33,948 - LOG - INFO - L2 loss init: 2.7030818462371826
+2026-07-30 16:15:33,954 - LOG - INFO - Residual init: 15620.2841796875
+2026-07-30 16:15:33,954 - LOG - INFO - Residual reference: 1.1843996047973633
+2026-07-30 16:15:33,954 - LOG - INFO - Run No.0:
+2026-07-30 16:15:36,761 - LOG - INFO - L2 loss it0: 2.15748929977417
+2026-07-30 16:15:36,813 - LOG - INFO - Residual it0: 65.8035659790039
+2026-07-30 16:15:37,420 - LOG - INFO - Finished batch 1
+2026-07-30 16:15:37,420 - LOG - INFO - ========================================================
+2026-07-30 16:15:37,425 - LOG - INFO - Batch: 2 / Total batch 64
+2026-07-30 16:15:37,426 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:37,426 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:38,506 - LOG - INFO - L2 loss init: 3.028019905090332
+2026-07-30 16:15:38,512 - LOG - INFO - Residual init: 19545.55078125
+2026-07-30 16:15:38,512 - LOG - INFO - Residual reference: 10.77868938446045
+2026-07-30 16:15:38,512 - LOG - INFO - Run No.0:
+2026-07-30 16:15:41,318 - LOG - INFO - L2 loss it0: 2.4238245487213135
+2026-07-30 16:15:41,370 - LOG - INFO - Residual it0: 89.5394287109375
+2026-07-30 16:15:41,890 - LOG - INFO - Finished batch 2
+2026-07-30 16:15:41,890 - LOG - INFO - ========================================================
+2026-07-30 16:15:41,891 - LOG - INFO - Batch: 3 / Total batch 64
+2026-07-30 16:15:41,891 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:41,891 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:43,120 - LOG - INFO - L2 loss init: 3.182797908782959
+2026-07-30 16:15:43,125 - LOG - INFO - Residual init: 19536.134765625
+2026-07-30 16:15:43,125 - LOG - INFO - Residual reference: 38.94977569580078
+2026-07-30 16:15:43,126 - LOG - INFO - Run No.0:
+2026-07-30 16:15:45,935 - LOG - INFO - L2 loss it0: 2.618344783782959
+2026-07-30 16:15:45,987 - LOG - INFO - Residual it0: 97.30554962158203
+2026-07-30 16:15:46,666 - LOG - INFO - Finished batch 3
+2026-07-30 16:15:46,666 - LOG - INFO - ========================================================
+2026-07-30 16:15:46,667 - LOG - INFO - Batch: 4 / Total batch 64
+2026-07-30 16:15:46,667 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:46,667 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:47,906 - LOG - INFO - L2 loss init: 3.312917709350586
+2026-07-30 16:15:47,911 - LOG - INFO - Residual init: 20150.375
+2026-07-30 16:15:47,912 - LOG - INFO - Residual reference: 36.11654281616211
+2026-07-30 16:15:47,912 - LOG - INFO - Run No.0:
+2026-07-30 16:15:50,722 - LOG - INFO - L2 loss it0: 2.774840831756592
+2026-07-30 16:15:50,774 - LOG - INFO - Residual it0: 92.32620239257812
+2026-07-30 16:15:51,291 - LOG - INFO - Finished batch 4
+2026-07-30 16:15:51,291 - LOG - INFO - ========================================================
+2026-07-30 16:15:51,292 - LOG - INFO - Batch: 5 / Total batch 64
+2026-07-30 16:15:51,293 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:51,293 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:52,518 - LOG - INFO - L2 loss init: 3.0824804306030273
+2026-07-30 16:15:52,524 - LOG - INFO - Residual init: 20317.50390625
+2026-07-30 16:15:52,524 - LOG - INFO - Residual reference: 26.219879150390625
+2026-07-30 16:15:52,524 - LOG - INFO - Run No.0:
+2026-07-30 16:15:55,332 - LOG - INFO - L2 loss it0: 2.517519235610962
+2026-07-30 16:15:55,384 - LOG - INFO - Residual it0: 83.26475524902344
+2026-07-30 16:15:55,902 - LOG - INFO - Finished batch 5
+2026-07-30 16:15:55,903 - LOG - INFO - ========================================================
+2026-07-30 16:15:55,904 - LOG - INFO - Batch: 6 / Total batch 64
+2026-07-30 16:15:55,905 - LOG - INFO - Preparing reference image
+2026-07-30 16:15:55,905 - LOG - INFO - Dumping visualization...
+2026-07-30 16:15:57,141 - LOG - INFO - L2 loss init: 2.935098886489868
+2026-07-30 16:15:57,146 - LOG - INFO - Residual init: 16178.15625
+2026-07-30 16:15:57,147 - LOG - INFO - Residual reference: 31.30133056640625
+2026-07-30 16:15:57,147 - LOG - INFO - Run No.0:
+2026-07-30 16:15:59,959 - LOG - INFO - L2 loss it0: 2.414907217025757
+2026-07-30 16:16:00,012 - LOG - INFO - Residual it0: 69.59062194824219
+2026-07-30 16:16:00,669 - LOG - INFO - Finished batch 6
+2026-07-30 16:16:00,669 - LOG - INFO - ========================================================
+2026-07-30 16:16:00,670 - LOG - INFO - Batch: 7 / Total batch 64
+2026-07-30 16:16:00,671 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:00,671 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:01,806 - LOG - INFO - L2 loss init: 2.6495141983032227
+2026-07-30 16:16:01,811 - LOG - INFO - Residual init: 13062.1533203125
+2026-07-30 16:16:01,811 - LOG - INFO - Residual reference: 18.1815242767334
+2026-07-30 16:16:01,811 - LOG - INFO - Run No.0:
+2026-07-30 16:16:04,626 - LOG - INFO - L2 loss it0: 2.18542742729187
+2026-07-30 16:16:04,679 - LOG - INFO - Residual it0: 55.251441955566406
+2026-07-30 16:16:05,198 - LOG - INFO - Finished batch 7
+2026-07-30 16:16:05,198 - LOG - INFO - ========================================================
+2026-07-30 16:16:05,199 - LOG - INFO - Batch: 8 / Total batch 64
+2026-07-30 16:16:05,199 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:05,199 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:06,444 - LOG - INFO - L2 loss init: 2.5062167644500732
+2026-07-30 16:16:06,450 - LOG - INFO - Residual init: 11513.408203125
+2026-07-30 16:16:06,450 - LOG - INFO - Residual reference: 12.405664443969727
+2026-07-30 16:16:06,450 - LOG - INFO - Run No.0:
+2026-07-30 16:16:09,265 - LOG - INFO - L2 loss it0: 2.0723326206207275
+2026-07-30 16:16:09,318 - LOG - INFO - Residual it0: 52.54270553588867
+2026-07-30 16:16:09,835 - LOG - INFO - Finished batch 8
+2026-07-30 16:16:09,835 - LOG - INFO - ========================================================
+2026-07-30 16:16:09,837 - LOG - INFO - Batch: 9 / Total batch 64
+2026-07-30 16:16:09,837 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:09,838 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:11,079 - LOG - INFO - L2 loss init: 2.4742047786712646
+2026-07-30 16:16:11,085 - LOG - INFO - Residual init: 11686.3935546875
+2026-07-30 16:16:11,085 - LOG - INFO - Residual reference: 9.762338638305664
+2026-07-30 16:16:11,085 - LOG - INFO - Run No.0:
+2026-07-30 16:16:13,897 - LOG - INFO - L2 loss it0: 2.0236477851867676
+2026-07-30 16:16:13,951 - LOG - INFO - Residual it0: 60.52190017700195
+2026-07-30 16:16:14,473 - LOG - INFO - Finished batch 9
+2026-07-30 16:16:14,473 - LOG - INFO - ========================================================
+2026-07-30 16:16:14,475 - LOG - INFO - Batch: 10 / Total batch 64
+2026-07-30 16:16:14,475 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:14,475 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:15,704 - LOG - INFO - L2 loss init: 2.493042230606079
+2026-07-30 16:16:15,710 - LOG - INFO - Residual init: 13301.9833984375
+2026-07-30 16:16:15,710 - LOG - INFO - Residual reference: 14.777048110961914
+2026-07-30 16:16:15,710 - LOG - INFO - Run No.0:
+2026-07-30 16:16:18,520 - LOG - INFO - L2 loss it0: 2.0210120677948
+2026-07-30 16:16:18,574 - LOG - INFO - Residual it0: 72.08583068847656
+2026-07-30 16:16:19,082 - LOG - INFO - Finished batch 10
+2026-07-30 16:16:19,082 - LOG - INFO - ========================================================
+2026-07-30 16:16:19,084 - LOG - INFO - Batch: 11 / Total batch 64
+2026-07-30 16:16:19,084 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:19,085 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:20,322 - LOG - INFO - L2 loss init: 2.523747682571411
+2026-07-30 16:16:20,328 - LOG - INFO - Residual init: 10839.4365234375
+2026-07-30 16:16:20,328 - LOG - INFO - Residual reference: 23.427417755126953
+2026-07-30 16:16:20,329 - LOG - INFO - Run No.0:
+2026-07-30 16:16:23,136 - LOG - INFO - L2 loss it0: 2.087146520614624
+2026-07-30 16:16:23,190 - LOG - INFO - Residual it0: 73.5794448852539
+2026-07-30 16:16:23,711 - LOG - INFO - Finished batch 11
+2026-07-30 16:16:23,711 - LOG - INFO - ========================================================
+2026-07-30 16:16:23,712 - LOG - INFO - Batch: 12 / Total batch 64
+2026-07-30 16:16:23,713 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:23,713 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:24,942 - LOG - INFO - L2 loss init: 2.4383833408355713
+2026-07-30 16:16:24,947 - LOG - INFO - Residual init: 9558.685546875
+2026-07-30 16:16:24,947 - LOG - INFO - Residual reference: 24.262832641601562
+2026-07-30 16:16:24,948 - LOG - INFO - Run No.0:
+2026-07-30 16:16:27,752 - LOG - INFO - L2 loss it0: 2.0029139518737793
+2026-07-30 16:16:27,805 - LOG - INFO - Residual it0: 69.43019104003906
+2026-07-30 16:16:28,318 - LOG - INFO - Finished batch 12
+2026-07-30 16:16:28,318 - LOG - INFO - ========================================================
+2026-07-30 16:16:28,320 - LOG - INFO - Batch: 13 / Total batch 64
+2026-07-30 16:16:28,321 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:28,321 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:29,548 - LOG - INFO - L2 loss init: 2.3835108280181885
+2026-07-30 16:16:29,554 - LOG - INFO - Residual init: 7699.109375
+2026-07-30 16:16:29,554 - LOG - INFO - Residual reference: 13.854331016540527
+2026-07-30 16:16:29,555 - LOG - INFO - Run No.0:
+2026-07-30 16:16:32,362 - LOG - INFO - L2 loss it0: 2.0357658863067627
+2026-07-30 16:16:32,416 - LOG - INFO - Residual it0: 58.9784049987793
+2026-07-30 16:16:32,918 - LOG - INFO - Finished batch 13
+2026-07-30 16:16:32,918 - LOG - INFO - ========================================================
+2026-07-30 16:16:32,919 - LOG - INFO - Batch: 14 / Total batch 64
+2026-07-30 16:16:32,920 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:32,920 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:34,117 - LOG - INFO - L2 loss init: 2.4828929901123047
+2026-07-30 16:16:34,122 - LOG - INFO - Residual init: 8039.0625
+2026-07-30 16:16:34,122 - LOG - INFO - Residual reference: 7.3335723876953125
+2026-07-30 16:16:34,123 - LOG - INFO - Run No.0:
+2026-07-30 16:16:36,928 - LOG - INFO - L2 loss it0: 2.1343860626220703
+2026-07-30 16:16:36,982 - LOG - INFO - Residual it0: 57.44622039794922
+2026-07-30 16:16:37,629 - LOG - INFO - Finished batch 14
+2026-07-30 16:16:37,629 - LOG - INFO - ========================================================
+2026-07-30 16:16:37,631 - LOG - INFO - Batch: 15 / Total batch 64
+2026-07-30 16:16:37,631 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:37,632 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:38,751 - LOG - INFO - L2 loss init: 2.449536085128784
+2026-07-30 16:16:38,756 - LOG - INFO - Residual init: 10199.5986328125
+2026-07-30 16:16:38,757 - LOG - INFO - Residual reference: 4.920243263244629
+2026-07-30 16:16:38,757 - LOG - INFO - Run No.0:
+2026-07-30 16:16:41,560 - LOG - INFO - L2 loss it0: 2.005797863006592
+2026-07-30 16:16:41,613 - LOG - INFO - Residual it0: 60.936248779296875
+2026-07-30 16:16:42,131 - LOG - INFO - Finished batch 15
+2026-07-30 16:16:42,131 - LOG - INFO - ========================================================
+2026-07-30 16:16:42,133 - LOG - INFO - Batch: 16 / Total batch 64
+2026-07-30 16:16:42,134 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:42,134 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:43,348 - LOG - INFO - L2 loss init: 2.5583815574645996
+2026-07-30 16:16:43,353 - LOG - INFO - Residual init: 9562.984375
+2026-07-30 16:16:43,353 - LOG - INFO - Residual reference: 0.4530046582221985
+2026-07-30 16:16:43,354 - LOG - INFO - Run No.0:
+2026-07-30 16:16:46,163 - LOG - INFO - L2 loss it0: 2.0541954040527344
+2026-07-30 16:16:46,216 - LOG - INFO - Residual it0: 68.64127349853516
+2026-07-30 16:16:46,736 - LOG - INFO - Finished batch 16
+2026-07-30 16:16:46,736 - LOG - INFO - ========================================================
+2026-07-30 16:16:46,738 - LOG - INFO - Batch: 17 / Total batch 64
+2026-07-30 16:16:46,739 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:46,739 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:47,957 - LOG - INFO - L2 loss init: 2.9831626415252686
+2026-07-30 16:16:47,963 - LOG - INFO - Residual init: 13034.76953125
+2026-07-30 16:16:47,963 - LOG - INFO - Residual reference: 2.1408298015594482
+2026-07-30 16:16:47,963 - LOG - INFO - Run No.0:
+2026-07-30 16:16:50,765 - LOG - INFO - L2 loss it0: 2.4877498149871826
+2026-07-30 16:16:50,819 - LOG - INFO - Residual it0: 81.9875717163086
+2026-07-30 16:16:51,324 - LOG - INFO - Finished batch 17
+2026-07-30 16:16:51,325 - LOG - INFO - ========================================================
+2026-07-30 16:16:51,326 - LOG - INFO - Batch: 18 / Total batch 64
+2026-07-30 16:16:51,327 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:51,327 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:52,547 - LOG - INFO - L2 loss init: 2.687518358230591
+2026-07-30 16:16:52,552 - LOG - INFO - Residual init: 11121.67578125
+2026-07-30 16:16:52,552 - LOG - INFO - Residual reference: 11.557971000671387
+2026-07-30 16:16:52,552 - LOG - INFO - Run No.0:
+2026-07-30 16:16:55,355 - LOG - INFO - L2 loss it0: 2.208543062210083
+2026-07-30 16:16:55,408 - LOG - INFO - Residual it0: 71.60285186767578
+2026-07-30 16:16:55,914 - LOG - INFO - Finished batch 18
+2026-07-30 16:16:55,915 - LOG - INFO - ========================================================
+2026-07-30 16:16:55,916 - LOG - INFO - Batch: 19 / Total batch 64
+2026-07-30 16:16:55,917 - LOG - INFO - Preparing reference image
+2026-07-30 16:16:55,917 - LOG - INFO - Dumping visualization...
+2026-07-30 16:16:57,142 - LOG - INFO - L2 loss init: 2.707902431488037
+2026-07-30 16:16:57,148 - LOG - INFO - Residual init: 11784.517578125
+2026-07-30 16:16:57,148 - LOG - INFO - Residual reference: 14.477574348449707
+2026-07-30 16:16:57,148 - LOG - INFO - Run No.0:
+2026-07-30 16:16:59,956 - LOG - INFO - L2 loss it0: 2.2163991928100586
+2026-07-30 16:17:00,011 - LOG - INFO - Residual it0: 62.688575744628906
+2026-07-30 16:17:00,523 - LOG - INFO - Finished batch 19
+2026-07-30 16:17:00,523 - LOG - INFO - ========================================================
+2026-07-30 16:17:00,525 - LOG - INFO - Batch: 20 / Total batch 64
+2026-07-30 16:17:00,526 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:00,526 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:01,742 - LOG - INFO - L2 loss init: 2.670802116394043
+2026-07-30 16:17:01,747 - LOG - INFO - Residual init: 11504.7998046875
+2026-07-30 16:17:01,747 - LOG - INFO - Residual reference: 8.642523765563965
+2026-07-30 16:17:01,748 - LOG - INFO - Run No.0:
+2026-07-30 16:17:04,561 - LOG - INFO - L2 loss it0: 2.215866804122925
+2026-07-30 16:17:04,614 - LOG - INFO - Residual it0: 58.987159729003906
+2026-07-30 16:17:05,128 - LOG - INFO - Finished batch 20
+2026-07-30 16:17:05,128 - LOG - INFO - ========================================================
+2026-07-30 16:17:05,130 - LOG - INFO - Batch: 21 / Total batch 64
+2026-07-30 16:17:05,130 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:05,131 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:06,355 - LOG - INFO - L2 loss init: 2.5730504989624023
+2026-07-30 16:17:06,361 - LOG - INFO - Residual init: 10748.9990234375
+2026-07-30 16:17:06,361 - LOG - INFO - Residual reference: 17.337251663208008
+2026-07-30 16:17:06,361 - LOG - INFO - Run No.0:
+2026-07-30 16:17:09,169 - LOG - INFO - L2 loss it0: 2.145031452178955
+2026-07-30 16:17:09,226 - LOG - INFO - Residual it0: 53.971435546875
+2026-07-30 16:17:09,738 - LOG - INFO - Finished batch 21
+2026-07-30 16:17:09,738 - LOG - INFO - ========================================================
+2026-07-30 16:17:09,739 - LOG - INFO - Batch: 22 / Total batch 64
+2026-07-30 16:17:09,740 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:09,740 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:10,954 - LOG - INFO - L2 loss init: 2.4583404064178467
+2026-07-30 16:17:10,960 - LOG - INFO - Residual init: 8806.203125
+2026-07-30 16:17:10,960 - LOG - INFO - Residual reference: 10.907928466796875
+2026-07-30 16:17:10,960 - LOG - INFO - Run No.0:
+2026-07-30 16:17:13,767 - LOG - INFO - L2 loss it0: 2.087733030319214
+2026-07-30 16:17:13,819 - LOG - INFO - Residual it0: 60.06882858276367
+2026-07-30 16:17:14,465 - LOG - INFO - Finished batch 22
+2026-07-30 16:17:14,465 - LOG - INFO - ========================================================
+2026-07-30 16:17:14,466 - LOG - INFO - Batch: 23 / Total batch 64
+2026-07-30 16:17:14,467 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:14,467 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:15,594 - LOG - INFO - L2 loss init: 2.4529013633728027
+2026-07-30 16:17:15,599 - LOG - INFO - Residual init: 7539.79541015625
+2026-07-30 16:17:15,600 - LOG - INFO - Residual reference: 6.297004699707031
+2026-07-30 16:17:15,600 - LOG - INFO - Run No.0:
+2026-07-30 16:17:18,405 - LOG - INFO - L2 loss it0: 2.0819623470306396
+2026-07-30 16:17:18,458 - LOG - INFO - Residual it0: 57.17429733276367
+2026-07-30 16:17:18,979 - LOG - INFO - Finished batch 23
+2026-07-30 16:17:18,979 - LOG - INFO - ========================================================
+2026-07-30 16:17:18,981 - LOG - INFO - Batch: 24 / Total batch 64
+2026-07-30 16:17:18,981 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:18,981 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:20,207 - LOG - INFO - L2 loss init: 2.35154128074646
+2026-07-30 16:17:20,213 - LOG - INFO - Residual init: 7708.9658203125
+2026-07-30 16:17:20,213 - LOG - INFO - Residual reference: 7.96990966796875
+2026-07-30 16:17:20,213 - LOG - INFO - Run No.0:
+2026-07-30 16:17:23,016 - LOG - INFO - L2 loss it0: 1.927828073501587
+2026-07-30 16:17:23,068 - LOG - INFO - Residual it0: 54.43060302734375
+2026-07-30 16:17:23,581 - LOG - INFO - Finished batch 24
+2026-07-30 16:17:23,581 - LOG - INFO - ========================================================
+2026-07-30 16:17:23,582 - LOG - INFO - Batch: 25 / Total batch 64
+2026-07-30 16:17:23,583 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:23,583 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:24,807 - LOG - INFO - L2 loss init: 2.293452262878418
+2026-07-30 16:17:24,812 - LOG - INFO - Residual init: 9338.421875
+2026-07-30 16:17:24,813 - LOG - INFO - Residual reference: 9.730875015258789
+2026-07-30 16:17:24,813 - LOG - INFO - Run No.0:
+2026-07-30 16:17:27,618 - LOG - INFO - L2 loss it0: 1.8484907150268555
+2026-07-30 16:17:27,670 - LOG - INFO - Residual it0: 54.865013122558594
+2026-07-30 16:17:28,183 - LOG - INFO - Finished batch 25
+2026-07-30 16:17:28,184 - LOG - INFO - ========================================================
+2026-07-30 16:17:28,185 - LOG - INFO - Batch: 26 / Total batch 64
+2026-07-30 16:17:28,186 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:28,186 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:29,423 - LOG - INFO - L2 loss init: 2.4525091648101807
+2026-07-30 16:17:29,429 - LOG - INFO - Residual init: 9704.1357421875
+2026-07-30 16:17:29,429 - LOG - INFO - Residual reference: 5.89499044418335
+2026-07-30 16:17:29,429 - LOG - INFO - Run No.0:
+2026-07-30 16:17:32,227 - LOG - INFO - L2 loss it0: 2.0102016925811768
+2026-07-30 16:17:32,280 - LOG - INFO - Residual it0: 60.88515090942383
+2026-07-30 16:17:32,800 - LOG - INFO - Finished batch 26
+2026-07-30 16:17:32,800 - LOG - INFO - ========================================================
+2026-07-30 16:17:32,802 - LOG - INFO - Batch: 27 / Total batch 64
+2026-07-30 16:17:32,803 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:32,803 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:34,034 - LOG - INFO - L2 loss init: 2.5700013637542725
+2026-07-30 16:17:34,040 - LOG - INFO - Residual init: 11273.869140625
+2026-07-30 16:17:34,040 - LOG - INFO - Residual reference: 9.004637718200684
+2026-07-30 16:17:34,040 - LOG - INFO - Run No.0:
+2026-07-30 16:17:36,833 - LOG - INFO - L2 loss it0: 2.115297555923462
+2026-07-30 16:17:36,886 - LOG - INFO - Residual it0: 57.9008903503418
+2026-07-30 16:17:37,407 - LOG - INFO - Finished batch 27
+2026-07-30 16:17:37,408 - LOG - INFO - ========================================================
+2026-07-30 16:17:37,409 - LOG - INFO - Batch: 28 / Total batch 64
+2026-07-30 16:17:37,410 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:37,410 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:38,636 - LOG - INFO - L2 loss init: 2.841456651687622
+2026-07-30 16:17:38,641 - LOG - INFO - Residual init: 15205.6123046875
+2026-07-30 16:17:38,642 - LOG - INFO - Residual reference: 9.752290725708008
+2026-07-30 16:17:38,642 - LOG - INFO - Run No.0:
+2026-07-30 16:17:41,437 - LOG - INFO - L2 loss it0: 2.3591625690460205
+2026-07-30 16:17:41,490 - LOG - INFO - Residual it0: 65.48912048339844
+2026-07-30 16:17:41,999 - LOG - INFO - Finished batch 28
+2026-07-30 16:17:41,999 - LOG - INFO - ========================================================
+2026-07-30 16:17:42,000 - LOG - INFO - Batch: 29 / Total batch 64
+2026-07-30 16:17:42,001 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:42,001 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:43,216 - LOG - INFO - L2 loss init: 2.9257915019989014
+2026-07-30 16:17:43,221 - LOG - INFO - Residual init: 19462.990234375
+2026-07-30 16:17:43,221 - LOG - INFO - Residual reference: 10.89304256439209
+2026-07-30 16:17:43,221 - LOG - INFO - Run No.0:
+2026-07-30 16:17:46,017 - LOG - INFO - L2 loss it0: 2.42612361907959
+2026-07-30 16:17:46,070 - LOG - INFO - Residual it0: 74.03215026855469
+2026-07-30 16:17:46,577 - LOG - INFO - Finished batch 29
+2026-07-30 16:17:46,577 - LOG - INFO - ========================================================
+2026-07-30 16:17:46,579 - LOG - INFO - Batch: 30 / Total batch 64
+2026-07-30 16:17:46,580 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:46,580 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:47,792 - LOG - INFO - L2 loss init: 2.8688859939575195
+2026-07-30 16:17:47,797 - LOG - INFO - Residual init: 18344.630859375
+2026-07-30 16:17:47,797 - LOG - INFO - Residual reference: 21.821125030517578
+2026-07-30 16:17:47,798 - LOG - INFO - Run No.0:
+2026-07-30 16:17:50,592 - LOG - INFO - L2 loss it0: 2.3598153591156006
+2026-07-30 16:17:50,645 - LOG - INFO - Residual it0: 93.52830505371094
+2026-07-30 16:17:51,285 - LOG - INFO - Finished batch 30
+2026-07-30 16:17:51,285 - LOG - INFO - ========================================================
+2026-07-30 16:17:51,286 - LOG - INFO - Batch: 31 / Total batch 64
+2026-07-30 16:17:51,287 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:51,287 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:52,412 - LOG - INFO - L2 loss init: 2.762941837310791
+2026-07-30 16:17:52,418 - LOG - INFO - Residual init: 15776.015625
+2026-07-30 16:17:52,418 - LOG - INFO - Residual reference: 18.880874633789062
+2026-07-30 16:17:52,418 - LOG - INFO - Run No.0:
+2026-07-30 16:17:55,208 - LOG - INFO - L2 loss it0: 2.2674360275268555
+2026-07-30 16:17:55,260 - LOG - INFO - Residual it0: 74.21820068359375
+2026-07-30 16:17:55,774 - LOG - INFO - Finished batch 31
+2026-07-30 16:17:55,774 - LOG - INFO - ========================================================
+2026-07-30 16:17:55,775 - LOG - INFO - Batch: 32 / Total batch 64
+2026-07-30 16:17:55,776 - LOG - INFO - Preparing reference image
+2026-07-30 16:17:55,776 - LOG - INFO - Dumping visualization...
+2026-07-30 16:17:57,000 - LOG - INFO - L2 loss init: 2.4466562271118164
+2026-07-30 16:17:57,005 - LOG - INFO - Residual init: 7393.1220703125
+2026-07-30 16:17:57,006 - LOG - INFO - Residual reference: 0.33292698860168457
+2026-07-30 16:17:57,006 - LOG - INFO - Run No.0:
+2026-07-30 16:17:59,795 - LOG - INFO - L2 loss it0: 2.012852191925049
+2026-07-30 16:17:59,848 - LOG - INFO - Residual it0: 51.3902702331543
+2026-07-30 16:18:00,368 - LOG - INFO - Finished batch 32
+2026-07-30 16:18:00,369 - LOG - INFO - ========================================================
+2026-07-30 16:18:00,370 - LOG - INFO - Batch: 33 / Total batch 64
+2026-07-30 16:18:00,371 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:00,371 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:01,601 - LOG - INFO - L2 loss init: 3.00930118560791
+2026-07-30 16:18:01,606 - LOG - INFO - Residual init: 10404.8896484375
+2026-07-30 16:18:01,607 - LOG - INFO - Residual reference: 2.2062270641326904
+2026-07-30 16:18:01,607 - LOG - INFO - Run No.0:
+2026-07-30 16:18:04,399 - LOG - INFO - L2 loss it0: 2.550689935684204
+2026-07-30 16:18:04,451 - LOG - INFO - Residual it0: 71.28060150146484
+2026-07-30 16:18:04,960 - LOG - INFO - Finished batch 33
+2026-07-30 16:18:04,960 - LOG - INFO - ========================================================
+2026-07-30 16:18:04,961 - LOG - INFO - Batch: 34 / Total batch 64
+2026-07-30 16:18:04,962 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:04,962 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:06,190 - LOG - INFO - L2 loss init: 3.148667573928833
+2026-07-30 16:18:06,196 - LOG - INFO - Residual init: 13014.5673828125
+2026-07-30 16:18:06,196 - LOG - INFO - Residual reference: 7.665576457977295
+2026-07-30 16:18:06,196 - LOG - INFO - Run No.0:
+2026-07-30 16:18:08,985 - LOG - INFO - L2 loss it0: 2.6449408531188965
+2026-07-30 16:18:09,038 - LOG - INFO - Residual it0: 90.3485107421875
+2026-07-30 16:18:09,558 - LOG - INFO - Finished batch 34
+2026-07-30 16:18:09,558 - LOG - INFO - ========================================================
+2026-07-30 16:18:09,560 - LOG - INFO - Batch: 35 / Total batch 64
+2026-07-30 16:18:09,560 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:09,561 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:10,784 - LOG - INFO - L2 loss init: 2.9221980571746826
+2026-07-30 16:18:10,790 - LOG - INFO - Residual init: 12491.1337890625
+2026-07-30 16:18:10,790 - LOG - INFO - Residual reference: 18.167978286743164
+2026-07-30 16:18:10,790 - LOG - INFO - Run No.0:
+2026-07-30 16:18:13,586 - LOG - INFO - L2 loss it0: 2.4173295497894287
+2026-07-30 16:18:13,639 - LOG - INFO - Residual it0: 77.72908782958984
+2026-07-30 16:18:14,154 - LOG - INFO - Finished batch 35
+2026-07-30 16:18:14,154 - LOG - INFO - ========================================================
+2026-07-30 16:18:14,156 - LOG - INFO - Batch: 36 / Total batch 64
+2026-07-30 16:18:14,157 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:14,157 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:15,381 - LOG - INFO - L2 loss init: 2.6820528507232666
+2026-07-30 16:18:15,387 - LOG - INFO - Residual init: 10262.4521484375
+2026-07-30 16:18:15,387 - LOG - INFO - Residual reference: 25.210546493530273
+2026-07-30 16:18:15,387 - LOG - INFO - Run No.0:
+2026-07-30 16:18:18,187 - LOG - INFO - L2 loss it0: 2.24079966545105
+2026-07-30 16:18:18,240 - LOG - INFO - Residual it0: 64.5141830444336
+2026-07-30 16:18:18,759 - LOG - INFO - Finished batch 36
+2026-07-30 16:18:18,759 - LOG - INFO - ========================================================
+2026-07-30 16:18:18,761 - LOG - INFO - Batch: 37 / Total batch 64
+2026-07-30 16:18:18,762 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:18,762 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:19,984 - LOG - INFO - L2 loss init: 2.443760395050049
+2026-07-30 16:18:19,990 - LOG - INFO - Residual init: 10431.1806640625
+2026-07-30 16:18:19,990 - LOG - INFO - Residual reference: 17.16460418701172
+2026-07-30 16:18:19,990 - LOG - INFO - Run No.0:
+2026-07-30 16:18:22,781 - LOG - INFO - L2 loss it0: 1.967963695526123
+2026-07-30 16:18:22,834 - LOG - INFO - Residual it0: 56.03220748901367
+2026-07-30 16:18:23,343 - LOG - INFO - Finished batch 37
+2026-07-30 16:18:23,343 - LOG - INFO - ========================================================
+2026-07-30 16:18:23,345 - LOG - INFO - Batch: 38 / Total batch 64
+2026-07-30 16:18:23,345 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:23,345 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:24,561 - LOG - INFO - L2 loss init: 2.414577007293701
+2026-07-30 16:18:24,567 - LOG - INFO - Residual init: 9798.0654296875
+2026-07-30 16:18:24,567 - LOG - INFO - Residual reference: 6.1300272941589355
+2026-07-30 16:18:24,567 - LOG - INFO - Run No.0:
+2026-07-30 16:18:27,355 - LOG - INFO - L2 loss it0: 1.937988042831421
+2026-07-30 16:18:27,408 - LOG - INFO - Residual it0: 58.092308044433594
+2026-07-30 16:18:28,048 - LOG - INFO - Finished batch 38
+2026-07-30 16:18:28,048 - LOG - INFO - ========================================================
+2026-07-30 16:18:28,050 - LOG - INFO - Batch: 39 / Total batch 64
+2026-07-30 16:18:28,051 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:28,051 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:29,174 - LOG - INFO - L2 loss init: 2.388415575027466
+2026-07-30 16:18:29,180 - LOG - INFO - Residual init: 9267.4013671875
+2026-07-30 16:18:29,180 - LOG - INFO - Residual reference: 4.941177845001221
+2026-07-30 16:18:29,180 - LOG - INFO - Run No.0:
+2026-07-30 16:18:31,969 - LOG - INFO - L2 loss it0: 1.965671420097351
+2026-07-30 16:18:32,022 - LOG - INFO - Residual it0: 48.08833694458008
+2026-07-30 16:18:32,538 - LOG - INFO - Finished batch 39
+2026-07-30 16:18:32,539 - LOG - INFO - ========================================================
+2026-07-30 16:18:32,540 - LOG - INFO - Batch: 40 / Total batch 64
+2026-07-30 16:18:32,541 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:32,541 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:33,767 - LOG - INFO - L2 loss init: 2.52634596824646
+2026-07-30 16:18:33,772 - LOG - INFO - Residual init: 9873.513671875
+2026-07-30 16:18:33,772 - LOG - INFO - Residual reference: 6.80880880355835
+2026-07-30 16:18:33,772 - LOG - INFO - Run No.0:
+2026-07-30 16:18:36,565 - LOG - INFO - L2 loss it0: 2.1073148250579834
+2026-07-30 16:18:36,618 - LOG - INFO - Residual it0: 59.1474609375
+2026-07-30 16:18:37,251 - LOG - INFO - Finished batch 40
+2026-07-30 16:18:37,251 - LOG - INFO - ========================================================
+2026-07-30 16:18:37,253 - LOG - INFO - Batch: 41 / Total batch 64
+2026-07-30 16:18:37,254 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:37,254 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:38,474 - LOG - INFO - L2 loss init: 2.9328854084014893
+2026-07-30 16:18:38,479 - LOG - INFO - Residual init: 12555.287109375
+2026-07-30 16:18:38,480 - LOG - INFO - Residual reference: 12.230463981628418
+2026-07-30 16:18:38,480 - LOG - INFO - Run No.0:
+2026-07-30 16:18:41,272 - LOG - INFO - L2 loss it0: 2.4689366817474365
+2026-07-30 16:18:41,325 - LOG - INFO - Residual it0: 81.13948059082031
+2026-07-30 16:18:41,835 - LOG - INFO - Finished batch 41
+2026-07-30 16:18:41,836 - LOG - INFO - ========================================================
+2026-07-30 16:18:41,837 - LOG - INFO - Batch: 42 / Total batch 64
+2026-07-30 16:18:41,838 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:41,838 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:43,061 - LOG - INFO - L2 loss init: 2.9976046085357666
+2026-07-30 16:18:43,067 - LOG - INFO - Residual init: 20163.5390625
+2026-07-30 16:18:43,067 - LOG - INFO - Residual reference: 48.10746383666992
+2026-07-30 16:18:43,067 - LOG - INFO - Run No.0:
+2026-07-30 16:18:45,862 - LOG - INFO - L2 loss it0: 2.458250045776367
+2026-07-30 16:18:45,914 - LOG - INFO - Residual it0: 125.818359375
+2026-07-30 16:18:46,422 - LOG - INFO - Finished batch 42
+2026-07-30 16:18:46,422 - LOG - INFO - ========================================================
+2026-07-30 16:18:46,424 - LOG - INFO - Batch: 43 / Total batch 64
+2026-07-30 16:18:46,425 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:46,425 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:47,649 - LOG - INFO - L2 loss init: 2.8460779190063477
+2026-07-30 16:18:47,655 - LOG - INFO - Residual init: 17147.443359375
+2026-07-30 16:18:47,655 - LOG - INFO - Residual reference: 30.381805419921875
+2026-07-30 16:18:47,655 - LOG - INFO - Run No.0:
+2026-07-30 16:18:50,445 - LOG - INFO - L2 loss it0: 2.344805955886841
+2026-07-30 16:18:50,497 - LOG - INFO - Residual it0: 100.62371826171875
+2026-07-30 16:18:51,004 - LOG - INFO - Finished batch 43
+2026-07-30 16:18:51,004 - LOG - INFO - ========================================================
+2026-07-30 16:18:51,005 - LOG - INFO - Batch: 44 / Total batch 64
+2026-07-30 16:18:51,006 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:51,006 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:52,241 - LOG - INFO - L2 loss init: 2.809335470199585
+2026-07-30 16:18:52,247 - LOG - INFO - Residual init: 14897.337890625
+2026-07-30 16:18:52,247 - LOG - INFO - Residual reference: 27.47104263305664
+2026-07-30 16:18:52,247 - LOG - INFO - Run No.0:
+2026-07-30 16:18:55,165 - LOG - INFO - L2 loss it0: 2.341137409210205
+2026-07-30 16:18:55,218 - LOG - INFO - Residual it0: 78.91957092285156
+2026-07-30 16:18:55,728 - LOG - INFO - Finished batch 44
+2026-07-30 16:18:55,728 - LOG - INFO - ========================================================
+2026-07-30 16:18:55,730 - LOG - INFO - Batch: 45 / Total batch 64
+2026-07-30 16:18:55,731 - LOG - INFO - Preparing reference image
+2026-07-30 16:18:55,731 - LOG - INFO - Dumping visualization...
+2026-07-30 16:18:56,954 - LOG - INFO - L2 loss init: 2.6616663932800293
+2026-07-30 16:18:56,960 - LOG - INFO - Residual init: 14687.962890625
+2026-07-30 16:18:56,960 - LOG - INFO - Residual reference: 24.951963424682617
+2026-07-30 16:18:56,960 - LOG - INFO - Run No.0:
+2026-07-30 16:18:59,750 - LOG - INFO - L2 loss it0: 2.186572790145874
+2026-07-30 16:18:59,803 - LOG - INFO - Residual it0: 70.6067886352539
+2026-07-30 16:19:00,311 - LOG - INFO - Finished batch 45
+2026-07-30 16:19:00,311 - LOG - INFO - ========================================================
+2026-07-30 16:19:00,312 - LOG - INFO - Batch: 46 / Total batch 64
+2026-07-30 16:19:00,313 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:00,313 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:01,532 - LOG - INFO - L2 loss init: 2.594919443130493
+2026-07-30 16:19:01,538 - LOG - INFO - Residual init: 13909.7255859375
+2026-07-30 16:19:01,538 - LOG - INFO - Residual reference: 19.61075782775879
+2026-07-30 16:19:01,538 - LOG - INFO - Run No.0:
+2026-07-30 16:19:04,325 - LOG - INFO - L2 loss it0: 2.1543781757354736
+2026-07-30 16:19:04,378 - LOG - INFO - Residual it0: 59.0505485534668
+2026-07-30 16:19:05,028 - LOG - INFO - Finished batch 46
+2026-07-30 16:19:05,029 - LOG - INFO - ========================================================
+2026-07-30 16:19:05,030 - LOG - INFO - Batch: 47 / Total batch 64
+2026-07-30 16:19:05,031 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:05,031 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:06,157 - LOG - INFO - L2 loss init: 2.4913198947906494
+2026-07-30 16:19:06,163 - LOG - INFO - Residual init: 12290.109375
+2026-07-30 16:19:06,163 - LOG - INFO - Residual reference: 12.178547859191895
+2026-07-30 16:19:06,163 - LOG - INFO - Run No.0:
+2026-07-30 16:19:08,958 - LOG - INFO - L2 loss it0: 2.0319855213165283
+2026-07-30 16:19:09,012 - LOG - INFO - Residual it0: 65.29426574707031
+2026-07-30 16:19:09,528 - LOG - INFO - Finished batch 47
+2026-07-30 16:19:09,528 - LOG - INFO - ========================================================
+2026-07-30 16:19:09,530 - LOG - INFO - Batch: 48 / Total batch 64
+2026-07-30 16:19:09,531 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:09,531 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:10,754 - LOG - INFO - L2 loss init: 2.3426122665405273
+2026-07-30 16:19:10,760 - LOG - INFO - Residual init: 9101.5517578125
+2026-07-30 16:19:10,760 - LOG - INFO - Residual reference: 0.6329018473625183
+2026-07-30 16:19:10,761 - LOG - INFO - Run No.0:
+2026-07-30 16:19:13,551 - LOG - INFO - L2 loss it0: 1.8442341089248657
+2026-07-30 16:19:13,603 - LOG - INFO - Residual it0: 56.279701232910156
+2026-07-30 16:19:14,117 - LOG - INFO - Finished batch 48
+2026-07-30 16:19:14,117 - LOG - INFO - ========================================================
+2026-07-30 16:19:14,119 - LOG - INFO - Batch: 49 / Total batch 64
+2026-07-30 16:19:14,119 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:14,120 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:15,345 - LOG - INFO - L2 loss init: 2.805504083633423
+2026-07-30 16:19:15,351 - LOG - INFO - Residual init: 12348.283203125
+2026-07-30 16:19:15,351 - LOG - INFO - Residual reference: 2.5307483673095703
+2026-07-30 16:19:15,351 - LOG - INFO - Run No.0:
+2026-07-30 16:19:18,154 - LOG - INFO - L2 loss it0: 2.266375780105591
+2026-07-30 16:19:18,206 - LOG - INFO - Residual it0: 70.12141418457031
+2026-07-30 16:19:18,715 - LOG - INFO - Finished batch 49
+2026-07-30 16:19:18,716 - LOG - INFO - ========================================================
+2026-07-30 16:19:18,717 - LOG - INFO - Batch: 50 / Total batch 64
+2026-07-30 16:19:18,718 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:18,718 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:19,945 - LOG - INFO - L2 loss init: 2.8535962104797363
+2026-07-30 16:19:19,951 - LOG - INFO - Residual init: 11962.2880859375
+2026-07-30 16:19:19,951 - LOG - INFO - Residual reference: 9.084022521972656
+2026-07-30 16:19:19,951 - LOG - INFO - Run No.0:
+2026-07-30 16:19:22,755 - LOG - INFO - L2 loss it0: 2.2989892959594727
+2026-07-30 16:19:22,809 - LOG - INFO - Residual it0: 77.14022064208984
+2026-07-30 16:19:23,321 - LOG - INFO - Finished batch 50
+2026-07-30 16:19:23,321 - LOG - INFO - ========================================================
+2026-07-30 16:19:23,322 - LOG - INFO - Batch: 51 / Total batch 64
+2026-07-30 16:19:23,323 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:23,323 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:24,545 - LOG - INFO - L2 loss init: 2.5597052574157715
+2026-07-30 16:19:24,550 - LOG - INFO - Residual init: 8738.8681640625
+2026-07-30 16:19:24,550 - LOG - INFO - Residual reference: 10.788734436035156
+2026-07-30 16:19:24,551 - LOG - INFO - Run No.0:
+2026-07-30 16:19:27,349 - LOG - INFO - L2 loss it0: 2.081967353820801
+2026-07-30 16:19:27,402 - LOG - INFO - Residual it0: 76.72595977783203
+2026-07-30 16:19:27,920 - LOG - INFO - Finished batch 51
+2026-07-30 16:19:27,920 - LOG - INFO - ========================================================
+2026-07-30 16:19:27,922 - LOG - INFO - Batch: 52 / Total batch 64
+2026-07-30 16:19:27,923 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:27,923 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:29,144 - LOG - INFO - L2 loss init: 2.454908609390259
+2026-07-30 16:19:29,150 - LOG - INFO - Residual init: 6368.98193359375
+2026-07-30 16:19:29,150 - LOG - INFO - Residual reference: 13.7975492477417
+2026-07-30 16:19:29,150 - LOG - INFO - Run No.0:
+2026-07-30 16:19:31,948 - LOG - INFO - L2 loss it0: 2.0496928691864014
+2026-07-30 16:19:32,002 - LOG - INFO - Residual it0: 64.24799346923828
+2026-07-30 16:19:32,520 - LOG - INFO - Finished batch 52
+2026-07-30 16:19:32,520 - LOG - INFO - ========================================================
+2026-07-30 16:19:32,522 - LOG - INFO - Batch: 53 / Total batch 64
+2026-07-30 16:19:32,522 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:32,523 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:33,752 - LOG - INFO - L2 loss init: 2.4541852474212646
+2026-07-30 16:19:33,757 - LOG - INFO - Residual init: 5793.87548828125
+2026-07-30 16:19:33,757 - LOG - INFO - Residual reference: 14.184832572937012
+2026-07-30 16:19:33,758 - LOG - INFO - Run No.0:
+2026-07-30 16:19:36,558 - LOG - INFO - L2 loss it0: 2.035109758377075
+2026-07-30 16:19:36,611 - LOG - INFO - Residual it0: 62.16804122924805
+2026-07-30 16:19:37,130 - LOG - INFO - Finished batch 53
+2026-07-30 16:19:37,130 - LOG - INFO - ========================================================
+2026-07-30 16:19:37,131 - LOG - INFO - Batch: 54 / Total batch 64
+2026-07-30 16:19:37,132 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:37,132 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:38,354 - LOG - INFO - L2 loss init: 2.3492510318756104
+2026-07-30 16:19:38,359 - LOG - INFO - Residual init: 5241.42333984375
+2026-07-30 16:19:38,359 - LOG - INFO - Residual reference: 7.087840557098389
+2026-07-30 16:19:38,360 - LOG - INFO - Run No.0:
+2026-07-30 16:19:41,160 - LOG - INFO - L2 loss it0: 1.9935935735702515
+2026-07-30 16:19:41,213 - LOG - INFO - Residual it0: 56.64324188232422
+2026-07-30 16:19:41,854 - LOG - INFO - Finished batch 54
+2026-07-30 16:19:41,854 - LOG - INFO - ========================================================
+2026-07-30 16:19:41,856 - LOG - INFO - Batch: 55 / Total batch 64
+2026-07-30 16:19:41,856 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:41,856 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:42,975 - LOG - INFO - L2 loss init: 2.4036526679992676
+2026-07-30 16:19:42,981 - LOG - INFO - Residual init: 5826.14599609375
+2026-07-30 16:19:42,981 - LOG - INFO - Residual reference: 6.100526809692383
+2026-07-30 16:19:42,981 - LOG - INFO - Run No.0:
+2026-07-30 16:19:45,779 - LOG - INFO - L2 loss it0: 2.020862340927124
+2026-07-30 16:19:45,831 - LOG - INFO - Residual it0: 58.75028610229492
+2026-07-30 16:19:46,347 - LOG - INFO - Finished batch 55
+2026-07-30 16:19:46,347 - LOG - INFO - ========================================================
+2026-07-30 16:19:46,349 - LOG - INFO - Batch: 56 / Total batch 64
+2026-07-30 16:19:46,350 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:46,350 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:47,579 - LOG - INFO - L2 loss init: 2.4553191661834717
+2026-07-30 16:19:47,585 - LOG - INFO - Residual init: 6664.40185546875
+2026-07-30 16:19:47,585 - LOG - INFO - Residual reference: 4.251646518707275
+2026-07-30 16:19:47,585 - LOG - INFO - Run No.0:
+2026-07-30 16:19:50,387 - LOG - INFO - L2 loss it0: 2.0819296836853027
+2026-07-30 16:19:50,441 - LOG - INFO - Residual it0: 58.583168029785156
+2026-07-30 16:19:50,958 - LOG - INFO - Finished batch 56
+2026-07-30 16:19:50,959 - LOG - INFO - ========================================================
+2026-07-30 16:19:50,960 - LOG - INFO - Batch: 57 / Total batch 64
+2026-07-30 16:19:50,961 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:50,961 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:52,193 - LOG - INFO - L2 loss init: 2.563382148742676
+2026-07-30 16:19:52,199 - LOG - INFO - Residual init: 6503.99560546875
+2026-07-30 16:19:52,199 - LOG - INFO - Residual reference: 3.8696815967559814
+2026-07-30 16:19:52,200 - LOG - INFO - Run No.0:
+2026-07-30 16:19:55,001 - LOG - INFO - L2 loss it0: 2.159886598587036
+2026-07-30 16:19:55,054 - LOG - INFO - Residual it0: 69.86290740966797
+2026-07-30 16:19:55,565 - LOG - INFO - Finished batch 57
+2026-07-30 16:19:55,565 - LOG - INFO - ========================================================
+2026-07-30 16:19:55,567 - LOG - INFO - Batch: 58 / Total batch 64
+2026-07-30 16:19:55,568 - LOG - INFO - Preparing reference image
+2026-07-30 16:19:55,568 - LOG - INFO - Dumping visualization...
+2026-07-30 16:19:56,808 - LOG - INFO - L2 loss init: 2.397728443145752
+2026-07-30 16:19:56,814 - LOG - INFO - Residual init: 6129.99365234375
+2026-07-30 16:19:56,815 - LOG - INFO - Residual reference: 5.081969738006592
+2026-07-30 16:19:56,815 - LOG - INFO - Run No.0:
+2026-07-30 16:19:59,626 - LOG - INFO - L2 loss it0: 1.9966274499893188
+2026-07-30 16:19:59,680 - LOG - INFO - Residual it0: 62.82822799682617
+2026-07-30 16:20:00,191 - LOG - INFO - Finished batch 58
+2026-07-30 16:20:00,191 - LOG - INFO - ========================================================
+2026-07-30 16:20:00,193 - LOG - INFO - Batch: 59 / Total batch 64
+2026-07-30 16:20:00,194 - LOG - INFO - Preparing reference image
+2026-07-30 16:20:00,194 - LOG - INFO - Dumping visualization...
+2026-07-30 16:20:01,425 - LOG - INFO - L2 loss init: 2.3442952632904053
+2026-07-30 16:20:01,431 - LOG - INFO - Residual init: 6484.21240234375
+2026-07-30 16:20:01,431 - LOG - INFO - Residual reference: 5.744744777679443
+2026-07-30 16:20:01,431 - LOG - INFO - Run No.0:
+2026-07-30 16:20:04,234 - LOG - INFO - L2 loss it0: 1.9411194324493408
+2026-07-30 16:20:04,287 - LOG - INFO - Residual it0: 65.77225494384766
+2026-07-30 16:20:04,793 - LOG - INFO - Finished batch 59
+2026-07-30 16:20:04,793 - LOG - INFO - ========================================================
+2026-07-30 16:20:04,795 - LOG - INFO - Batch: 60 / Total batch 64
+2026-07-30 16:20:04,796 - LOG - INFO - Preparing reference image
+2026-07-30 16:20:04,796 - LOG - INFO - Dumping visualization...
+2026-07-30 16:20:06,007 - LOG - INFO - L2 loss init: 2.2693519592285156
+2026-07-30 16:20:06,012 - LOG - INFO - Residual init: 5704.3359375
+2026-07-30 16:20:06,012 - LOG - INFO - Residual reference: 5.954959392547607
+2026-07-30 16:20:06,013 - LOG - INFO - Run No.0:
+2026-07-30 16:20:08,814 - LOG - INFO - L2 loss it0: 1.9008839130401611
+2026-07-30 16:20:08,867 - LOG - INFO - Residual it0: 47.327030181884766
+2026-07-30 16:20:09,367 - LOG - INFO - Finished batch 60
+2026-07-30 16:20:09,367 - LOG - INFO - ========================================================
+2026-07-30 16:20:09,369 - LOG - INFO - Batch: 61 / Total batch 64
+2026-07-30 16:20:09,370 - LOG - INFO - Preparing reference image
+2026-07-30 16:20:09,370 - LOG - INFO - Dumping visualization...
+2026-07-30 16:20:10,562 - LOG - INFO - L2 loss init: 2.2975032329559326
+2026-07-30 16:20:10,568 - LOG - INFO - Residual init: 7124.9658203125
+2026-07-30 16:20:10,568 - LOG - INFO - Residual reference: 3.7218551635742188
+2026-07-30 16:20:10,568 - LOG - INFO - Run No.0:
+2026-07-30 16:20:13,367 - LOG - INFO - L2 loss it0: 1.8882055282592773
+2026-07-30 16:20:13,421 - LOG - INFO - Residual it0: 54.77118682861328
+2026-07-30 16:20:13,913 - LOG - INFO - Finished batch 61
+2026-07-30 16:20:13,913 - LOG - INFO - ========================================================
+2026-07-30 16:20:13,914 - LOG - INFO - Batch: 62 / Total batch 64
+2026-07-30 16:20:13,915 - LOG - INFO - Preparing reference image
+2026-07-30 16:20:13,915 - LOG - INFO - Dumping visualization...
+2026-07-30 16:20:15,102 - LOG - INFO - L2 loss init: 2.1501643657684326
+2026-07-30 16:20:15,107 - LOG - INFO - Residual init: 7814.16357421875
+2026-07-30 16:20:15,107 - LOG - INFO - Residual reference: 1.453823208808899
+2026-07-30 16:20:15,108 - LOG - INFO - Run No.0:
+2026-07-30 16:20:17,908 - LOG - INFO - L2 loss it0: 1.740169644355774
+2026-07-30 16:20:17,962 - LOG - INFO - Residual it0: 51.6749153137207
+2026-07-30 16:20:18,583 - LOG - INFO - Finished batch 62
+2026-07-30 16:20:18,583 - LOG - INFO - ========================================================
+2026-07-30 16:20:18,584 - LOG - INFO - Batch: 63 / Total batch 64
+2026-07-30 16:20:18,585 - LOG - INFO - Preparing reference image
+2026-07-30 16:20:18,585 - LOG - INFO - Dumping visualization...
+2026-07-30 16:20:18,944 - LOG - INFO - L2 loss init: 2.3428797721862793
+2026-07-30 16:20:19,057 - LOG - INFO - Residual init: 9619.275390625
+2026-07-30 16:20:19,057 - LOG - INFO - Residual reference: 2.726055145263672
+2026-07-30 16:20:19,058 - LOG - INFO - Run No.0:
+2026-07-30 16:20:32,658 - LOG - INFO - L2 loss it0: 1.9502900838851929
+2026-07-30 16:20:32,701 - LOG - INFO - Residual it0: 27.4201717376709
+2026-07-30 16:20:32,891 - LOG - INFO - Finished batch 63
+2026-07-30 16:20:32,892 - LOG - INFO - ========================================================
+2026-07-30 16:20:32,901 - LOG - INFO - Finished sampling
+2026-07-30 16:20:32,901 - LOG - INFO - mean l2 loss: 2.1445194531536704
+2026-07-30 16:20:32,901 - LOG - INFO - std l2 loss: 0.0
+2026-07-30 16:20:32,901 - LOG - INFO - mean residual loss: 66.53737726151569
+2026-07-30 16:20:32,901 - LOG - INFO - std residual loss: 0.0
