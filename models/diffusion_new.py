@@ -481,6 +481,73 @@ class FNO2d(nn.Module):
 
 
 class ConditionalModel(nn.Module):
+    """DDPM U-Net for 2D Kolmogorov flow, conditioned on a physics-residual field.
+
+    Identical to `Model` above except for three additions: the `emb_conv` branch
+    that embeds `dx`, the `combine_conv` that fuses it into the main path, and a
+    circular `padding_mode` on `conv_out` (which `Model` omits). +45,440 params.
+
+    Shapes below are for configs/kmflow_re1000_rs256_conditional.yml:
+        ch=64, ch_mult=[1,1,1,2], num_res_blocks=1, dropout=0.0,
+        attn_resolutions=[16], image_size=256  ->  3,514,179 params.
+
+    ---- inputs ----------------------------------------------------------------
+      x    noisy vorticity, 3 consecutive frames        (3, 256, 256)
+      t    diffusion timestep, one int per batch item   scalar
+      dx   grad of the Navier-Stokes residual           (3, 256, 256) or None
+           conditional_noise_estimation_loss passes dx=None 10% of the time
+           (p=0.1) so one set of weights serves conditional and unconditional
+           sampling.  NOTE: voriticity_residual returns dx[0] == -dx[2] exactly
+           (frames 0 and 2 enter the residual only via the central-difference
+           dw/dt), so only 2 of the 3 conditioning channels are independent.
+
+    ---- timestep branch -------------------------------------------------------
+      Computed first in forward() but INDEPENDENT of x -- parallel, not
+      sequential.  Injected by broadcast addition inside all 14 ResnetBlocks;
+      AttnBlock does not receive it.
+        t -> get_timestep_embedding(t, 64)     (64,)   fixed sinusoids
+          -> dense[0] -> swish -> dense[1]     (256,)  learned
+
+    ---- stem ------------------------------------------------------------------
+      x  -> conv_in                            (64, 256, 256)
+      dx -> emb_conv   (zeros_like if None)    (64, 256, 256)
+            cat along channels                 (128, 256, 256)
+            combine_conv (1x1)                 (64, 256, 256)   push skip[0]
+
+    ---- encoder: resblock and downsample strictly alternate -------------------
+      L0  resblock  64 -> 64                   (64, 256, 256)   push skip[1]
+          downsample                           (64, 128, 128)   push skip[2]
+      L1  resblock  64 -> 64                   (64, 128, 128)   push skip[3]
+          downsample                           (64,  64,  64)   push skip[4]
+      L2  resblock  64 -> 64                   (64,  64,  64)   push skip[5]
+          downsample                           (64,  32,  32)   push skip[6]
+      L3  resblock  64 -> 128 (ch_mult[3]=2)   (128, 32,  32)   push skip[7]
+          no downsample (last level)
+      ResnetBlocks change channels only; Downsample changes resolution only.
+
+    ---- bottleneck: hard-coded, not driven by any config field ----------------
+      mid.block_1 -> mid.attn_1 -> mid.block_2 (128, 32, 32)
+
+    ---- decoder: num_res_blocks+1 = 2 resblocks per level, one skip each ------
+      L3  cat(h, skip[7]) (256,32,32)  -> resblock   (128, 32,  32)
+          cat(h, skip[6]) (192,32,32)  -> resblock   (128, 32,  32)
+          upsample                                   (128, 64,  64)
+      L2  cat(h, skip[5]) (192,64,64)  -> resblock   (64,  64,  64)
+          cat(h, skip[4]) (128,64,64)  -> resblock   (64,  64,  64)
+          upsample                                   (64, 128, 128)
+      L1  cat(h, skip[3]) (128,...)    -> resblock   (64, 128, 128)
+          cat(h, skip[2]) (128,...)    -> resblock   (64, 128, 128)
+          upsample                                   (64, 256, 256)
+      L0  cat(h, skip[1]) (128,...)    -> resblock   (64, 256, 256)
+          cat(h, skip[0]) (128,...)    -> resblock   (64, 256, 256)
+          no upsample (top level); skip stack now empty
+
+    ---- output ----------------------------------------------------------------
+      norm_out -> swish -> conv_out              (3, 256, 256)
+      This is the predicted NOISE e, not the reconstructed flow field --
+      losses.py compares it against the e that was added to x0.
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -529,9 +596,11 @@ class ConditionalModel(nn.Module):
         self.combine_conv = torch.nn.Conv2d(self.ch*2, self.ch, kernel_size=1, stride=1, padding=0)
 
         curr_res = resolution
+        # ch_mult shifted right by one, so in_ch_mult[i] is level i-1's output
+        # width and in_ch_mult[0]=1 is the stem's. Index -1 is never read.
         in_ch_mult = (1,)+ch_mult
         self.down = nn.ModuleList()
-        block_in = None
+        block_in = None   # running channel width; still read after the loop, by mid
         for i_level in range(self.num_resolutions):
             block = nn.ModuleList()
             attn = nn.ModuleList()
@@ -543,6 +612,8 @@ class ConditionalModel(nn.Module):
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
                 block_in = block_out
+                # curr_res walks 256/128/64/32, so attn_resolutions=[16] matches
+                # nothing here and every `attn` built in this loop stays empty.
                 if curr_res in attn_resolutions:
                     attn.append(AttnBlock(block_in))
             down = nn.Module()
@@ -553,7 +624,7 @@ class ConditionalModel(nn.Module):
                 curr_res = curr_res // 2
             self.down.append(down)
 
-        # middle
+        # middle -- fixed structure, no config field controls it
         self.mid = nn.Module()
         self.mid.block_1 = ResnetBlock(in_channels=block_in,
                                        out_channels=block_in,
@@ -572,7 +643,12 @@ class ConditionalModel(nn.Module):
             attn = nn.ModuleList()
             block_out = ch*ch_mult[i_level]
             skip_in = ch*ch_mult[i_level]
+            # num_res_blocks+1 blocks, because the encoder pushed two tensors per
+            # level (its block output, then its downsampled output).
             for i_block in range(self.num_res_blocks+1):
+                # The last pop at this level predates the level's width change --
+                # it is the previous level's downsample output (or, at i_level 0,
+                # the stem), hence in_ch_mult rather than ch_mult.
                 if i_block == self.num_res_blocks:
                     skip_in = ch*in_ch_mult[i_level]
                 block.append(ResnetBlock(in_channels=block_in+skip_in,
@@ -605,10 +681,42 @@ class ConditionalModel(nn.Module):
 
 
     def forward(self, x, t, dx=None):
-        # dx is the physical gradient, working as context embedding
+        """Predict the noise that was added to a clean vorticity field.
+
+        Args:
+            x:  (B, 3, 256, 256) noisy vorticity, 3 consecutive frames.
+            t:  (B,) diffusion timestep per batch element, 0..999.
+            dx: (B, 3, 256, 256) gradient of the Navier-Stokes residual, or
+                None. When None the conditioning contributes zeros, so the same
+                weights run unconditionally.
+
+        Returns:
+            (B, 3, 256, 256) -- the predicted NOISE e, NOT the flow field.
+            losses.py compares this against the e that was added to x0.
+
+        Steps:
+            1. assert x is square and matches self.resolution
+            2. encode t: sinusoids (64) -> MLP (256); read by every ResnetBlock
+            3. conv_in lifts x           3 -> 64 channels
+            4. emb_conv embeds dx        3 -> 64 channels (zeros if dx is None)
+            5. cat -> 128, combine_conv -> 64, seed the skip stack
+            6. encoder: 4 levels of resblock + downsample; 256->32 px,
+               64->128 ch; pushes 7 more skips (8 total)
+            7. bottleneck: resblock -> attention -> resblock, all (128, 32, 32)
+            8. decoder: 4 levels, 2 skip-pops each; 32->256 px, 128->64 ch;
+               stack ends empty
+            9. norm_out -> swish -> conv_out, 64 -> 3
+
+        Notes:
+            Deterministic (dropout is 0.0), and batch elements never interact --
+            every norm here is GroupNorm, whose statistics are per-sample, so
+            batch size does not affect the result.
+            Builds nothing: every layer used was constructed in __init__.
+        """
         assert x.shape[2] == x.shape[3] == self.resolution
 
-        # timestep embedding
+        # timestep embedding -- computed first but independent of x; the result is
+        # broadcast-added inside every ResnetBlock and nowhere else.
         temb = get_timestep_embedding(t, self.ch)
         temb = self.temb.dense[0](temb)
         temb = nonlinearity(temb)
@@ -619,16 +727,22 @@ class ConditionalModel(nn.Module):
         if dx is not None:
             cond_emb = self.emb_conv(dx)
         else:
+            # zeros make the conditioning contribute nothing, so the same weights
+            # run unconditionally
             cond_emb = torch.zeros_like(x)
         x = torch.cat((x, cond_emb), dim=1)
-    
+
         # downsampling
+        # hs is the skip stack: a plain list of tensors (activations, not modules),
+        # rebuilt every call. The encoder loop pushes 7 more; the decoder pops all 8.
         hs = [self.combine_conv(x)]
 
         for i_level in range(self.num_resolutions):
             for i_block in range(self.num_res_blocks):
+                # the encoder chains through hs[-1] rather than a local variable
                 h = self.down[i_level].block[i_block](hs[-1], temb)
 
+                # guard is never true here: the attn lists are all empty
                 if len(self.down[i_level].attn) > 0:
                     h = self.down[i_level].attn[i_block](h)
                 hs.append(h)
@@ -636,14 +750,16 @@ class ConditionalModel(nn.Module):
                 hs.append(self.down[i_level].downsample(hs[-1]))
 
         # middle
-        h = hs[-1]
+        h = hs[-1]   # peek, NOT pop -- the decoder still needs all 8 skips
         h = self.mid.block_1(h, temb)
-        h = self.mid.attn_1(h)
+        h = self.mid.attn_1(h)   # the only attention that ever runs in this model
         h = self.mid.block_2(h, temb)
 
         # upsampling
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks+1):
+                # pops are LIFO, so skips are consumed in reverse push order:
+                # deepest first, the stem output last
                 h = self.up[i_level].block[i_block](
                     torch.cat([h, hs.pop()], dim=1), temb)
                 if len(self.up[i_level].attn) > 0:
