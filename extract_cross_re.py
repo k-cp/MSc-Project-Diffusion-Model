@@ -8,10 +8,15 @@ loaders expect, plus the matching sparse-sensor measurement file.
     python3 extract_cross_re.py kf_vort_Re500_N256.npy kf_vort_Re2000_N256.npy
     python3 extract_cross_re.py kf_vort_Re1000_N256.npy --traj 4 --frames 320
 
+<<<<<<< HEAD
+Defaults give 4 trajectories x 320 frames = 1272 sliding windows -- exactly the
+size of the existing test set, so the numbers are directly comparable.
+=======
 Defaults give 8 trajectories x 320 frames. The LAST 4 are the test split (1272
 sliding windows -- exactly the size of the existing test set, so the numbers are
 directly comparable); the first 4 exist only so the loader can compute its
 scaler from [:-4], which would otherwise be an empty slice and yield NaN.
+>>>>>>> e4e07a3d5c8c3d39be0b13323776db25278eda9b
 
 IMPORTANT -- these files are NOT the same simulations as the project's own
 kf_2d_re1000_256_40seed.npy (same nominal Re=1000, but std 4.16 vs 4.85 and a
@@ -60,6 +65,9 @@ def sensor_measurement(gt, n_sensors, seed):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("files", nargs="+")
+<<<<<<< HEAD
+    p.add_argument("--traj", type=int, default=4, help="trajectories to keep (default 4)")
+=======
     p.add_argument("--traj", type=int, default=8,
                    help="trajectories to keep (default 8). MUST be > 4: the repo's "
                         "loader takes [-4:] as the test split and computes its scaler "
@@ -67,6 +75,7 @@ def main():
                         "the scaler comes out NaN. With 8, the first 4 supply the "
                         "statistics (as the training split does normally) and the last "
                         "4 are the test set.")
+>>>>>>> e4e07a3d5c8c3d39be0b13323776db25278eda9b
     p.add_argument("--frames", type=int, default=320, help="frames to keep (default 320)")
     p.add_argument("--start", type=int, default=0, help="first frame (skip transient if needed)")
     p.add_argument("--sensors", type=int, default=1024, help="sensor count (u3232 uses 1024)")
@@ -76,6 +85,8 @@ def main():
                         "own input via --si_eval_degradation")
     args = p.parse_args()
 
+<<<<<<< HEAD
+=======
     if args.traj <= 4:
         raise SystemExit(
             f"--traj {args.traj} is too few. load_recons_data takes [-4:] as the test\n"
@@ -83,6 +94,7 @@ def main():
             "slice is empty and mean/std come out NaN, so every output would be NaN.\n"
             "Use --traj 8 (4 for statistics + 4 for testing).")
 
+>>>>>>> e4e07a3d5c8c3d39be0b13323776db25278eda9b
     os.makedirs(args.outdir, exist_ok=True)
     for path in args.files:
         if not os.path.exists(path):
@@ -124,9 +136,14 @@ def main():
     print("  data_dir:        ./data/cross_re/kf_re2000_test.npy")
     print("  sample_data_dir: ./data/cross_re/kf_re2000_sampled.npz")
     print("  stat_path:       ./data/cross_re/km256_stats_re2000.npz")
+<<<<<<< HEAD
+    print("\nNOTE the loaders take the LAST 4 trajectories as the test split, so with")
+    print("--traj 4 the whole extracted file IS the test set (nothing is trained on).")
+=======
     print("\nNOTE the loaders take the LAST 4 trajectories as the test split and compute")
     print("the scaler from the rest -- which is why 8 are extracted, not 4. Nothing is")
     print("trained on any of it; the first 4 only supply mean/std.")
+>>>>>>> e4e07a3d5c8c3d39be0b13323776db25278eda9b
 
 
 if __name__ == "__main__":
