@@ -333,8 +333,8 @@ class StochasticInterpolant:
         self.config = config
         self.device = device
         self.logger = logger or logging.getLogger("LOG")
-        self.physics = physics
-        self.set_bridge(bridge)
+        self.physics = physics # "none" | "linear" | "learned"
+        self.set_bridge(bridge) # sets self.bridge AND self.coeff
 
         # Reuse the conditional UNet as the drift network b_theta.
         if config.model.type == "conditional":
@@ -381,10 +381,8 @@ class StochasticInterpolant:
 
         Mirrors reconstruct()'s physical_gradient_func exactly, so 'linear' and
         'learned' here use the same quantity the baseline uses. The residual is
-        evaluated on the CURRENT state (Shu et al. Eq 6: r_t = G|u=x_t), which
-        suits SI even better than diffusion -- the interpolant carries only ~4%
-        noise at its peak, so it is far closer to a physical field than a
-        diffusion x_t.
+        evaluated on the current state (Shu et al. Eq 6: r_t = G|u=x_t), which
+        suits SI even better than diffusion
 
         voriticity_residual() calls torch.autograd.grad internally, so grad must
         be enabled even when the caller is under torch.no_grad().
@@ -403,12 +401,12 @@ class StochasticInterpolant:
         if self.config.model.type != "conditional":
             return self.model(x_state, t)
 
-        cond = x0_cond
+        cond = x0_cond # (B, 3, 256, 256) — the coarse field
         if self.physics == "learned":
             if phys_cond is None:
-                phys_cond = torch.zeros_like(x0_cond)
-            cond = torch.cat([x0_cond, phys_cond], dim=1)
-        return self.model(x_state, t, dx=cond)
+                phys_cond = torch.zeros_like(x0_cond) # unconditional branch = zeros
+            cond = torch.cat([x0_cond, phys_cond], dim=1) # (B, 6, 256, 256)
+        return self.model(x_state, t, dx=cond) # (B, 3, 256, 256) predicted drift
 
     def interpolant_loss(self, x0, x1, scaler=None, p_uncond=0.1):
         """Drift-matching objective (Eq 9), estimated on a minibatch.
@@ -417,10 +415,10 @@ class StochasticInterpolant:
         conditioning branch, dropping it with probability p_uncond so the
         unconditional branch is trained too (Shu et al. Algorithm 1, line 6).
         """
-        b = x0.shape[0]
-        tau = torch.rand(b, 1, 1, 1, device=x0.device)          # tau ~ U[0,1]
-        z = torch.randn_like(x0)
-        w = torch.sqrt(tau) * z                                  # Wiener W_tau ~ N(0, tau)
+        b = x0.shape[0] # 32
+        tau = torch.rand(b, 1, 1, 1, device=x0.device)          # (32,1,1,1) — one τ per sample, U[0,1]
+        z = torch.randn_like(x0)    # (32,3,256,256)
+        w = torch.sqrt(tau) * z                                  # (32,3,256,256) — Wiener W_τ ~ N(0, τI)
 
         c = self.coeff
         if self.bridge == "noise":
@@ -508,7 +506,17 @@ class StochasticInterpolant:
         b_tilde = b + (sigma/2) * s and the score recovered from the drift,
         s = (beta*b - beta_dot*X) / (alpha^2*beta_dot - alpha*beta*alpha_dot)
         (their Eq 26-27; algebra: s = -E[eps|X]/alpha). x0 is conditioning only.
-        As tau->1 the correction stays finite: sigma/denominator -> 0.1/((1+tau)(1+tau^2)).
+
+        SIGMA vs SIGMA^2 -- KNOWN DISCREPANCY, DELIBERATELY MATCHING THE PAPER.
+        Schiodt et al. Appendix A Eq 26 writes the score coefficient as sigma/2,
+        which is what is implemented below. Standard Fokker-Planck for an SDE
+        integrated with noise amplitude sigma (their Eq 22) instead calls for
+        sigma^2/2, and on an analytic Gaussian toy (x1 ~ N(0,1)) the sigma^2/2
+        form recovers the target variance exactly (1.000000) while sigma/2 gives
+        0.949 -- i.e. sigma/2 systematically under-disperses by ~5%. This port
+        keeps the PAPER'S form so the DM baseline reproduces theirs; switch the
+        marked line to `0.5 * sig * sig * (...)` for the Fokker-Planck-consistent
+        version. Only affects --si_bridge noise, which has never been trained here.
         Heun predictor-corrector, same Brownian increment in both stages."""
         bsz = x0.shape[0]
         c = self.coeff
@@ -523,6 +531,8 @@ class StochasticInterpolant:
             al_d, be_d = c.alpha_dot(t), torch.ones((), device=x0.device)
             sig = c.sigma_scale * (1.0 - t)
             denom = al * al * be_d - al * be * al_d
+            # <-- paper's Eq 26 (sigma/2). See the docstring: sigma*sig for the
+            #     Fokker-Planck-consistent variant.
             corr = 0.5 * sig * (be * bdrift - be_d * state) / (denom + 1e-8)
             return bdrift + corr, float(sig)
 
@@ -592,6 +602,18 @@ class SIRunner:
         self.eval_degradation = getattr(args, "si_eval_degradation", "") or ""
         self.eval_degrader = None
         if self.eval_degradation:
+            # Incompatible with the dead-block experiment: the block mask is applied
+            # to blur_data, but the eval degrader manufactures x0 from the UNMASKED
+            # ground truth, so exact truth values would leak inside the hole and
+            # silently void the experiment. Refuse rather than produce a fake result.
+            # parse, don't test truthiness: --block_size is a string, so "0" is truthy
+            if dead_block.parse_size(getattr(args, "block_size", 0))[0] > 0:
+                raise ValueError(
+                    "--si_eval_degradation cannot be combined with --block_size: "
+                    "x0 would be rebuilt from the unmasked ground truth, leaking "
+                    "exact truth values inside the dead block. Run the dead-block "
+                    "experiment on the shipped u3232 input (no --si_eval_degradation)."
+                )
             self.eval_degrader = self._build_eval_degrader(self.eval_degradation)
             self.log(f"EVAL degradation: manufacturing x0 from ground truth as '{self.eval_degradation}'")
 
@@ -702,7 +724,11 @@ class SIRunner:
                 self.log(f"L2 loss final: {l2_final}")
                 self.log(f"Residual final: {residual_final}")
 
-                start = batch_index * blur_batch.shape[0]
+                # Offset MUST use the configured batch size, not this batch's size:
+                # the final batch is short (1272 = 63*20 + 12), so blur_batch.shape[0]
+                # would put it at row 63*12=756 instead of 63*20=1260 -- clobbering
+                # earlier rows and leaving the tail at zero (~1% bias in the mean).
+                start = batch_index * self.config.sampling.batch_size
                 end = start + blur_batch.shape[0]
                 l2_loss_all[start:end, repeat] = l2_final.item()
 

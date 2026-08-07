@@ -22,11 +22,11 @@ import os
 import numpy as np
 import yaml
 
-from functions.dead_block import (apply_dead_block, block_for_trajectory,
+from functions.dead_block import (apply_dead_block, block_for_trajectory, parse_size,
                                   read_npz_trajectories, surviving_sensors)
 
 CONFIG = os.environ.get("CONFIG", "kmflow_re1000_rs256_conditional.yml")
-SIZE = int(os.environ.get("BLOCK", 64))
+SIZE = os.environ.get("BLOCK", "64")   # int, "HxW" or "P%" - see dead_block.parse_size
 SEED = int(os.environ.get("BLOCK_SEED", 0))
 POS = os.environ.get("BLOCK_POS", "") or None
 N_CHECK = int(os.environ.get("N_CHECK", 20))     # frames per trajectory
@@ -67,21 +67,22 @@ def main():
         raise SystemExit(1)
 
     # ---- 2/3. a real block --------------------------------------------------
+    BH, BW = parse_size(SIZE, h, w)
     blur, surv = apply_dead_block(flat_u, idx, SIZE, SEED, per, h, w, pos=POS)
-    print(f"\n[2] block {SIZE}x{SIZE}, position={POS or f'random (seed {SEED})'}:")
+    print(f"\n[2] block {BH}x{BW}, position={POS or f'random (seed {SEED})'}:")
     ok = True
     for t in range(n_traj):
         b = block_for_trajectory(SIZE, SEED, t, h, w, POS)
         y0, x0 = b
         keep, dead = surviving_sensors(idx[t], b, SIZE, h, w)
         ky, kx = np.divmod(keep, w)
-        inside = int(((ky >= y0) & (ky < y0 + SIZE) &
-                      (kx >= x0) & (kx < x0 + SIZE)).sum())
+        inside = int(((ky >= y0) & (ky < y0 + BH) &
+                      (kx >= x0) & (kx < x0 + BW)).sum())
         sl = slice(t * per, (t + 1) * per)
-        out = np.ones((h, w), bool); out[y0:y0 + SIZE, x0:x0 + SIZE] = False
+        out = np.ones((h, w), bool); out[y0:y0 + BH, x0:x0 + BW] = False
         d_out = float(np.abs(blur[sl][:, out] - flat_u[sl][:, out]).max())
-        d_in = float(np.abs(blur[sl][:, y0:y0 + SIZE, x0:x0 + SIZE]
-                            - flat_u[sl][:, y0:y0 + SIZE, x0:x0 + SIZE]).mean())
+        d_in = float(np.abs(blur[sl][:, y0:y0 + BH, x0:x0 + BW]
+                            - flat_u[sl][:, y0:y0 + BH, x0:x0 + BW]).mean())
         good = (d_out == 0.0) and (inside == 0) and (d_in > 0)
         ok &= good
         print(f"    traj {t}: block (y={y0:3d}, x={x0:3d})  dead {dead:4d}  "
@@ -96,16 +97,16 @@ def main():
     b = block_for_trajectory(SIZE, SEED, 0, h, w, POS)
     y0, x0 = b
     sl = slice(0, per)
-    hole = blur[sl][:, y0:y0 + SIZE, x0:x0 + SIZE]
-    true = flat_gt[sl][:, y0:y0 + SIZE, x0:x0 + SIZE]
+    hole = blur[sl][:, y0:y0 + BH, x0:x0 + BW]
+    true = flat_gt[sl][:, y0:y0 + BH, x0:x0 + BW]
     e_in = float(np.sqrt(((hole - true) ** 2).mean()) / flat_gt.std())
-    out = np.ones((h, w), bool); out[y0:y0 + SIZE, x0:x0 + SIZE] = False
+    out = np.ones((h, w), bool); out[y0:y0 + BH, x0:x0 + BW] = False
     e_out = float(np.sqrt(((blur[sl][:, out] - flat_gt[sl][:, out]) ** 2).mean())
                   / flat_gt.std())
     print(f"\n[4] input error (normalised by field rms), trajectory 0:")
     print(f"    inside the hole {e_in:.3f}   outside {e_out:.3f}   "
           f"-> the hole is {e_in / e_out:.1f}x worse")
-    print(f"    hole covers {100.0 * SIZE * SIZE / (h * w):.2f}% of the field")
+    print(f"    hole covers {100.0 * BH * BW / (h * w):.2f}% of the field")
     print("\nALL CHECKS PASSED - the dead-block measurement is sound.")
 
 

@@ -77,8 +77,12 @@ def parse_args():
     p.add_argument("--si_aug_nmax", type=int, default=4000,
                    help="Max sensor count for the 'sensor' family (random per sample)")
     p.add_argument("--si_aug_noise", type=float, default=0.0,
-                   help="Std of additive measurement noise on x0 (standardized units). Leave 0 "
-                        "for the benchmark (measurements are exact); >0 only to target noisy sensors.")
+                   help="Std of additive measurement noise on x0, in RAW vorticity units "
+                        "(DegradationSampler adds it before standardization, so the effective "
+                        "standardized std is this value / data_std -- NOT directly comparable "
+                        "to inference-time --meas_noise, which is applied AFTER standardization). "
+                        "Leave 0 for the benchmark (measurements are exact); >0 only to target "
+                        "noisy sensors.")
     # --- free / near-free robustness improvements ---
     p.add_argument("--si_xshift", type=int, default=1,
                    help="1 = augment with random x-translation (roll along rows, the "
@@ -100,6 +104,17 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    # Fail BEFORE training, not after: sample() raises for physics guidance on the
+    # DM bridge, so a 'noise'+'learned' checkpoint would train for hours and then
+    # be unusable at inference.
+    if args.si_bridge == "noise" and args.si_physics != "none":
+        raise SystemExit(
+            "--si_bridge noise is incompatible with --si_physics "
+            f"'{args.si_physics}': physics guidance is not defined for the DM "
+            "bridge (sample() rejects it), so the checkpoint could never be "
+            "sampled. Train with --si_physics none, or use the 'si' bridge."
+        )
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
     logger = logging.getLogger("LOG")
@@ -136,7 +151,7 @@ def main():
         worker_init = si_worker_init_fn
     else:
         logger.info("Loading training pairs (x0=low-res, x1=high-res)...")
-        x0, x1, data_mean, data_std = load_si_pairs(
+        x0, x1, data_mean, data_std = load_si_pairs( # load high res and sensor reconstructed
             config.data.data_dir,
             config.data.sample_data_dir,
             config.data.data_kw,

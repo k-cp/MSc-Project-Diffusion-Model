@@ -39,13 +39,13 @@ class PosteriorRunner:
         self.device = config.device
 
         if self.config.model.type == "conditional":
-            self.model = ConditionalModel(self.config)
+            self.model = ConditionalModel(self.config) # same as conditionalmodel
         else:
             self.model = Model(self.config)
 
         states = torch.load(self.config.model.ckpt_path, map_location=self.device)
-        state_dict = states[-1] if isinstance(states, (list, tuple)) else states
-        self.model.load_state_dict(state_dict)
+        state_dict = states[-1] if isinstance(states, (list, tuple)) else states  # states[-1] = the EMA copy
+        self.model.load_state_dict(state_dict) 
         self.model.to(self.device)
         self.model.eval()
 
@@ -234,9 +234,9 @@ class PosteriorRunner:
 
         return x
 
-    def dps_sample_pipeline(self):
+    def dps_sample_pipeline(self): # data preparation
         self.log("Loading reconstruction data for DPS")
-        ref_data, blur_data, data_mean, data_std = load_recons_data(
+        ref_data, blur_data, data_mean, data_std = load_recons_data( # ground truth, + coarse
             self.config.data.data_dir,
             self.config.data.sample_data_dir,
             self.config.data.data_kw,
@@ -354,7 +354,11 @@ class PosteriorRunner:
                 self.log(f"L2 loss final: {l2_final}")
                 self.log(f"Residual final: {residual_final}")
 
-                start = batch_index * blur_batch.shape[0]
+                # Offset MUST use the configured batch size, not this batch's size:
+                # the final batch is short (1272 = 63*20 + 12), so blur_batch.shape[0]
+                # would put it at row 63*12=756 instead of 63*20=1260 -- clobbering
+                # earlier rows and leaving the tail at zero (~1% bias in the mean).
+                start = batch_index * self.config.sampling.batch_size
                 end = start + blur_batch.shape[0]
                 l2_loss_all[start:end, repeat] = l2_final.item()
 

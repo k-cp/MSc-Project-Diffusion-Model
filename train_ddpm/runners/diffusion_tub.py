@@ -420,7 +420,7 @@ class ConditionalDiffusion(object):
         model = model.to(self.device)
         # model = torch.nn.DataParallel(model)
 
-        optimizer = get_optimizer(self.config, model.parameters())
+        optimizer = get_optimizer(self.config, model.parameters()) # obtain optimizer config from YAML (training)
 
         if self.config.model.ema:
             ema_helper = EMAHelper(mu=self.config.model.ema_rate)
@@ -429,7 +429,7 @@ class ConditionalDiffusion(object):
             ema_helper = None
 
         start_epoch, step = 0, 0
-        if self.args.resume_training:
+        if self.args.resume_training: 
             states = torch.load(os.path.join(self.args.log_path, "ckpt.pth"))
             model.load_state_dict(states[0])
 
@@ -445,26 +445,28 @@ class ConditionalDiffusion(object):
         log_freq = 100
         print('Starting training...')
         for epoch in range(start_epoch, self.config.training.n_epochs):
-            data_start = time.time()
-            data_time = 0
-            epoch_loss = []
-            for i, x in enumerate(train_loader):
-                n = x.size(0)
+            data_start = time.time() # timestamp, used to measure data-loading cost
+            data_time = 0   # accumulated seconds spent waiting on the loader
+            epoch_loss = [] # collects every batch loss, averaged at epoch end
+            for i, x in enumerate(train_loader): # for each batch
+                n = x.size(0) # batch size, 32 (last batch may be smaller)
                 data_time += time.time() - data_start
-                model.train()
-                step += 1
+                model.train() # sets training mode (matters for dropout/BN)
+                step += 1 # global step counter
 
                 x = x.to(self.device)  # size: [32, 3, 256, 256]
-                e = torch.randn_like(x)
-                b = self.betas
+                e = torch.randn_like(x) # fresh Gaussian noise — this is the prediction TARGET
+                b = self.betas # the 1000-entry noise schedule from __init__
 
                 # antithetic sampling
-                t = torch.randint(
+                # Decrease variance
+                t = torch.randint( # 17 random t's (t: diffusion timestep, how much noise to add, randomly chosen)
                     low=0, high=self.num_timesteps, size=(n // 2 + 1,)
-                ).to(self.device)
-                t = torch.cat([t, self.num_timesteps - t - 1], dim=0)[:n]
+                ).to(self.device) 
+                t = torch.cat([t, self.num_timesteps - t - 1], dim=0)[:n] # pair each with 999-t
                 loss = loss_registry[config.model.type](model, x, t, e, b, x_offset.item(), x_scale.item())
 
+                # Logging
                 epoch_loss.append(loss.item())
 
                 tb_logger.add_scalar("loss", loss, global_step=step)
@@ -477,8 +479,10 @@ class ConditionalDiffusion(object):
                 writer.add_scalar('loss', loss.item(), step)
                 writer.add_scalar('data_time', data_time / (i + 1), step)
 
+
+                # optimization step
                 optimizer.zero_grad()
-                loss.backward()
+                loss.backward() # Backprop
 
                 try:
                     torch.nn.utils.clip_grad_norm_(
@@ -486,11 +490,13 @@ class ConditionalDiffusion(object):
                     )
                 except Exception:
                     pass
-                optimizer.step()
+                optimizer.step() # applt update
 
+                # EMA (exponential moving average)
                 if self.config.model.ema:
                     ema_helper.update(model)
 
+                # Checkpointing 
                 if step % self.config.training.snapshot_freq == 0 or step == 1:
                     states = [
                         model.state_dict(),
@@ -507,7 +513,7 @@ class ConditionalDiffusion(object):
                     )
                     torch.save(states, os.path.join(self.args.log_path, "ckpt.pth"))
 
-                data_start = time.time()
+                data_start = time.time() # restart the data-loading timer
                 num_iter = num_iter + 1
             print("==========================================================")
             print("Epoch: {}/{}, Loss: {}".format(epoch, self.config.training.n_epochs, np.mean(epoch_loss)))

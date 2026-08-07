@@ -71,11 +71,14 @@ def parse_args_and_config(): # Set default arguements
                              "energy -- so the gain may be the residual metric rewarding the "
                              "deletion of the wavenumbers it measures. Run it as an ablation and "
                              "read e_spec / Delta_s alongside, not the residual alone.")
-    parser.add_argument("--block_size", type=int, default=0,
-                        help="Dead-sensor block: side length in pixels of a square region "
-                             "where every sensor has failed. The measurement is rebuilt by "
-                             "nearest-neighbour fill from the SURVIVING sensors, so the hole "
-                             "is extrapolated from its boundary. 0 = disabled.")
+    parser.add_argument("--block_size", type=str, default="0",
+                        help="Dead-sensor region where every sensor has failed. Accepts "
+                             "'64' (a 64x64 square), 'HxW' e.g. '16x96' (a rectangle, so the "
+                             "AREA and the ASPECT are both yours to set), or 'P%%' e.g. '1%%' "
+                             "(a square covering that fraction of the field's area). The hole "
+                             "is filled per --block_fill. 0 = disabled. For reference, the "
+                             "vorticity decorrelates over ~14 px, so a 14x14 hole is about one "
+                             "correlation length and 64x64 is ~4.6 of them.")
     parser.add_argument("--block_pos", type=str, default="",
                         help="Where the dead block sits: '' = random per trajectory (seeded), "
                              "'center', or 'y,x' for an explicit top-left corner.")
@@ -224,8 +227,13 @@ def parse_args_and_config(): # Set default arguements
 
     # Inference-time sensor noise applies to EVERY method, so it is tagged last
     # and outside the per-method blocks. 0.0 leaves all existing names untouched.
-    if getattr(args, 'block_size', 0):
-        dir_name += '_blk{}'.format(args.block_size)
+    # Tag by the PARSED size so '64', 64 and '6.25%' all land in the same folder
+    # while a rectangle gets its own ('_blk16x96'). Existing _blk64 names are
+    # unchanged, so previous runs stay addressable.
+    from functions.dead_block import parse_size, size_tag
+    _bh, _bw = parse_size(getattr(args, 'block_size', 0))
+    if _bh > 0:
+        dir_name += '_blk{}'.format(size_tag(_bh, _bw))
         if getattr(args, 'block_fill', 'extrapolate') == 'zero':
             dir_name += 'empty'
     if getattr(args, 'meas_noise', 0.0):
@@ -287,7 +295,7 @@ def main():
             runner = SIRunner(args, config, logger, log_dir)
             runner.si_sample_pipeline()
         elif getattr(args, "run_dps", 0) == 1:
-            logging.info("Master Switch Activated: Routing to Diffusion Posterior Sampling (DPS)...")
+            logging.info("Routing to Diffusion Posterior Sampling (DPS)...")
             from runners.posterior_sampling import PosteriorRunner
             runner = PosteriorRunner(args, config, logger, log_dir)
             runner.dps_sample_pipeline()

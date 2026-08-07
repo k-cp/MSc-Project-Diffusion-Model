@@ -97,11 +97,58 @@ def _consume(fh, nbytes, chunk=1 << 22):
         nbytes -= len(got)
 
 
+def parse_size(size, h=256, w=256):
+    """Normalise a --block_size value to (block_h, block_w) in pixels.
+
+    Accepts, so the hole's AREA and ASPECT are both controllable:
+      64          a 64x64 square           (the original form, unchanged)
+      "64"        same
+      "16x96"     a 16-tall, 96-wide slab  -> HxW, same area as a 39x39 square
+      "0"/0/None  disabled -> (0, 0)
+      "6.25%"     a square covering that fraction of the field's AREA
+      (16, 96)    an explicit pair
+
+    Returns (0, 0) when disabled, so callers can keep testing `if bh <= 0`.
+    """
+    if size is None:
+        return 0, 0
+    if isinstance(size, (tuple, list)):
+        bh, bw = int(size[0]), int(size[1])
+    else:
+        s = str(size).strip().lower()
+        if not s or s == "0":
+            return 0, 0
+        if s.endswith("%"):
+            frac = float(s[:-1]) / 100.0
+            if not 0.0 < frac <= 1.0:
+                raise ValueError(f"--block_size {size!r}: percentage must be in (0, 100]")
+            side = int(round((frac * h * w) ** 0.5))
+            bh = bw = max(1, side)
+        elif "x" in s:
+            a, _, b = s.partition("x")
+            bh, bw = int(a), int(b)
+        else:
+            bh = bw = int(float(s))
+    if bh <= 0 or bw <= 0:
+        return 0, 0
+    if bh > h or bw > w:
+        raise ValueError(f"--block_size {size!r} -> {bh}x{bw} does not fit the {h}x{w} field")
+    return bh, bw
+
+
+def size_tag(bh, bw):
+    """Folder/log tag: '64' for a square, '16x96' for a rectangle."""
+    return f"{bh}" if bh == bw else f"{bh}x{bw}"
+
+
 def block_for_trajectory(size, seed, traj, h=256, w=256, pos=None):
-    """Top-left corner of the dead square for one trajectory.
+    """Top-left corner of the dead block for one trajectory.
 
     One block per TRAJECTORY, not per frame: a sensor patch fails and stays
     failed, so the hole must sit still while the flow evolves through it.
+
+    size is anything parse_size accepts — an int for a square, "HxW" for a
+    rectangle, or "P%" for a target area fraction.
 
     pos controls WHERE:
       None / ""      random per trajectory, seeded on (seed, traj) — different
@@ -111,32 +158,34 @@ def block_for_trajectory(size, seed, traj, h=256, w=256, pos=None):
       "y,x"          explicit top-left corner, identical for every trajectory —
                      use this when a figure must show the same region every time.
     """
-    if size <= 0:
+    bh, bw = parse_size(size, h, w)
+    if bh <= 0:
         return None
     if pos:
         if str(pos).strip() == "center":
-            return (h - size) // 2, (w - size) // 2
+            return (h - bh) // 2, (w - bw) // 2
         y, _, x = str(pos).partition(",")
         y, x = int(y), int(x)
-        if not (0 <= y <= h - size and 0 <= x <= w - size):
-            raise ValueError(f"--block_pos {pos!r} puts a {size}x{size} block outside "
+        if not (0 <= y <= h - bh and 0 <= x <= w - bw):
+            raise ValueError(f"--block_pos {pos!r} puts a {bh}x{bw} block outside "
                              f"the {h}x{w} field")
         return y, x
     rng = np.random.default_rng(int(seed) * 100003 + int(traj))
-    return int(rng.integers(0, h - size + 1)), int(rng.integers(0, w - size + 1))
+    return int(rng.integers(0, h - bh + 1)), int(rng.integers(0, w - bw + 1))
 
 
 def surviving_sensors(flat_idx, block, size, h=256, w=256):
-    """Drop the sensors that fall inside the dead square.
+    """Drop the sensors that fall inside the dead block.
 
     flat_idx : (n,) flat indices into the h*w grid (one trajectory's layout).
     Returns the surviving subset, and how many died.
     """
-    if block is None or size <= 0:
+    bh, bw = parse_size(size, h, w)
+    if block is None or bh <= 0:
         return flat_idx, 0
     y0, x0 = block
     iy, ix = np.divmod(np.asarray(flat_idx), w)
-    dead = (iy >= y0) & (iy < y0 + size) & (ix >= x0) & (ix < x0 + size)
+    dead = (iy >= y0) & (iy < y0 + bh) & (ix >= x0) & (ix < x0 + bw)
     return np.asarray(flat_idx)[~dead], int(dead.sum())
 
 
@@ -198,6 +247,7 @@ def apply_dead_block(meas, idx_per_traj, size, seed, per_traj, h=256, w=256,
     if n_traj * per_traj != meas.shape[0]:
         raise ValueError(f"{n_traj} trajectories x {per_traj} != {meas.shape[0]} samples")
 
+    bh, bw = parse_size(size, h, w)
     blur = meas.copy()
     surviving = []
     for t in range(n_traj):
@@ -215,15 +265,15 @@ def apply_dead_block(meas, idx_per_traj, size, seed, per_traj, h=256, w=256,
                                             return_distances=False,
                                             return_indices=True)
             if fill == "zero":
-                blur[lo:hi, ..., y0:y0 + size, x0:x0 + size] = 0.0
+                blur[lo:hi, ..., y0:y0 + bh, x0:x0 + bw] = 0.0
             else:
-                sub_y = iy[y0:y0 + size, x0:x0 + size]     # nearest surviving sensor
-                sub_x = ix[y0:y0 + size, x0:x0 + size]     # for each pixel in the hole
-                blur[lo:hi, ..., y0:y0 + size, x0:x0 + size] = \
+                sub_y = iy[y0:y0 + bh, x0:x0 + bw]     # nearest surviving sensor
+                sub_x = ix[y0:y0 + bh, x0:x0 + bw]     # for each pixel in the hole
+                blur[lo:hi, ..., y0:y0 + bh, x0:x0 + bw] = \
                     meas[lo:hi][..., sub_y, sub_x]
         if log is not None:
             where = "none" if block is None else f"at (y={block[0]}, x={block[1]})"
-            log(f"  trajectory {t}: block {size}x{size} {where}; "
+            log(f"  trajectory {t}: block {bh}x{bw} {where}; "
                 f"{n_dead}/{len(idx_per_traj[t])} sensors dead, {len(keep)} surviving")
     return blur, surviving
 
@@ -246,15 +296,16 @@ def build_from_config(args, config, blur_data, log=None, idx_kw="idx_lst"):
     """
     import torch
 
-    size = int(getattr(args, "block_size", 0) or 0)
-    if size <= 0:
+    size = getattr(args, "block_size", 0)
+    meas = blur_data.numpy() if hasattr(blur_data, "numpy") else np.asarray(blur_data)
+    h, w = meas.shape[-2], meas.shape[-1]
+    bh, bw = parse_size(size, h, w)
+    if bh <= 0:
         return None, None
 
     seed = int(getattr(args, "block_seed", 0) or 0)
     pos = getattr(args, "block_pos", "") or None
     fill = getattr(args, "block_fill", "extrapolate") or "extrapolate"
-    meas = blur_data.numpy() if hasattr(blur_data, "numpy") else np.asarray(blur_data)
-    h, w = meas.shape[-2], meas.shape[-1]
 
     with np.load(config.data.sample_data_dir, allow_pickle=True) as f:
         idx_per_traj = f[idx_kw][-4:].astype(np.int64)      # test trajectories
@@ -262,7 +313,9 @@ def build_from_config(args, config, blur_data, log=None, idx_kw="idx_lst"):
     per_traj = meas.shape[0] // n_traj
 
     if log is not None:
-        log(f"DEAD BLOCK: {size}x{size} unobserved square, position="
+        area = bh * bw
+        log(f"DEAD BLOCK: {bh}x{bw} unobserved region "
+            f"({area:,} px = {100.0 * area / (h * w):.2f}% of the field), position="
             f"{pos or f'random (seed {seed})'}, fill={fill}"
             + ("  (true void - inpainting)" if fill == "zero"
                else "  (extrapolated from surviving sensors)"))
@@ -288,19 +341,20 @@ def self_test(u3232, idx_per_traj, per_traj, size, seed, h=256, w=256, pos=None)
     surviving sensor may lie within the hole.
     """
     u = np.asarray(u3232)
+    bh, bw = parse_size(size, h, w)
     zero, _ = apply_dead_block(u, idx_per_traj, 0, 0, per_traj, h, w)
     blur, surv = apply_dead_block(u, idx_per_traj, size, seed, per_traj, h, w, pos=pos)
     b = block_for_trajectory(size, seed, 0, h, w, pos)
     y0, x0 = b
     outside = np.ones((h, w), bool)
-    outside[y0:y0 + size, x0:x0 + size] = False
+    outside[y0:y0 + bh, x0:x0 + bw] = False
     iy, ix = np.divmod(surv[0], w)
     return {
         "size0_untouched": float(np.abs(zero - u).max()),
         "outside_untouched": float(np.abs(blur[:per_traj][..., outside]
                                           - u[:per_traj][..., outside]).max()),
-        "inside_changed": float(np.abs(blur[:per_traj][..., y0:y0 + size, x0:x0 + size]
-                                       - u[:per_traj][..., y0:y0 + size, x0:x0 + size]).mean()),
-        "survivors_in_hole": int(((iy >= y0) & (iy < y0 + size) &
-                                  (ix >= x0) & (ix < x0 + size)).sum()),
+        "inside_changed": float(np.abs(blur[:per_traj][..., y0:y0 + bh, x0:x0 + bw]
+                                       - u[:per_traj][..., y0:y0 + bh, x0:x0 + bw]).mean()),
+        "survivors_in_hole": int(((iy >= y0) & (iy < y0 + bh) &
+                                  (ix >= x0) & (ix < x0 + bw)).sum()),
     }

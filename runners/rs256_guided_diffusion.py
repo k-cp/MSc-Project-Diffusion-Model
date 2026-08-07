@@ -510,10 +510,15 @@ class Diffusion(object):
                     # l2_loss_log[f'run_{repeat}'].append(l2_loss_f.item())
                     # residual_loss_log[f'run_{repeat}'].append(residual_loss_f.item())
 
-                    # Store final losses
-                    l2_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, it] = l2_loss_f.item()
-                    residual_loss_all[batch_index * x.shape[0]:(batch_index + 1) * x.shape[0], repeat, 
-                    it] = residual_loss_f.item()
+                    # Store final losses.
+                    # Offset MUST use the configured batch size, not x.shape[0]: the
+                    # final batch is short (1272 = 63*20 + 12), so x.shape[0] would put
+                    # it at row 63*12=756 instead of 63*20=1260 -- clobbering earlier
+                    # rows and leaving the tail at zero (~1% bias in the reported mean).
+                    _row0 = batch_index * self.config.sampling.batch_size
+                    _row1 = _row0 + x.shape[0]
+                    l2_loss_all[_row0:_row1, repeat, it] = l2_loss_f.item()
+                    residual_loss_all[_row0:_row1, repeat, it] = residual_loss_f.item()
 
                     # Save the reconstruction as an image (same as input/reference).
                     sample_img_filename = f'sample_run_{repeat}_it{it}.png'
