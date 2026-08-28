@@ -175,19 +175,34 @@ def main():
     blur = ref * mask                        # what every model was handed
 
     ncol = 2 + 2 * len(found)
-    # Each view (full field, zoom) needs `ncol` panels. Wrapping them onto rows of
-    # `per_row` keeps the panels legible once there are more than about three models.
+    # Layout: truth and input share the first row on their own, then the model
+    # panels wrap `per_row` at a time. With 4 models that is 2 + 4 + 4, which fits
+    # a page legibly; the old single row of 2 + 2*models was unreadable past three.
     per_row = a.per_row if a.per_row > 0 else ncol
-    rows_per_view = -(-ncol // per_row)                 # ceil
+    model_rows = -(-(ncol - 2) // per_row) if a.per_row > 0 else 0
+    rows_per_view = (1 + model_rows) if a.per_row > 0 else 1
+    ngrid = per_row if a.per_row > 0 else ncol
     nrow = 2 * rows_per_view
-    fig, axes = plt.subplots(nrow, per_row,
-                             figsize=(2.5 * per_row, 3.3 * nrow), squeeze=False)
+    # Square cells: any taller and a 4x6 grid overflows an A4 text block when
+    # included at \textwidth (24.0 cm tall at aspect 0.667, against 24.7 available).
+    fig, axes = plt.subplots(nrow, ngrid,
+                             figsize=(2.6 * ngrid, 2.6 * nrow), squeeze=False)
     for ax in axes.ravel():
         ax.set_axis_off()                               # blanks any unused cell
 
     def slot(view, i):
-        """Panel i of view (0 full field, 1 zoom) -> axis, wrapped onto rows."""
-        ax = axes[view * rows_per_view + i // per_row][i % per_row]
+        """Panel i of view (0 full field, 1 zoom) -> axis.
+
+        i = 0, 1 are truth and input and take the view's first row. i >= 2 are the
+        model panels and wrap `per_row` at a time onto the rows beneath."""
+        base = view * rows_per_view
+        if a.per_row <= 0:
+            r, c = base, i
+        elif i < 2:
+            r, c = base, i
+        else:
+            r, c = base + 1 + (i - 2) // per_row, (i - 2) % per_row
+        ax = axes[r][c]
         ax.set_axis_on()
         return ax
 
